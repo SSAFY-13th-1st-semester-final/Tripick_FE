@@ -91,7 +91,6 @@
       })
   
       member.value = response.data
-      // 초기값 복사
       editedMember.value.name = response.data.name
       editedMember.value.email = response.data.email
       editedMember.value.password = ''
