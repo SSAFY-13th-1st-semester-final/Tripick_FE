@@ -87,12 +87,7 @@
             >
               로그인
             </router-link>
-            <router-link
-              to="/signup"
-              class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
-            >
-              회원가입
-            </router-link>
+
           </template>
         </div>
       </div>
