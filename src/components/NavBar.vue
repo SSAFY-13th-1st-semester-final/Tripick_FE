@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between w-full">
         <!-- 로고 -->
         <router-link to="/" class="flex items-center space-x-2">
-          <img src="@/assets/logo.png" alt="logo" class="h-6 w-auto" />
+          <img src="@/assets/icons/logo.png" alt="logo" class="h-6 w-auto" />
         </router-link>
 
         <!-- 메뉴 -->
@@ -33,18 +33,18 @@
           <!-- 로그인 상태 --> 
           <template v-if="isLoggedIn">
             <!-- 사용자 아이콘 (로그인된 상태) -->
-            <div class="relative" ref="profileIcon">
+            <div ref="profileIcon" class="relative">
               <img
-                src="@/assets/icon_member.svg"
+                src="@/assets/icons/icon_member.svg"
                 alt="user icon"
-                @click="toggleProfilePopup"
                 class="h-6 w-6 cursor-pointer"
-              />
+                @click="toggleProfilePopup"
+              >
               <!-- 프로필 팝업 -->
               <div
                 v-if="isProfilePopupVisible"
-                class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10"
                 ref="profilePopup"
+                class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10"
               >
                 <div class="py-2">
                   <router-link
@@ -102,6 +102,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
+import TokenService from '../services/token.service';
 
 export default {
   name: 'NavBar',
@@ -122,7 +123,7 @@ export default {
       this.isProfilePopupVisible = !this.isProfilePopupVisible; // 프로필 팝업 토글
     },
     logoutHandler() {
-      localStorage.removeItem('user'); // 로컬스토리지에서 토큰 삭제
+      TokenService.clear();
       this.$store.commit('logout');
       this.$router.push({ name: 'home' }); // 홈으로 리디렉션
       this.isProfilePopupVisible = false; // 팝업 닫기

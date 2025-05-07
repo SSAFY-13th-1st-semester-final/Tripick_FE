@@ -66,7 +66,6 @@ const emit = defineEmits({
 
 // 새 게시글 객체
 const newPost = ref({
-  username: localStorage.getItem('username') || '', // 'username'이 없을 경우 빈 문자열 처리
   boardType: 'GENERAL_FORUM',
   title: '',
   content: '',
@@ -74,29 +73,28 @@ const newPost = ref({
 
 // 모달 닫기
 const close = () => {
-  emit('close'); // 부모 컴포넌트에 'close' 이벤트 전달
+  emit('close'); 
 };
 
 // 게시글 작성
 const createPost = async () => {
-  const token = localStorage.getItem('user'); // 로컬스토리지에서 토큰 가져오기
+  const token = localStorage.getItem('access-token');
   
   if (!token) {
     console.error('토큰이 존재하지 않습니다.');
-    return; // 토큰이 없다면 더 이상 진행하지 않음
+    return;
   }
 
   try {
-    const response = await axios.post('/api/v1/posts', newPost.value, {
+    const response = await axios.post('/v1/posts', newPost.value, {
       headers: {
-        'Authorization': `Bearer ${token}`, // Authorization 헤더에 JWT 토큰 포함
-      },
+          Authorization: `Bearer ${token}`
+        }
     });
-    emit('post-created', response.data); // 게시글 작성 후 부모에게 알림
-    close(); // 모달 닫기
+    emit('post-created', response.data); 
+    close();
   } catch (error) {
     console.error('게시글 작성 실패:', error);
-    // 에러 핸들링: 사용자에게 에러 메시지 표시하거나 다른 처리
   }
 };
 </script>
@@ -104,6 +102,5 @@ const createPost = async () => {
 
   
   <style scoped>
-  /* 여기에 스타일 추가 가능 */
   </style>
   

@@ -16,6 +16,7 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'vue/no-unused-vars': 'off'  // Vue에서 사용되는 변수 경고 끄기 (필요에 따라 설정 가능)
+    'vue/no-unused-vars': 'off',
+    
   }
 }

@@ -82,9 +82,9 @@
   
   const fetchMemberInfo = async () => {
     try {
-      const token = localStorage.getItem('user')
+      const token = localStorage.getItem('access-token')
   
-      const response = await axios.get('/api/v1/member', {
+      const response = await axios.get('/v1/member', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -135,7 +135,7 @@
         return
       }
   
-      const response = await axios.put('/api/v1/member', payload, {
+      const response = await axios.put('/v1/member', payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }

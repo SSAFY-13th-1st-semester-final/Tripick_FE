@@ -77,15 +77,17 @@ import PostCreateModal from '../components/PostCreateModal.vue'
 const posts = ref([])
 const page = ref(1)
 const size = 10
+const maxPage = ref(1)
 const selectedPost = ref(null)
 const isCreatePostModalOpen = ref(false) // 글쓰기 모달 상태
 
 const fetchPosts = async () => {
   try {
-    const response = await axios.get('/api/v1/posts', {
+    const response = await axios.get('/v1/posts', {
       params: { page: page.value, size }
     })
-    posts.value = response.data
+    posts.value = response.data.posts || []
+    maxPage.value = response.data.maxPage || 1
   } catch (error) {
     console.error('게시글 불러오기 실패:', error)
   }
@@ -93,7 +95,7 @@ const fetchPosts = async () => {
 
 const openPost = async (postId) => {
   try {
-    const response = await axios.get(`/api/v1/posts/${postId}`)
+    const response = await axios.get(`/v1/posts/${postId}`)
     selectedPost.value = response.data
   } catch (err) {
     console.error('게시글 상세 조회 실패:', err)
@@ -131,8 +133,10 @@ const prevPage = () => {
 }
 
 const nextPage = () => {
-  page.value++
-  fetchPosts()
+  if (page.value < maxPage.value) {
+    page.value++
+    fetchPosts()
+  }
 }
 
 const openCreatePostModal = () => {
@@ -151,6 +155,7 @@ onMounted(() => {
   fetchPosts()
 })
 </script>
+
 
 <style scoped>
 /* 스타일이 필요하면 여기에 추가 */

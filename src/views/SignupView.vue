@@ -38,7 +38,7 @@
     methods: {
       async signup() {
         try {
-          await axios.post('/api/v1/member', this.form);
+          await axios.post('/v1/member', this.form);
           this.message = '회원가입 성공! 로그인 페이지로 이동하세요.';
           this.$router.push('/login');
         } catch (err) {
