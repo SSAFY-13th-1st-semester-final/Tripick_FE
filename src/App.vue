@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 네비게이션 바 컴포넌트 -->
-    <NavBar />
+    <AppHeader />
 
     <!-- 라우터 뷰 영역 -->
     <router-view />
@@ -12,17 +12,23 @@
 </template>
 
 <script>
-import NavBar from './components/NavBar.vue';
+import AppHeader from './components/Header.vue';
 import AppFooter from './components/Footer.vue'; 
 
 export default {
   name: 'App',
   components: {
-    NavBar, 
+    AppHeader, 
     AppFooter,
   },
 };
 </script>
 
 <style>
+  html, body {
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+  }
+  * {
+    font-family: inherit;
+  }
 </style>

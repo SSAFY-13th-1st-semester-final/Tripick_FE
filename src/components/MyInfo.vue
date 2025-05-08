@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 w-full mx-auto bg-white rounded shadow-lg flex flex-col justify-between flex-row justify-center">
+  <div class="p-4 w-full mx-auto bg-white rounded shadow-lg flex flex-col justify-between flex-row justify-center font-apple-sdgothic">
     <div class="">
       <!-- 상단 내용 영역 -->
       <div>
