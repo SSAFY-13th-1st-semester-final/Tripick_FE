@@ -195,7 +195,7 @@ const isFormValid = computed(() => {
 const signup = async () => {
   try {
     const fullName = `${form.lastName}${form.firstName}`
-    const response = await axios.post('http://localhost:8000/signup', {
+    const response = await axios.post('/v1/member', {
       username: form.username,
       password: form.password,
       email: form.email,
