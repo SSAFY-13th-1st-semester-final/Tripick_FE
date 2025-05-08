@@ -1,199 +1,214 @@
 <template>
-  <div class="p-6 max-w-xs mx-auto bg-white rounded shadow-lg">
-    <!-- 프로필 이미지 영역 (중앙 정렬 추가) -->
-    <div class="flex justify-center items-center w-full mb-4">
-      <div class="w-24 h-24 rounded-full bg-gray-300 overflow-hidden">
-        <img :src="profileImage" alt="Profile Image" class="w-full h-full object-cover" />
-      </div>
+  <div class="flex flex-col items-center justify-start min-h-screen pt-12 p-6 text-center font-apple-sdgothic">
+    <h1 class="text-3xl font-bold mb-4">SSAFY 계정 생성</h1>
+
+    <div class="text-ms mb-6">
+      SSAFY 계정을 가지고 계십니까?
+      <router-link
+        to="/login"
+        class="text-ms inline-flex items-center text-blue-500 hover:underline ml-1"
+      >
+        <span>로그인</span>
+        <ArrowUpRight class="w-4 h-4 ml-1" />
+      </router-link>
     </div>
 
-    <!-- 이름과 역할, 이메일 영역 -->
-    <div class="text-center w-full">
-      <!-- 이름과 역할을 수평 배치, 수평선 기준 bottom 정렬 -->
-      <div class="flex justify-center items-end space-x-4 mb-4">
-        <div class="text-2xl font-bold">{{ member.name }}</div>
-        <div class="text-sm text-gray-400">{{ userRole }}</div>
-      </div>
-
-      <!-- 이메일: 수정 모드일 때는 이메일 수정 폼을 보여주고, 그렇지 않으면 기존 이메일을 보여주지 않음 -->
-      <div v-if="!editMode" class="text-lg text-gray-600">{{ member.email }}</div>
-      <div v-if="editMode">
-        <transition name="fade">
-          <div class="relative mb-4">
-            <input 
-              v-model="editedMember.email" 
-              id="email" 
-              class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" 
-              placeholder="이메일 수정"
-            />
-            <label
-              :class="[
-                'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
-                editedMember.email || focused === 'email'
-                  ? 'text-xs top-1 text-blue-800'
-                  : 'top-3.5'
-              ]"
-            >이메일</label>
-          </div>
-        </transition>
-      </div>
-    </div>
-
-    <!-- 수정 가능한 항목 (이름, 비밀번호) -->
-    <div v-if="editMode" class="space-y-4 mt-4 w-full">
-      <transition name="fade">
-        <div class="relative mb-4">
+    <form @submit.prevent="signup" class="w-full max-w-lg">
+      <!-- 성 + 이름 -->
+      <div class="flex space-x-2 mb-4">
+        <div class="relative w-1/2">
           <input
-            v-model="editedMember.name"
-            id="name"
-            @focus="focused = 'name'"
+            v-model="form.lastName"
+            @focus="focused = 'lastName'"
             @blur="focused = ''"
             class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <label
             :class="[
               'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
-              editedMember.name || focused === 'name'
+              form.lastName || focused === 'lastName'
+                ? 'text-xs top-1 text-blue-800'
+                : 'top-3.5'
+            ]"
+          >성</label>
+        </div>
+
+        <div class="relative w-1/2">
+          <input
+            v-model="form.firstName"
+            @focus="focused = 'firstName'"
+            @blur="focused = ''"
+            class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <label
+            :class="[
+              'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
+              form.firstName || focused === 'firstName'
                 ? 'text-xs top-1 text-blue-800'
                 : 'top-3.5'
             ]"
           >이름</label>
         </div>
-      </transition>
+      </div>
 
-      <transition name="fade">
-        <div class="relative mb-4">
-          <input
-            v-model="editedMember.password"
-            type="password"
-            id="password"
-            @focus="focused = 'password'"
-            @blur="focused = ''"
-            class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="비밀번호 입력"
-          />
-          <label
-            :class="[
-              'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
-              editedMember.password || focused === 'password'
-                ? 'text-xs top-1 text-blue-800'
-                : 'top-3.5'
-            ]"
-          >비밀번호</label>
-        </div>
-      </transition>
-    </div>
+      <!-- 아이디 -->
+      <div class="relative mb-4">
+        <input
+          v-model="form.username"
+          @focus="focused = 'username'"
+          @blur="focused = ''"
+          class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label
+          :class="[
+            'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
+            form.username || focused === 'username'
+              ? 'text-xs top-1 text-blue-800'
+              : 'top-3.5'
+          ]"
+        >아이디</label>
+      </div>
 
-    <!-- 수정/완료/취소 텍스트 -->
-    <div class="mt-4 flex justify-end space-x-4">
-      <span v-if="!editMode" @click="enableEdit" class="text-blue-500 cursor-pointer text-xs">수정</span>
-      <span v-if="editMode" @click="submitEdit" class="text-blue-500 cursor-pointer text-xs">완료</span>
-      <span v-if="editMode" @click="cancelEdit" class="text-gray-500 cursor-pointer text-xs">취소</span>
-    </div>
+      <!-- 비밀번호 -->
+      <div class="relative mb-4">
+        <input
+          v-model="form.password"
+          type="password"
+          @focus="focused = 'password'"
+          @blur="focused = ''"
+          class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label
+          :class="[
+            'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
+            form.password || focused === 'password'
+              ? 'text-xs top-1 text-blue-800'
+              : 'top-3.5'
+          ]"
+        >비밀번호</label>
+      </div>
+
+      <!-- 비밀번호 재입력 -->
+      <div class="relative mb-4">
+        <input
+          v-model="form.passwordConfirm"
+          type="password"
+          @focus="focused = 'passwordConfirm'"
+          @blur="focused = ''"
+          class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label
+          :class="[
+            'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
+            form.passwordConfirm || focused === 'passwordConfirm'
+              ? 'text-xs top-1 text-blue-800'
+              : 'top-3.5'
+          ]"
+        >비밀번호 재입력</label>
+      </div>
+
+      <!-- 이메일 -->
+      <div class="relative mb-6">
+        <input
+          v-model="form.email"
+          type="email"
+          @focus="focused = 'email'"
+          @blur="focused = ''"
+          class="peer w-full pt-6 pb-2 px-4 text-sm border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label
+          :class="[
+            'absolute left-4 text-sm text-gray-500 transition-all duration-200 pointer-events-none',
+            form.email || focused === 'email'
+              ? 'text-xs top-1 text-blue-800'
+              : 'top-3.5'
+          ]"
+        >이메일</label>
+      </div>
+
+      <hr class="mb-6" />
+
+      <!-- 개인정보 처리방침 동의 -->
+      <div class="flex items-start space-x-2 mb-6">
+        <input
+          type="checkbox"
+          id="agree"
+          v-model="form.agree"
+          class="w-4 h-4 border border-gray-400 rounded"
+        />
+        <label for="agree" class="text-sm text-left m-0">
+          <a
+            href="/privacy-policy"
+            target="_blank"
+            class="text-blue-500 hover:underline"
+          >
+          SSAFY의 개인정보 처리방침
+          </a>
+          에 따라 개인정보 수집 및 처리에 동의합니다.
+        </label>
+      </div>
+
+      <hr class="mb-6" />
+
+      <button
+        type="submit"
+        :class="{ 'bg-blue-300': !isFormValid, 'bg-blue-500 hover:bg-blue-700': isFormValid }"
+        :disabled="!isFormValid"
+        class="w-full p-3 text-sm text-white font-semibold rounded-xl transition-colors duration-300"
+      >
+        계속
+      </button>
+    </form>
+
+    <p v-if="message" class="mt-4 text-sm text-red-500">{{ message }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { ArrowUpRight } from 'lucide-vue-next'
 
-const member = ref({
+const router = useRouter()
+
+const form = reactive({
+  lastName: '',
+  firstName: '',
   username: '',
-  name: '',
-  email: ''
-})
-const editedMember = ref({
-  name: '',
+  password: '',
+  passwordConfirm: '',
   email: '',
-  password: ''
+  agree: false
 })
-const userRole = ref('')
-const profileImage = ref('') // 프로필 이미지 경로
-const editMode = ref(false)
+
 const focused = ref('')
+const message = ref('')
 
-const fetchMemberInfo = async () => {
-  try {
-    const token = localStorage.getItem('access-token')
-    const response = await axios.get('/v1/member', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    member.value = response.data
-    profileImage.value = response.data.profileImage || '/default-profile.jpg'
-    userRole.value = localStorage.getItem('role') || '사용자'
-
-    editedMember.value.name = member.value.name
-    editedMember.value.email = member.value.email
-    editedMember.value.password = ''
-  } catch (error) {
-    console.error('회원 정보 요청 실패:', error)
-  }
-}
-
-const enableEdit = () => {
-  editMode.value = true
-}
-
-const cancelEdit = () => {
-  editMode.value = false
-  // 기존 값을 되돌리기
-  editedMember.value.name = member.value.name
-  editedMember.value.email = member.value.email
-  editedMember.value.password = ''
-}
-
-const submitEdit = async () => {
-  try {
-    const token = localStorage.getItem('access-token')
-
-    const payload = {}
-
-    if (editedMember.value.name !== member.value.name) {
-      payload.name = editedMember.value.name
-    }
-
-    if (editedMember.value.email !== member.value.email) {
-      payload.email = editedMember.value.email
-    }
-
-    if (editedMember.value.password) {
-      payload.password = editedMember.value.password
-    }
-
-    if (Object.keys(payload).length === 0) {
-      console.log('변경된 내용이 없습니다.')
-      editMode.value = false
-      return
-    }
-
-    await axios.put('/v1/member', payload, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    // 수정된 정보 반영
-    member.value = { ...member.value, ...payload }
-    editMode.value = false
-  } catch (error) {
-    console.error('회원 정보 수정 실패:', error)
-  }
-}
-
-onMounted(() => {
-  fetchMemberInfo()
+// 모든 필드 입력 확인 및 유효성 검사
+const isFormValid = computed(() => {
+  const requiredFilled = form.lastName && form.firstName && form.username && form.email
+  const passwordMatch = form.password === form.passwordConfirm
+  return requiredFilled && passwordMatch && form.agree
 })
-</script>
 
-<style scoped>
-/* 스타일 조정 */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
+const signup = async () => {
+  try {
+    const fullName = `${form.lastName}${form.firstName}`
+    const response = await axios.post('http://localhost:8000/signup', {
+      username: form.username,
+      password: form.password,
+      email: form.email,
+      name: fullName
+    })
+
+    if (response.status === 201) {
+      router.push('/login')
+    } else {
+      message.value = response.data.message || '회원가입 실패'
+    }
+  } catch (error) {
+    message.value = error.response?.data?.message || '회원가입 중 오류 발생'
+  }
 }
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-</style>
+</script>

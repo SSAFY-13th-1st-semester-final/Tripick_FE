@@ -1,7 +1,7 @@
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-screen font-apple-sdgothic">
     <!-- 내정보 컴포넌트 추가 -->
-    <div class="absolute top-0 left-0 w-[300px]">
+    <div class="absolute top-10 left-10 w-[14rem]">
       <MyInfo />
     </div>
     <!-- 여기에 나머지 MyPage 콘텐츠들 -->
