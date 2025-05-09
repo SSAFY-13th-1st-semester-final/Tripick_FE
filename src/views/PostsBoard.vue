@@ -1,58 +1,39 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">게시판</h1>
-
-    <!-- Create 버튼 -->
+  <div class="p-6 max-w-screen-2xl mx-auto pt-12">
+    <!-- 글쓰기 버튼 -->
     <div class="flex justify-end mb-4">
       <button
         @click="openCreatePostModal"
-        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300"
       >
         글쓰기
       </button>
     </div>
 
-    <div class="overflow-x-auto shadow rounded-lg">
-      <table class="min-w-full bg-white border border-gray-200">
-        <thead>
-          <tr class="bg-gray-100 text-left">
-            <th class="px-4 py-2 border">번호</th>
-            <th class="px-4 py-2 border">작성자</th>
-            <th class="px-4 py-2 border">게시판 종류</th>
-            <th class="px-4 py-2 border">제목</th>
-            <th class="px-4 py-2 border">좋아요</th>
-            <th class="px-4 py-2 border">작성일</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="post in posts"
-            :key="post.postId"
-            class="hover:bg-gray-50"
-          >
-            <td class="px-4 py-2 border">{{ post.postId }}</td>
-            <td class="px-4 py-2 border">{{ post.username }}</td>
-            <td class="px-4 py-2 border">{{ boardTypeToText(post.boardType) }}</td>
-            <td
-              class="px-4 py-2 border hover:underline cursor-pointer"
-              @click="openPost(post.postId)"
-            >
-              {{ post.title }}
-            </td>
-            <td class="px-4 py-2 border">{{ post.likeCount }}</td>
-            <td class="px-4 py-2 border">{{ formatDate(post.createdAt) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- 게시글 목록 (전체 페이지가 스크롤 대상) -->
+    <div
+      ref="scrollContainer"
+      class="grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+    >
+      <PostCard
+        v-for="post in posts"
+        :key="post.postId"
+        :post="post"
+        @click="openPost(post.postId)"
+      />
     </div>
 
-    <div class="mt-4 flex justify-center items-center gap-2">
-      <button @click="prevPage" :disabled="page === 1" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">이전</button>
-      <span class="text-sm font-medium">페이지 {{ page }}</span>
-      <button @click="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">다음</button>
+    <!-- 로딩 중 -->
+    <div v-if="isLoading" class="text-center mt-4 text-gray-500">
+      불러오는 중...
     </div>
 
-    <!-- 게시글 상세 모달 -->
+    <!-- 더 이상 없음 -->
+    <div v-if="!hasMore && !isLoading" class="text-center mt-4 text-gray-400">
+      더 이상 게시글이 없습니다.
+    </div>
+
+    <!-- 상세 모달 -->
     <PostDetailModal
       v-if="selectedPost"
       :post="selectedPost"
@@ -65,98 +46,118 @@
       @close="closeCreatePostModal"
       @post-created="addNewPost"
     />
+
+    <!-- 위쪽 화살표 버튼 (화면 우측 하단 고정) -->
+    <button
+      v-if="showScrollButton"
+      @click="scrollToTop"
+      class="fixed bottom-20 right-5 bg-gray-100 text-white rounded-full p-3 z-10 hover:bg-gray-300 transition-colors duration-500"
+    >
+      <img src="@/assets/icons/icon_up_arrow.svg" alt="Scroll to top" class="w-4 h-4" />
+    </button>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
+import PostCard from '../components/PostCard.vue'
 import PostDetailModal from '../components/PostDetailModal.vue'
 import PostCreateModal from '../components/PostCreateModal.vue'
 
-const posts = ref([])
+// 상태 변수
+const posts = ref([])  
 const page = ref(1)
-const size = 10
-const maxPage = ref(1)
+const size = 20
+const maxPage = ref(null) 
+const isLoading = ref(false)
+const hasMore = ref(true)
+const isCreatePostModalOpen = ref(false)
 const selectedPost = ref(null)
-const isCreatePostModalOpen = ref(false) // 글쓰기 모달 상태
+const scrollContainer = ref(null)
+const showScrollButton = ref(false)
 
+// 게시글 불러오기
 const fetchPosts = async () => {
+  if (isLoading.value || !hasMore.value) return
+  isLoading.value = true
   try {
-    const response = await axios.get('/v1/posts', {
+    const res = await axios.get('/v1/posts', {
       params: { page: page.value, size }
     })
-    posts.value = response.data.posts || []
-    maxPage.value = response.data.maxPage || 1
-  } catch (error) {
-    console.error('게시글 불러오기 실패:', error)
+    const newPosts = res.data.posts || []
+
+    if (maxPage.value === null && res.data.maxPage != null) {
+      maxPage.value = res.data.maxPage
+    }
+
+    if (newPosts.length) {
+      posts.value.push(...newPosts)
+      page.value++
+      hasMore.value = page.value <= maxPage.value
+    } else {
+      hasMore.value = false
+    }
+  } catch (err) {
+    console.error('게시글 불러오기 실패:', err)
+  } finally {
+    isLoading.value = false
   }
 }
 
+// 스크롤 이벤트 (window 기준)
+const handleScroll = () => {
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 50
+  if (nearBottom) {
+    fetchPosts()
+  }
+
+  showScrollButton.value = window.scrollY > 100
+}
+
+// 게시글 상세 열기
 const openPost = async (postId) => {
   try {
-    const response = await axios.get(`/v1/posts/${postId}`)
-    selectedPost.value = response.data
+    const res = await axios.get(`/v1/posts/${postId}`)
+    selectedPost.value = res.data
   } catch (err) {
     console.error('게시글 상세 조회 실패:', err)
   }
 }
 
-const formatDate = (isoDate) => {
-  const date = new Date(isoDate)
-  const now = new Date()
-
-  const isSameDay = date.getFullYear() === now.getFullYear() &&
-                    date.getMonth() === now.getMonth() &&
-                    date.getDate() === now.getDate()
-
-  if (isSameDay) {
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-  } else {
-    return `${String(date.getFullYear()).slice(-2)}.${date.getMonth() + 1}.${date.getDate()}`
-  }
-}
-
-const boardTypeToText = (type) => {
-  switch (type) {
-    case 'GENERAL_FORUM': return '자유게시판'
-    case 'NOTICE': return '공지사항'
-    default: return type
-  }
-}
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value--
-    fetchPosts()
-  }
-}
-
-const nextPage = () => {
-  if (page.value < maxPage.value) {
-    page.value++
-    fetchPosts()
-  }
-}
-
+// 글쓰기 모달 열기/닫기
 const openCreatePostModal = () => {
   isCreatePostModalOpen.value = true
 }
-
 const closeCreatePostModal = () => {
   isCreatePostModalOpen.value = false
 }
 
+// 새 게시글 추가
 const addNewPost = (newPost) => {
-  posts.value.unshift(newPost) // 새로 작성한 게시글을 맨 앞에 추가
+  posts.value.unshift(newPost)
 }
 
+// 최초 로딩 + 스크롤 이벤트 등록
 onMounted(() => {
   fetchPosts()
+  window.addEventListener('scroll', handleScroll)
 })
+
+// 스크롤 이벤트 제거
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+// 최상단으로 스크롤 이동
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
 </script>
 
-
 <style scoped>
-/* 스타일이 필요하면 여기에 추가 */
+/* fixed 버튼 우측 하단 고정용 스타일은 클래스에 이미 있음 (위쪽 화살표 버튼) */
 </style>

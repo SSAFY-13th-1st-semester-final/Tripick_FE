@@ -7,7 +7,7 @@
         :key="index"
         class="absolute inset-0 transition-opacity duration-1000 ease-in-out"
         :class="{
-          'opacity-100 z-10': currentIndex === index,
+          'opacity-100 z-0': currentIndex === index,
           'opacity-0 z-0': currentIndex !== index
         }"
       >

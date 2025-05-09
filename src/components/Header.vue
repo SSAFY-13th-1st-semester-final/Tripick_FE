@@ -1,14 +1,14 @@
 <template>
-  <nav class="bg-white h-12 font-apple-sdgothic">
+  <nav class="bg-white h-12  font-apple-sdgothic font-medium">
     <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-full flex items-center">
       <div class="flex items-center justify-between w-full">
         <!-- 로고 -->
         <router-link to="/" class="flex items-center space-x-2">
-          <img src="@/assets/icons/logo.png" alt="logo" class="h-6 w-auto" />
+          <img src="@/assets/icons/logo.png" alt="logo" class="h-4 w-auto" />
         </router-link>
 
         <!-- 메뉴 -->
-        <div class="flex space-x-3 text-xs">
+        <div class="flex space-x-2 text-xs text-bold">
           <router-link
             to="/all"
             class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
@@ -33,11 +33,11 @@
           <!-- 로그인 상태 --> 
           <template v-if="isLoggedIn">
             <!-- 사용자 아이콘 (로그인된 상태) -->
-            <div ref="profileIcon" class="relative">
+            <div ref="profileIcon" class="relative px-2">
               <img
                 src="@/assets/icons/icon_member.svg"
                 alt="user icon"
-                class="h-6 w-6 cursor-pointer"
+                class="h-5 w-5 cursor-pointer"
                 @click="toggleProfilePopup"
               >
               <!-- 프로필 팝업 -->
