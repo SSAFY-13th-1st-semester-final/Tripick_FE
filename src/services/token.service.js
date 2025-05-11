@@ -22,6 +22,8 @@ class TokenService {
     localStorage.removeItem("access-token");
     localStorage.removeItem("refresh-token");
     localStorage.removeItem("user");
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
 
   }
 }

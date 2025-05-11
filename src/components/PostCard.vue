@@ -6,7 +6,7 @@
       <!-- 작성자 정보 -->
       <div class="flex items-end mb-2 px-2 pt-2">
         <img :src="profileImageSrc" alt="프로필" class="w-5 h-5 rounded-full mr-2" />
-        <span class="text-xs text-gray-600 font-bold">{{ post.username }}</span>
+        <span class="text-xs text-gray-600 font-bold">{{ post.nickname }}</span>
       </div>
   
       <!-- 썸네일 -->

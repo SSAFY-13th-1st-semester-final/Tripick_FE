@@ -10,7 +10,7 @@
       </button>
     </div>
 
-    <!-- 게시글 목록 (전체 페이지가 스크롤 대상) -->
+    <!-- 게시글 목록 -->
     <div
       ref="scrollContainer"
       class="grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
@@ -44,10 +44,10 @@
     <PostCreateModal
       v-if="isCreatePostModalOpen"
       @close="closeCreatePostModal"
-      @post-created="addNewPost"
+      @post-created="handlePostCreated"
     />
 
-    <!-- 위쪽 화살표 버튼 (화면 우측 하단 고정) -->
+    <!-- 위로 가기 버튼 -->
     <button
       v-if="showScrollButton"
       @click="scrollToTop"
@@ -59,17 +59,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import axios from 'axios'
 import PostCard from '../components/PostCard.vue'
 import PostDetailModal from '../components/PostDetailModal.vue'
 import PostCreateModal from '../components/PostCreateModal.vue'
 
 // 상태 변수
-const posts = ref([])  
+const posts = ref([])
 const page = ref(1)
 const size = 20
-const maxPage = ref(null) 
+const maxPage = ref(null)
 const isLoading = ref(false)
 const hasMore = ref(true)
 const isCreatePostModalOpen = ref(false)
@@ -77,14 +77,16 @@ const selectedPost = ref(null)
 const scrollContainer = ref(null)
 const showScrollButton = ref(false)
 
-// 게시글 불러오기
+// 게시글 목록 조회
 const fetchPosts = async () => {
   if (isLoading.value || !hasMore.value) return
   isLoading.value = true
+
   try {
     const res = await axios.get('/v1/posts', {
       params: { page: page.value, size }
     })
+
     const newPosts = res.data.posts || []
 
     if (maxPage.value === null && res.data.maxPage != null) {
@@ -105,17 +107,17 @@ const fetchPosts = async () => {
   }
 }
 
-// 스크롤 이벤트 (window 기준)
-const handleScroll = () => {
-  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 50
-  if (nearBottom) {
-    fetchPosts()
-  }
-
-  showScrollButton.value = window.scrollY > 100
+// 새 게시글 작성 후 목록 다시 불러오기
+const handlePostCreated = () => {
+  posts.value = []
+  page.value = 1
+  hasMore.value = true
+  maxPage.value = null
+  fetchPosts()
+  closeCreatePostModal()
 }
 
-// 게시글 상세 열기
+// 상세 보기
 const openPost = async (postId) => {
   try {
     const res = await axios.get(`/v1/posts/${postId}`)
@@ -133,31 +135,35 @@ const closeCreatePostModal = () => {
   isCreatePostModalOpen.value = false
 }
 
-// 새 게시글 추가
-const addNewPost = (newPost) => {
-  posts.value.unshift(newPost)
+// 스크롤 이벤트
+const handleScroll = () => {
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 50
+  if (nearBottom) fetchPosts()
+
+  showScrollButton.value = window.scrollY > 100
 }
 
-// 최초 로딩 + 스크롤 이벤트 등록
+// 최상단 이동
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 마운트/언마운트
 onMounted(() => {
   fetchPosts()
   window.addEventListener('scroll', handleScroll)
 })
-
-// 스크롤 이벤트 제거
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.body.style.overflow = ''
 })
 
-// 최상단으로 스크롤 이동
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
-};
+// 모달 오픈 시 body 스크롤 제어
+watch(selectedPost, (newVal) => {
+  document.body.style.overflow = newVal ? 'hidden' : ''
+})
 </script>
 
 <style scoped>
-/* fixed 버튼 우측 하단 고정용 스타일은 클래스에 이미 있음 (위쪽 화살표 버튼) */
+/* 필요시 추가 */
 </style>
