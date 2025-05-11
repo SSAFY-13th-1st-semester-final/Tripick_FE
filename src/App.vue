@@ -1,27 +1,31 @@
 <template>
   <div class="app-container">
-    <!-- 스크롤 시 같이 올라가는 헤더 -->
-    <AppHeader />
+    <!-- 항상 보여지는 헤더 -->
+    <AppHeader v-if="!isMapView" />
 
     <!-- 콘텐츠 영역 -->
-    <div class="content-area">
+    <div :class="isMapView ? 'flex-grow overflow-hidden' : 'content-area'">
       <router-view />
     </div>
 
-    <!-- 스크롤 끝에 나오는 일반적인 푸터 -->
-    <AppFooter />
+    <!-- MapView가 아닐 때만 푸터 보여줌 -->
+    <AppFooter v-if="!isMapView" />
   </div>
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import AppHeader from './components/Header.vue';
 import AppFooter from './components/Footer.vue';
 
 export default {
   name: 'App',
-  components: {
-    AppHeader,
-    AppFooter,
+  components: { AppHeader, AppFooter },
+  setup() {
+    const route = useRoute();
+    const isMapView = computed(() => route.path === '/map'); // 정확한 경로 확인
+    return { isMapView };
   },
 };
 </script>
@@ -47,20 +51,7 @@ html, body, #app {
 
 .content-area {
   flex: 1;
-  overflow-y: auto; /* 콘텐츠 영역에서 스크롤 가능 */
-  padding-bottom: 50px; /* 푸터가 가려지지 않도록 여백 추가 */
-}
-
-footer {
-  background-color: #f3f4f6;
-  color: #fff;
-  text-align: center;
-  padding: 0.5rem;
-  width: 100%;
-}
-
-footer .hover\:text-white:hover {
-  font-weight: 600;
-  color: gray;
+  overflow-y: auto;
+  padding-bottom: 50px; /* 푸터가 가려지지 않도록 */
 }
 </style>

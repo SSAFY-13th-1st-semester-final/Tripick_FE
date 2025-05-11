@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
 import SignupView from '../views/SignupView.vue';
-import PostsBoard from '../views/PostsBoard.vue'; // 게시판 추가
+import PostsBoard from '../views/PostsBoard.vue'; // 게시판 추가\
+import MapView from '../views/MapView.vue';
 
 const routes = [
   {
@@ -35,7 +36,11 @@ const routes = [
     name: 'MyPage',
     component: () => import('../views/MyPage.vue')
   },
-  
+  {
+    path: '/map', 
+    name: 'map',
+    component: MapView 
+  }
 ];
 
 const router = createRouter({
