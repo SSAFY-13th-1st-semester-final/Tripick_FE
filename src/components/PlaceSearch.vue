@@ -9,46 +9,61 @@
         placeholder="장소명을 입력하세요"
         class="flex-grow outline-none text-sm bg-transparent"
       />
-      <button @click="resetAndSearch" class="ml-2 text-gray-600 hover:text-black">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <button
+        @click="resetAndSearch"
+        class="ml-2 text-gray-600 hover:text-black"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
       </button>
     </div>
 
     <!-- 검색 결과 리스트 -->
-    <div class="flex-1 space-y-3 pr-1">
-      <div
-        v-for="place in placeResults"
-        :key="place.id"
-        class="flex justify-between items-center border rounded-lg p-3 shadow-sm bg-white text-sm"
-        style="height: auto;" 
-      >
-        <!-- 장소 정보 -->
-        <div class="flex-grow">
-          <div class="font-semibold">{{ place.placeName }}</div>
-          <div class="text-gray-500">{{ place.addressName }}</div>
-          <div class="text-xs text-gray-400">{{ place.phone }}</div>
-        </div>
+    <div
+      v-for="place in placeResults"
+      :key="place.id"
+      class="flex justify-between items-stretch border rounded-lg px-3 py-4 shadow-sm bg-white text-sm mb-4"
+    >
+      <!-- 장소 정보 -->
+      <div class="flex-grow">
+        <div class="font-semibold">{{ place.placeName }}</div>
+        <div class="text-gray-500">{{ place.addressName }}</div>
+        <div class="text-xs text-gray-400">{{ place.phone }}</div>
+      </div>
 
-        <!-- 오른쪽: + 버튼을 감싸는 div -->
-        <div class="flex justify-center items-center h-full">
-          <button
-            @click="handleAddPlace(place)"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl w-10 h-full flex items-center justify-center rounded-r"
+      <!-- 오른쪽: + 버튼 -->
+      <div class="flex items-stretch">
+        <button
+          @click="handleAddPlace(place)"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 flex items-center justify-center rounded-r"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="w-5 h-5"
           >
-            +
-          </button>
-        </div>
-      </div>
-
-      <div v-if="isLoading" class="text-center text-xs text-gray-400 py-2">
-        불러오는 중...
-      </div>
-      <div v-if="noMoreResults" class="text-center text-xs text-gray-400 py-2">
-        더 이상 결과가 없습니다.
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -60,7 +75,10 @@ import axios from 'axios';
 export default {
   name: 'PlaceSearch',
   props: {
-    scrollTarget: { type: [Object, null], default: null },
+    scrollTarget: {
+      type: [Object, null],
+      default: null,
+    },
   },
   data() {
     return {
@@ -80,8 +98,14 @@ export default {
 
       try {
         const res = await axios.get('/v1/place', {
-          params: { query: this.searchQuery, page: this.page, size: 10 },
-          headers: { Authorization: `Bearer ${token}` }
+          params: {
+            query: this.searchQuery,
+            page: this.page,
+            size: 15,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         const newResults = res.data.data || [];
@@ -106,6 +130,7 @@ export default {
       this.noMoreResults = false;
       this.placeResults = [];
       this.fetchPlaces();
+      this.$emit('clear-markers');
     },
 
     handleScroll() {
@@ -125,7 +150,7 @@ export default {
     handleAddPlace(place) {
       console.log('추가할 장소:', place);
       // 여기에 추가 로직 작성
-    }
+    },
   },
 
   mounted() {
@@ -141,7 +166,7 @@ export default {
     if (el) {
       el.removeEventListener('scroll', this.handleScroll);
     }
-  }
+  },
 };
 </script>
 

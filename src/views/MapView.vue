@@ -20,9 +20,7 @@
         </div>
 
         <div class="absolute bottom-4">
-          <button
-            class="w-20 h-20 bg-gray-300 text-white text-xs font-semibold rounded transition hover:bg-gray-500"
-          >
+          <button class="w-20 h-20 bg-gray-300 text-white text-xs font-semibold rounded transition hover:bg-gray-500">
             생성
           </button>
         </div>
@@ -39,9 +37,10 @@
           />
         </div>
         <div v-else-if="currentStep === 2">
-          <PlaceSearch 
-            :scrollTarget="scrollContainer" 
+          <PlaceSearch
+            :scrollTarget="scrollContainer"
             @update-place-results="handleUpdatePlaceResults"
+            @clear-markers="clearAllMarkers"
           />
         </div>
         <div v-else-if="currentStep === 3">
@@ -54,14 +53,8 @@
     <div id="map" class="w-full h-full"></div>
 
     <!-- 캘린더 팝업 -->
-    <div
-      v-if="showCalendar"
-      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-    >
-      <CalendarPopup
-        @confirm="handleCalendarConfirm"
-        @cancel="toggleCalendar"
-      />
+    <div v-if="showCalendar" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <CalendarPopup @confirm="handleCalendarConfirm" @cancel="toggleCalendar" />
     </div>
   </div>
 </template>
@@ -90,7 +83,8 @@ export default {
       showCalendar: false,
       selectedStartDate: null,
       selectedEndDate: null,
-      placeResults: []  // 장소 검색 결과 데이터를 저장할 배열
+      placeResults: [],
+      markers: [], // ✅ 마커 저장용 배열 추가
     };
   },
   computed: {
@@ -108,8 +102,7 @@ export default {
   methods: {
     loadScript() {
       const script = document.createElement("script");
-      script.src =
-        "//dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
+      script.src = "//dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
       script.onload = () => window.kakao.maps.load(this.loadMap);
       document.head.appendChild(script);
     },
@@ -143,10 +136,8 @@ export default {
     onDateSelect({ start, end }) {
       this.selectedStartDate = start;
       this.selectedEndDate = end;
-      console.log("선택된 날짜 범위:", start, end);
     },
     handleCalendarConfirm(dates) {
-      console.log("확정된 날짜:", dates);
       this.selectedStartDate = dates.startDate;
       this.selectedEndDate = dates.endDate;
       this.showCalendar = false;
@@ -155,44 +146,32 @@ export default {
         endDate: this.selectedEndDate,
       });
     },
-
-    // 자식 컴포넌트로부터 받은 장소 검색 결과 처리
     handleUpdatePlaceResults(results) {
-      // 부모에서 받은 장소 결과를 저장
       this.placeResults = results;
-      console.log('받은 장소 검색 결과:', this.placeResults);
-
-      // 필요한 경우, 지도에 장소들을 마커로 표시할 수도 있음
-      this.placeResults.forEach(place => {
+      results.forEach(place => {
         this.addPlaceToMap(place);
       });
     },
-
     addPlaceToMap(place) {
-      // TM 좌표 (x, y)
       const x = place.x;
       const y = place.y;
 
-      if (!x || !y) {
-        console.error('x 또는 y 좌표가 없습니다:', place);
-        return;
-      }
+      if (!x || !y) return;
 
-      // 카카오맵의 TM 좌표를 위도, 경도로 변환
-      const latLng = new window.kakao.maps.LatLng(y, x); // 위도(y), 경도(x)
-      
-      // 마커 생성
+      const latLng = new window.kakao.maps.LatLng(y, x);
       const marker = new window.kakao.maps.Marker({
         position: latLng,
-        title: place.placeName, // 장소 이름
+        title: place.placeName,
       });
 
-      // 지도에 마커 추가
       marker.setMap(this.map);
-
-      // 마커 위치로 지도 중심 이동 (필요시)
+      this.markers.push(marker); // ✅ 마커 저장
       this.map.setCenter(latLng);
-    }
+    },
+    clearAllMarkers() {
+      this.markers.forEach(marker => marker.setMap(null)); // ✅ 마커 제거
+      this.markers = [];
+    },
   },
 };
 </script>
