@@ -9,7 +9,7 @@
     </div>
 
     <!-- 달력 영역 중앙 정렬 -->
-    <div class="flex justify-center gap-8 mb-10">
+    <div class="flex justify-center gap-8 mb-20">
       <!-- 현재 월 달력 -->
       <div class="w-96">
         <div class="flex items-center justify-between mb-4">
@@ -33,7 +33,7 @@
             class="p-3 m-2 rounded cursor-pointer text-xl aspect-square flex items-center justify-center"
             :class="getDayClass(0, day)"
             @click="handleDateClick(0, day)"
-            style="width: 40px; height: 40px;"
+            style="width: 50px; height: 50px;"
           >
             {{ day }}
           </div>
@@ -63,7 +63,7 @@
             class="p-3 m-2 rounded cursor-pointer text-xl aspect-square flex items-center justify-center"
             :class="getDayClass(1, day)"
             @click="handleDateClick(1, day)"
-            style="width: 40px; height: 40px;"  
+            style="width: 50px; height: 50px;"  
           >
             {{ day }}
           </div>

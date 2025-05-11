@@ -84,7 +84,8 @@ export default {
       selectedStartDate: null,
       selectedEndDate: null,
       placeResults: [],
-      markers: [], // ✅ 마커 저장용 배열 추가
+      markers: [],
+      infoWindow: null, // ✅ InfoWindow 재사용
     };
   },
   computed: {
@@ -125,10 +126,18 @@ export default {
         level: 3,
       };
       this.map = new window.kakao.maps.Map(container, options);
-      const marker = new window.kakao.maps.Marker({
-        position: new window.kakao.maps.LatLng(lat, lng),
+
+      // 기본 위치 핀을 제거하려면 아래 코드를 제거하세요
+      // const marker = new window.kakao.maps.Marker({
+      //   position: new window.kakao.maps.LatLng(lat, lng),
+      // });
+      // marker.setMap(this.map);
+
+      // ✅ InfoWindow 생성 (재사용)
+      this.infoWindow = new window.kakao.maps.InfoWindow({
+        zIndex: 3,
+        removable: false,
       });
-      marker.setMap(this.map);
     },
     toggleCalendar() {
       this.showCalendar = !this.showCalendar;
@@ -148,14 +157,20 @@ export default {
     },
     handleUpdatePlaceResults(results) {
       this.placeResults = results;
+      this.clearAllMarkers();
+      
+      const bounds = new window.kakao.maps.LatLngBounds(); // LatLngBounds 객체 생성
+      
       results.forEach(place => {
-        this.addPlaceToMap(place);
+        this.addPlaceToMap(place, bounds); // 마커 추가 및 bounds 업데이트
       });
+
+      // 모든 마커가 포함될 수 있도록 지도의 범위 설정
+      this.map.setBounds(bounds);
     },
-    addPlaceToMap(place) {
+    addPlaceToMap(place, bounds) {
       const x = place.x;
       const y = place.y;
-
       if (!x || !y) return;
 
       const latLng = new window.kakao.maps.LatLng(y, x);
@@ -165,11 +180,32 @@ export default {
       });
 
       marker.setMap(this.map);
-      this.markers.push(marker); // ✅ 마커 저장
-      this.map.setCenter(latLng);
+      this.markers.push(marker);
+
+      // LatLngBounds 객체에 마커의 위치 추가
+      bounds.extend(latLng);
+
+      const content = `
+        <div style="padding:15px; font-size:16px; width:230px; height:auto; white-space: normal; word-break: break-word;">
+          <strong style="font-size:18px;">${place.placeName}</strong><br/>
+          <span>${place.addressName || ''}</span><br/>
+          <span>${place.phone || ''}</span>
+        </div>
+      `;
+
+      // 마커에 마우스 오버 시 InfoWindow 표시
+      window.kakao.maps.event.addListener(marker, 'mouseover', () => {
+        this.infoWindow.setContent(content);
+        this.infoWindow.open(this.map, marker);
+      });
+
+      // 마우스 아웃 시 InfoWindow 닫기
+      window.kakao.maps.event.addListener(marker, 'mouseout', () => {
+        this.infoWindow.close();
+      });
     },
     clearAllMarkers() {
-      this.markers.forEach(marker => marker.setMap(null)); // ✅ 마커 제거
+      this.markers.forEach(marker => marker.setMap(null));
       this.markers = [];
     },
   },
