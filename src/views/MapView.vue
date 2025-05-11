@@ -29,9 +29,8 @@
       </div>
 
       <!-- 스텝 내용 -->
-      <div class="flex-grow p-4 overflow-y-auto">
+      <div class="flex-grow p-4 overflow-y-auto" ref="scrollContainer">
         <div v-if="currentStep === 1">
-          <!-- 날짜 선택 버튼을 누르면 CalendarPopup이 활성화됨 -->
           <DatePicker 
             @toggle-calendar="toggleCalendar" 
             @date-select="onDateSelect" 
@@ -40,7 +39,10 @@
           />
         </div>
         <div v-else-if="currentStep === 2">
-          <p>장소 검색 및 선택 UI를 여기에 구현하세요.</p>
+          <PlaceSearch 
+            :scrollTarget="scrollContainer" 
+            @update-place-results="handleUpdatePlaceResults"
+          />
         </div>
         <div v-else-if="currentStep === 3">
           <p>숙소 정보를 선택하거나 검색할 수 있게 하세요.</p>
@@ -67,12 +69,14 @@
 <script>
 import DatePicker from '@/components/DatePicker.vue';
 import CalendarPopup from '@/components/CalendarPopup.vue';
+import PlaceSearch from '@/components/PlaceSearch.vue';
 
 export default {
   name: "MapView",
   components: {
     DatePicker,
     CalendarPopup,
+    PlaceSearch,
   },
   data() {
     return {
@@ -83,10 +87,16 @@ export default {
         { id: 2, label: "장소 선택" },
         { id: 3, label: "숙소 선택" },
       ],
-      showCalendar: false,  // 팝업을 띄울지 여부
-      selectedStartDate: null, // 선택된 시작일
-      selectedEndDate: null,   // 선택된 종료일
+      showCalendar: false,
+      selectedStartDate: null,
+      selectedEndDate: null,
+      placeResults: []  // 장소 검색 결과 데이터를 저장할 배열
     };
+  },
+  computed: {
+    scrollContainer() {
+      return this.$refs.scrollContainer;
+    }
   },
   mounted() {
     if (window.kakao && window.kakao.maps) {
@@ -128,7 +138,7 @@ export default {
       marker.setMap(this.map);
     },
     toggleCalendar() {
-      this.showCalendar = !this.showCalendar;  // 팝업 열기 / 닫기
+      this.showCalendar = !this.showCalendar;
     },
     onDateSelect({ start, end }) {
       this.selectedStartDate = start;
@@ -139,19 +149,54 @@ export default {
       console.log("확정된 날짜:", dates);
       this.selectedStartDate = dates.startDate;
       this.selectedEndDate = dates.endDate;
-      this.showCalendar = false;  // 팝업 닫기
-      // 선택된 날짜를 다른 컴포넌트로 전달하려면 여기에서 이벤트를 발생시킬 수 있습니다.
+      this.showCalendar = false;
       this.$emit("update-dates", {
         startDate: this.selectedStartDate,
         endDate: this.selectedEndDate,
       });
     },
+
+    // 자식 컴포넌트로부터 받은 장소 검색 결과 처리
+    handleUpdatePlaceResults(results) {
+      // 부모에서 받은 장소 결과를 저장
+      this.placeResults = results;
+      console.log('받은 장소 검색 결과:', this.placeResults);
+
+      // 필요한 경우, 지도에 장소들을 마커로 표시할 수도 있음
+      this.placeResults.forEach(place => {
+        this.addPlaceToMap(place);
+      });
+    },
+
+    addPlaceToMap(place) {
+      // TM 좌표 (x, y)
+      const x = place.x;
+      const y = place.y;
+
+      if (!x || !y) {
+        console.error('x 또는 y 좌표가 없습니다:', place);
+        return;
+      }
+
+      // 카카오맵의 TM 좌표를 위도, 경도로 변환
+      const latLng = new window.kakao.maps.LatLng(y, x); // 위도(y), 경도(x)
+      
+      // 마커 생성
+      const marker = new window.kakao.maps.Marker({
+        position: latLng,
+        title: place.placeName, // 장소 이름
+      });
+
+      // 지도에 마커 추가
+      marker.setMap(this.map);
+
+      // 마커 위치로 지도 중심 이동 (필요시)
+      this.map.setCenter(latLng);
+    }
   },
 };
 </script>
 
 <style scoped>
-#map {
-  width: 100%;
-}
+/* 스타일을 추가하세요 */
 </style>
