@@ -73,7 +73,7 @@
 import axios from 'axios';
 
 export default {
-  name: 'PlaceSearch',
+  name: 'PlaceResult',
   props: {
     scrollTarget: {
       type: [Object, null],
@@ -108,15 +108,13 @@ export default {
           },
         });
 
-        const newResults = res.data.data || [];
+        const newResults = res.data?.data?.places || [];
 
         if (newResults.length === 0) {
           this.noMoreResults = true;
         } else {
           this.placeResults.push(...newResults);
           this.page++;
-
-          this.$emit('update-place-results', this.placeResults);
         }
       } catch (err) {
         console.error('검색 실패:', err);
@@ -130,7 +128,6 @@ export default {
       this.noMoreResults = false;
       this.placeResults = [];
       this.fetchPlaces();
-      this.$emit('clear-markers');
     },
 
     handleScroll() {
@@ -148,8 +145,7 @@ export default {
     },
 
     handleAddPlace(place) {
-      console.log('추가할 장소:', place);
-      // 여기에 추가 로직 작성
+      this.$emit('add-place', place);
     },
   },
 

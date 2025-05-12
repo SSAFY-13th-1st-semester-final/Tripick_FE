@@ -163,7 +163,8 @@ export default {
 </script>
 
 <style scoped>
-/* 이미지 페이드 효과 */
+
+
 .opacity-0 {
   opacity: 0;
   transition: opacity 1s ease-in-out;

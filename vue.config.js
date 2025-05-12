@@ -10,7 +10,7 @@ module.exports = defineConfig({
     // 모든 요청을 localhost:8080으로 프록시
     proxy: {
       '/api': {
-        target: 'http://localhost:8080', // Spring 서버 주소
+        target: 'http://3.39.187.140:8080', // Spring 서버 주소
         changeOrigin: true,
         
       }

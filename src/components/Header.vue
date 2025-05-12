@@ -1,96 +1,70 @@
 <template>
-  <nav class="bg-white h-12  font-apple-sdgothic font-medium">
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-full flex items-center">
-      <div class="flex items-center justify-between w-full">
-        <!-- 로고 -->
-        <router-link to="/" class="flex items-center space-x-2">
-          <img src="@/assets/icons/logo.png" alt="logo" class="h-4 w-auto" />
-        </router-link>
+  <nav class="bg-white font-apple-sdgothic font-medium border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
+      <router-link to="/" class="flex items-center space-x-2">
+        <img src="@/assets/icons/logo.png" alt="logo" class="h-4 w-auto" />
+      </router-link>
 
-        <!-- 메뉴 -->
-        <div class="flex space-x-2 text-xs text-bold">
-          <router-link
-            to="/all"
-            class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
-          >
-            전체조회
-          </router-link>
-          <router-link
-            to="/posts"
-            class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
-          >
-            게시판
-          </router-link>
+      <div class="md:hidden">
+        <button @click="toggleMenu" class="focus:outline-none">
+          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
 
+      <div class="hidden md:flex space-x-4 text-xs items-center">
+        <router-link to="/all" class="text-gray-700 hover:font-medium">전체조회</router-link>
+        <router-link to="/posts" class="text-gray-700 hover:font-medium">게시판</router-link>
+        <router-link to="/notice" class="text-gray-700 hover:font-medium">공지사항</router-link>
 
-          <router-link
-            to="/notice"
-            class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
-          >
-            공지사항
-          </router-link>
-
-          <!-- 로그인 상태 --> 
-          <template v-if="isLoggedIn">
-            <!-- 사용자 아이콘 (로그인된 상태) -->
-            <div ref="profileIcon" class="relative px-2">
-              <img
-                src="@/assets/icons/icon_member.svg"
-                alt="user icon"
-                class="h-5 w-5 cursor-pointer"
-                @click="toggleProfilePopup"
-              >
-              <!-- 프로필 팝업 -->
-              <div
-                v-if="isProfilePopupVisible"
-                ref="profilePopup"
-                class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10"
-              >
-                <div class="py-2">
-                  <router-link
-                    to="/mypage"
-                    class="block px-4 py-2 text-gray-700 hover:bg-gray-200"
-                  >
-                    마이페이지
-                  </router-link>
-                  <!-- 관리자 메뉴 (ADMIN 역할일 때만) -->
-                  <template v-if="userRole === 'ADMIN'">
-                    <router-link
-                      to="/admin"
-                      class="block px-4 py-2 text-gray-700 hover:bg-gray-200"
-                    >
-                      관리자 대시보드
-                    </router-link>
-                    <router-link
-                      to="/manage-users"
-                      class="block px-4 py-2 text-gray-700 hover:bg-gray-200"
-                    >
-                      사용자 관리
-                    </router-link>
-                  </template>
-                  <button
-                    @click="logoutHandler"
-                    class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-200"
-                  >
-                    로그아웃
-                  </button>
-                </div>
+        <template v-if="isLoggedIn">
+          <div ref="profileIcon" class="relative">
+            <img src="@/assets/icons/icon_member.svg"
+                 alt="user icon"
+                 class="h-5 w-5 cursor-pointer"
+                 @click="toggleProfilePopup" />
+            <div v-if="isProfilePopupVisible"
+                 ref="profilePopup"
+                 class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
+              <div class="py-2">
+                <router-link to="/mypage" class="block px-4 py-2 text-gray-700 hover:bg-gray-200">마이페이지</router-link>
+                <template v-if="userRole === 'ADMIN'">
+                  <router-link to="/admin" class="block px-4 py-2 text-gray-700 hover:bg-gray-200">관리자 대시보드</router-link>
+                  <router-link to="/manage-users" class="block px-4 py-2 text-gray-700 hover:bg-gray-200">사용자 관리</router-link>
+                </template>
+                <button @click="logoutHandler" class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-200">
+                  로그아웃
+                </button>
               </div>
             </div>
-          </template>
-
-          <!-- 미 로그인 상태 -->
-          <template v-else>
-            <router-link
-              to="/login"
-              class="text-gray-700 px-2 py-1 transition-all duration-1000 ease-in-out hover:font-medium"
-            >
-              로그인
-            </router-link>
-
-          </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="text-gray-700 hover:font-medium">로그인</router-link>
+        </template>
       </div>
+    </div>
+
+    <div v-show="isMenuOpen"
+         class="md:hidden px-4 py-2 text-sm space-y-1 border-t border-gray-200 overflow-hidden max-h-0 opacity-0 transition-all ease-in-out duration-[5000ms] transition-max-height transition-opacity"
+         :class="{'max-h-screen opacity-100': isMenuOpen, 'max-h-0 opacity-0': !isMenuOpen}">
+      <router-link to="/all" class="block text-gray-700 py-1" @click="closeMenu">전체조회</router-link>
+      <router-link to="/posts" class="block text-gray-700 py-1" @click="closeMenu">게시판</router-link>
+      <router-link to="/notice" class="block text-gray-700 py-1" @click="closeMenu">공지사항</router-link>
+
+      <template v-if="isLoggedIn">
+        <router-link to="/mypage" class="block text-gray-700 py-1" @click="closeMenu">마이페이지</router-link>
+        <template v-if="userRole === 'ADMIN'">
+          <router-link to="/admin" class="block text-gray-700 py-1" @click="closeMenu">관리자 대시보드</router-link>
+          <router-link to="/manage-users" class="block text-gray-700 py-1" @click="closeMenu">사용자 관리</router-link>
+        </template>
+        <button @click="logoutHandler" class="block w-full text-left text-gray-700 py-1">로그아웃</button>
+      </template>
+      <template v-else>
+        <router-link to="/login" class="block text-gray-700 py-1" @click="closeMenu">로그인</router-link>
+      </template>
     </div>
   </nav>
 </template>
@@ -103,25 +77,33 @@ export default {
   name: 'AppHeader',
   data() {
     return {
-      isProfilePopupVisible: false, // 프로필 팝업 상태
+      isProfilePopupVisible: false,
+      isMenuOpen: false,
     };
   },
   computed: {
-    ...mapGetters(['isLoggedIn', 'getRole']), // 로그인 상태와 role
+    ...mapGetters(['isLoggedIn', 'getRole']),
     userRole() {
-      return this.getRole; // role 가져오기
+      return this.getRole;
     },
   },
   methods: {
     ...mapActions(['logout']),
     toggleProfilePopup() {
-      this.isProfilePopupVisible = !this.isProfilePopupVisible; // 프로필 팝업 토글
+      this.isProfilePopupVisible = !this.isProfilePopupVisible;
+    },
+    toggleMenu() {
+      this.isMenuOpen = !this.isMenuOpen;
+    },
+    closeMenu() {
+      this.isMenuOpen = false;
     },
     logoutHandler() {
       TokenService.clear();
       this.$store.commit('logout');
-      this.$router.push({ name: 'home' }); // 홈으로 리디렉션
-      this.isProfilePopupVisible = false; // 팝업 닫기
+      this.$router.push({ name: 'home' });
+      this.isProfilePopupVisible = false;
+      this.isMenuOpen = false;
     },
     closePopupIfClickedOutside(event) {
       const profilePopup = this.$refs.profilePopup;
@@ -131,35 +113,15 @@ export default {
         !profilePopup.contains(event.target) &&
         !profileIcon.contains(event.target)
       ) {
-        this.isProfilePopupVisible = false; // 팝업 닫기
+        this.isProfilePopupVisible = false;
       }
     },
   },
   mounted() {
-    // 전체 문서에서 클릭 이벤트 리스너 추가
     document.addEventListener('click', this.closePopupIfClickedOutside);
   },
   beforeUnmount() {
-    // 컴포넌트가 파괴될 때 클릭 이벤트 리스너 제거
     document.removeEventListener('click', this.closePopupIfClickedOutside);
   },
 };
 </script>
-
-<style scoped>
-/* 프로필 팝업 스타일 */
-.relative {
-  position: relative;
-}
-.profile-popup {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 8px;
-  width: 200px;
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  z-index: 10;
-}
-</style>

@@ -9,9 +9,9 @@
             v-for="step in steps"
             :key="step.id"
             @click="currentStep = step.id"
-            :class="[
-              'w-20 h-20 text-center flex flex-col justify-center items-center text-xs font-medium rounded transition cursor-pointer',
-              currentStep === step.id ? 'text-gray-800' : 'text-gray-400'
+            :class="[ 
+              'w-20 h-20 text-center flex flex-col justify-center items-center text-xs font-medium rounded transition cursor-pointer', 
+              currentStep === step.id ? 'text-gray-800' : 'text-gray-400' 
             ]"
           >
             <span class="font-bold">Step{{ step.id }}</span>
@@ -36,12 +36,58 @@
             :endDate="selectedEndDate" 
           />
         </div>
-        <div v-else-if="currentStep === 2">
-          <PlaceSearch
-            :scrollTarget="scrollContainer"
-            @update-place-results="handleUpdatePlaceResults"
-            @clear-markers="clearAllMarkers"
-          />
+        <div v-else-if="currentStep === 2" class="flex flex-col gap-4">
+          <div class="flex gap-4">
+            <!-- 장소 검색 컴포넌트 -->
+            <PlaceSearch
+              :scrollTarget="scrollContainer"
+              @add-place="addPlaceToMap"
+              @clear-markers="clearAllMarkers"
+            />
+
+            <!-- 추가된 장소 목록 영역 -->
+            <div class="w- p-4">
+              <h3 class="text-sm font-semibold mb-2">추가된 장소 목록</h3>
+              <div v-if="selectedPlaces.length" class="space-y-2">
+                <div
+                  v-for="(place, index) in selectedPlaces"
+                  :key="index"
+                  class="flex justify-between items-stretch border rounded-lg px-3 py-4 shadow-sm bg-white text-sm mb-4"
+                >
+                  <!-- 장소 정보 -->
+                  <div class="flex-grow">
+                    <div class="font-semibold">{{ place.placeName }}</div>
+                    <div class="text-gray-500">{{ place.addressName }}</div>
+                    <div class="text-xs text-gray-400">{{ place.phone }}</div>
+                  </div>
+
+                  <!-- 오른쪽: - 버튼 -->
+                  <div class="flex items-stretch">
+                    <button
+                      @click="handleRemovePlace(place)"
+                      class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 flex items-center justify-center rounded-r"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="text-gray-400">선택된 장소가 없습니다.</div>
+            </div>
+          </div>
         </div>
         <div v-else-if="currentStep === 3">
           <p>숙소 정보를 선택하거나 검색할 수 있게 하세요.</p>
@@ -83,9 +129,9 @@ export default {
       showCalendar: false,
       selectedStartDate: null,
       selectedEndDate: null,
-      placeResults: [],
       markers: [],
-      infoWindow: null, // ✅ InfoWindow 재사용
+      infoWindow: null,
+      selectedPlaces: [],  // 추가된 장소 목록 관리
     };
   },
   computed: {
@@ -127,13 +173,6 @@ export default {
       };
       this.map = new window.kakao.maps.Map(container, options);
 
-      // 기본 위치 핀을 제거하려면 아래 코드를 제거하세요
-      // const marker = new window.kakao.maps.Marker({
-      //   position: new window.kakao.maps.LatLng(lat, lng),
-      // });
-      // marker.setMap(this.map);
-
-      // ✅ InfoWindow 생성 (재사용)
       this.infoWindow = new window.kakao.maps.InfoWindow({
         zIndex: 3,
         removable: false,
@@ -155,25 +194,21 @@ export default {
         endDate: this.selectedEndDate,
       });
     },
-    handleUpdatePlaceResults(results) {
-      this.placeResults = results;
-      this.clearAllMarkers();
-      
-      const bounds = new window.kakao.maps.LatLngBounds(); // LatLngBounds 객체 생성
-      
-      results.forEach(place => {
-        this.addPlaceToMap(place, bounds); // 마커 추가 및 bounds 업데이트
-      });
+    addPlaceToMap(place) {
+      // 이미 목록에 있는지 확인
+      const isPlaceExists = this.selectedPlaces.some(p => p.placeName === place.placeName);
+      if (isPlaceExists) {
+        alert('이미 추가된 장소입니다.');
+        return;  // 이미 있으면 추가하지 않음
+      }
 
-      // 모든 마커가 포함될 수 있도록 지도의 범위 설정
-      this.map.setBounds(bounds);
-    },
-    addPlaceToMap(place, bounds) {
       const x = place.x;
       const y = place.y;
       if (!x || !y) return;
 
       const latLng = new window.kakao.maps.LatLng(y, x);
+
+      // 마커 생성
       const marker = new window.kakao.maps.Marker({
         position: latLng,
         title: place.placeName,
@@ -182,9 +217,7 @@ export default {
       marker.setMap(this.map);
       this.markers.push(marker);
 
-      // LatLngBounds 객체에 마커의 위치 추가
-      bounds.extend(latLng);
-
+      // 정보창 내용
       const content = `
         <div style="padding:15px; font-size:16px; width:230px; height:auto; white-space: normal; word-break: break-word;">
           <strong style="font-size:18px;">${place.placeName}</strong><br/>
@@ -193,25 +226,58 @@ export default {
         </div>
       `;
 
-      // 마커에 마우스 오버 시 InfoWindow 표시
       window.kakao.maps.event.addListener(marker, 'mouseover', () => {
         this.infoWindow.setContent(content);
         this.infoWindow.open(this.map, marker);
       });
 
-      // 마우스 아웃 시 InfoWindow 닫기
       window.kakao.maps.event.addListener(marker, 'mouseout', () => {
         this.infoWindow.close();
       });
+
+      this.recalculateMapBounds();
+
+      // 새로운 장소 목록에 추가
+      this.selectedPlaces.push(place);
+    },
+
+    // 지도 범위 재계산 함수
+    recalculateMapBounds() {
+      if (!this.markers.length) return;
+
+      const bounds = new window.kakao.maps.LatLngBounds();
+
+      this.markers.forEach(marker => {
+        bounds.extend(marker.getPosition());
+      });
+
+      this.map.setBounds(bounds);
     },
     clearAllMarkers() {
       this.markers.forEach(marker => marker.setMap(null));
       this.markers = [];
+      this.infoWindow.close();
+    },
+
+    handleRemovePlace(place) {
+      // 장소 목록에서 제거
+      this.selectedPlaces = this.selectedPlaces.filter(p => p !== place);
+
+      // 마커를 찾아서 지도에서 제거
+      const markerIndex = this.markers.findIndex(marker => marker.getTitle() === place.placeName);
+      if (markerIndex !== -1) {
+        const markerToRemove = this.markers[markerIndex];
+        markerToRemove.setMap(null); // 지도에서 마커 제거
+        this.markers.splice(markerIndex, 1); // 마커 목록에서 제거
+      }
+
+      // 지도 범위 재계산
+      this.recalculateMapBounds();
     },
   },
 };
 </script>
 
 <style scoped>
-/* 스타일을 추가하세요 */
+/* 필요에 따라 스타일을 추가할 수 있습니다. */
 </style>
