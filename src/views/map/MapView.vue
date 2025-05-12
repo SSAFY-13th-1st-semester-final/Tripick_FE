@@ -106,9 +106,9 @@
 </template>
 
 <script>
-import DatePicker from '@/components/DatePicker.vue';
-import CalendarPopup from '@/components/CalendarPopup.vue';
-import PlaceSearch from '@/components/PlaceSearch.vue';
+import DatePicker from '@/components/date/DatePicker.vue';
+import CalendarPopup from '@/components/date/CalendarPopup.vue';
+import PlaceSearch from '@/components/place/PlaceSearch.vue';
 
 export default {
   name: "MapView",

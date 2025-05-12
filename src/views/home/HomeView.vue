@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue';
+import NavBar from '@/components/layout/NavBar.vue';
 
 import img0 from '@/assets/img/home-img-0.webp';
 import img1 from '@/assets/img/home-img-1.jpeg';

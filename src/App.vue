@@ -13,8 +13,8 @@
 <script>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import AppHeader from './components/Header.vue';
-import AppFooter from './components/Footer.vue';
+import AppHeader from '@/components/layout/Header.vue';
+import AppFooter from '@/components/layout/Footer.vue';
 
 export default {
   name: 'App',

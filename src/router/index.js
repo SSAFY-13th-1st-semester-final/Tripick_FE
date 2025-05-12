@@ -1,51 +1,49 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
-import LoginView from '../views/LoginView.vue';
-import SignupView from '../views/SignupView.vue';
-import PostsBoard from '../views/PostsBoard.vue'; // 게시판 추가\
-import MapView from '../views/MapView.vue';
+// src/router/index.js
+import { createRouter, createWebHistory } from 'vue-router'
+
+import HomeView from '@/views/home/HomeView.vue'
+import LoginView from '@/views/auth/LoginView.vue'
+import SignupView from '@/views/auth/SignupView.vue'
+import PostsBoardView from '@/views/posts/PostsBoardView.vue'
+import MapView from '@/views/map/MapView.vue'
+import MyPageView from '@/views/mypage/MyPageView.vue'
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: HomeView,
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView
+    component: LoginView,
   },
   {
     path: '/signup',
     name: 'signup',
-    component: SignupView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    component: SignupView,
   },
   {
     path: '/posts',
     name: 'posts',
-    component: PostsBoard
+    component: PostsBoardView,
   },
   {
     path: '/mypage',
-    name: 'MyPage',
-    component: () => import('../views/MyPage.vue')
+    name: 'mypage',
+    component: MyPageView,
   },
   {
-    path: '/map', 
+    path: '/map',
     name: 'map',
-    component: MapView 
+    component: MapView,
   }
-];
+]
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
-});
+  routes,
+})
 
-export default router;
+export default router

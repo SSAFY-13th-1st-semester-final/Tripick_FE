@@ -61,11 +61,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import axios from 'axios'
-import PostCard from '../components/PostCard.vue'
-import PostDetailModal from '../components/PostDetailModal.vue'
-import PostCreateModal from '../components/PostCreateModal.vue'
+import PostCard from '@/components/post/PostCard.vue'
+import PostDetailModal from '@/components/post/PostDetailModal.vue'
+import PostCreateModal from '@/components/post/PostCreateModal.vue'
 
-// 상태 변수
 const posts = ref([])
 const page = ref(1)
 const size = 20
@@ -77,7 +76,6 @@ const selectedPost = ref(null)
 const scrollContainer = ref(null)
 const showScrollButton = ref(false)
 
-// 게시글 목록 조회
 const fetchPosts = async () => {
   if (isLoading.value || !hasMore.value) return
   isLoading.value = true
@@ -107,7 +105,6 @@ const fetchPosts = async () => {
   }
 }
 
-// 새 게시글 작성 후 목록 다시 불러오기
 const handlePostCreated = () => {
   posts.value = []
   page.value = 1
@@ -117,7 +114,6 @@ const handlePostCreated = () => {
   closeCreatePostModal()
 }
 
-// 상세 보기
 const openPost = async (postId) => {
   try {
     const res = await axios.get(`/v1/posts/${postId}`)
@@ -127,7 +123,6 @@ const openPost = async (postId) => {
   }
 }
 
-// 글쓰기 모달 열기/닫기
 const openCreatePostModal = () => {
   isCreatePostModalOpen.value = true
 }
@@ -135,7 +130,6 @@ const closeCreatePostModal = () => {
   isCreatePostModalOpen.value = false
 }
 
-// 스크롤 이벤트
 const handleScroll = () => {
   const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 50
   if (nearBottom) fetchPosts()
@@ -143,12 +137,10 @@ const handleScroll = () => {
   showScrollButton.value = window.scrollY > 100
 }
 
-// 최상단 이동
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 마운트/언마운트
 onMounted(() => {
   fetchPosts()
   window.addEventListener('scroll', handleScroll)
@@ -158,12 +150,7 @@ onUnmounted(() => {
   document.body.style.overflow = ''
 })
 
-// 모달 오픈 시 body 스크롤 제어
 watch(selectedPost, (newVal) => {
   document.body.style.overflow = newVal ? 'hidden' : ''
 })
 </script>
-
-<style scoped>
-/* 필요시 추가 */
-</style>

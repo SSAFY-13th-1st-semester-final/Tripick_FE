@@ -73,9 +73,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, defineEmits } from 'vue';
 import axios from 'axios';
-import { defineEmits } from 'vue';
 
 const emit = defineEmits({
   close: null,

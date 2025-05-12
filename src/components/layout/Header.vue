@@ -71,7 +71,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import TokenService from '../services/token.service';
+import TokenService from '../../services/token.service';
 
 export default {
   name: 'AppHeader',
