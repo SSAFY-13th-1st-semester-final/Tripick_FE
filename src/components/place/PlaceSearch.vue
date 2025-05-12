@@ -1,7 +1,25 @@
 <template>
-  <div class="w-full h-full flex flex-col">
-    <!-- 검색창 -->
-    <div class="flex items-center mb-4 shadow-md rounded px-3 py-2 bg-white">
+  <div class="w-full h-full flex flex-col space-y-4">
+    <!-- 검색창 + 카테고리 드롭다운 -->
+    <div class="flex items-center shadow-md rounded px-4 py-3 bg-white">
+      <!-- 카테고리 드롭다운 -->
+      <select
+        v-model="selectedCategoryName"
+        @change="resetAndSearch"
+        class="text-sm text-gray-600 border border-gray-300 rounded px-2 py-1 mr-3 bg-white w-13"
+      >
+        <option value="">전체</option>
+        <option
+          v-for="(cat, index) in categories"
+          :key="index"
+          :value="cat.name"
+        >
+          {{ cat.description }}
+        </option>
+      </select>
+
+
+      <!-- 검색 인풋 -->
       <input
         v-model="searchQuery"
         @keyup.enter="resetAndSearch"
@@ -31,39 +49,65 @@
     </div>
 
     <!-- 검색 결과 리스트 -->
-    <div
-      v-for="place in placeResults"
-      :key="place.id"
-      class="flex justify-between items-stretch border rounded-lg px-3 py-4 shadow-sm bg-white text-sm mb-4"
-    >
-      <!-- 장소 정보 -->
-      <div class="flex-grow">
-        <div class="font-semibold">{{ place.placeName }}</div>
-        <div class="text-gray-500">{{ place.addressName }}</div>
-        <div class="text-xs text-gray-400">{{ place.phone }}</div>
-      </div>
+    <div class="flex flex-col space-y-3">
+      <div
+        v-for="place in placeResults"
+        :key="place.id"
+        class="flex justify-between items-stretch bg-white text-sm"
+      >
+        <!-- 장소 정보 -->
+        <div class="flex-grow pr-2">
+          <div class="text-base font-bold">{{ place.placeName }}</div>
+          <div class="text-xs text-sky-500/70">
+            {{ place.categoryGroupName }} &nbsp;
+            <span class="text-gray-500">{{ place.addressName }}</span>
+          </div>
+          <div class="text-xs text-gray-400 mt-1">{{ place.phone }}</div>
+        </div>
 
-      <!-- 오른쪽: + 버튼 -->
-      <div class="flex items-stretch">
-        <button
-          @click="handleAddPlace(place)"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 flex items-center justify-center rounded-r"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="w-5 h-5"
+        <!-- 오른쪽: 버튼 -->
+        <div class="flex items-stretch">
+          <button
+            @click="togglePlaceSelection(place)"
+            :class="[
+              'w-10 flex items-center justify-center rounded',
+              isPlaceSelected(place)
+                ? 'bg-pink-400 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+            ]"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </button>
+            <svg
+              v-if="isPlaceSelected(place)"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -87,8 +131,12 @@ export default {
       isLoading: false,
       page: 1,
       noMoreResults: false,
+      categories: [],
+      selectedCategoryName: '',  // ← name 값 저장
+      selectedPlaces: [],
     };
   },
+
   methods: {
     async fetchPlaces() {
       if (!this.searchQuery || this.isLoading || this.noMoreResults) return;
@@ -102,6 +150,7 @@ export default {
             query: this.searchQuery,
             page: this.page,
             size: 15,
+            category: this.selectedCategoryName || undefined, // ← name 값 전송
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -120,6 +169,22 @@ export default {
         console.error('검색 실패:', err);
       } finally {
         this.isLoading = false;
+      }
+    },
+
+    async fetchCategories() {
+      const token = localStorage.getItem('access-token');
+
+      try {
+        const res = await axios.get('/v1/place/category', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        this.categories = res.data?.data || [];
+      } catch (err) {
+        console.error('카테고리 불러오기 실패:', err);
       }
     },
 
@@ -144,8 +209,18 @@ export default {
       }
     },
 
-    handleAddPlace(place) {
-      this.$emit('add-place', place);
+    togglePlaceSelection(place) {
+      const exists = this.selectedPlaces.find(p => p.id === place.id);
+      if (exists) {
+        this.selectedPlaces = this.selectedPlaces.filter(p => p.id !== place.id);
+      } else {
+        this.selectedPlaces.push(place);
+        this.$emit('add-place', place);
+      }
+    },
+
+    isPlaceSelected(place) {
+      return this.selectedPlaces.some(p => p.id === place.id);
     },
   },
 
@@ -154,6 +229,7 @@ export default {
     if (el) {
       el.addEventListener('scroll', this.handleScroll);
     }
+    this.fetchCategories();
     this.fetchPlaces();
   },
 
