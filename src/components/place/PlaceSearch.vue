@@ -105,6 +105,7 @@
 </template>
 
 <script>
+import { mapState, mapActions, mapGetters } from 'vuex';
 import axios from 'axios';
 
 export default {
@@ -124,11 +125,23 @@ export default {
       noMoreResults: false,
       categories: [],
       placeResults: [],
-      selectedPlaces: [],
     };
   },
 
+  computed: {
+    ...mapState({
+      selectedPlaces: state => state.selectedPlaces,  // Vuex에서 selectedPlaces 가져오기
+    }),
+    ...mapGetters({
+      getSelectedPlaces: 'getSelectedPlaces',  // Vuex getter를 통해 선택된 장소를 가져오기
+    }),
+  },
+
   methods: {
+    ...mapActions([
+      'togglePlaceSelection', // 장소 선택 토글하는 액션
+    ]),
+
     async fetchPlaces() {
       if (!this.searchQuery || this.isLoading || this.noMoreResults) return;
 
@@ -200,16 +213,6 @@ export default {
       }
     },
 
-    togglePlaceSelection(place) {
-      const exists = this.selectedPlaces.find(p => p.id === place.id);
-      if (exists) {
-        this.selectedPlaces = this.selectedPlaces.filter(p => p.id !== place.id);
-      } else {
-        this.selectedPlaces.push(place);
-        this.$emit('add-place', place);
-      }
-    },
-
     isPlaceSelected(place) {
       return this.selectedPlaces.some(p => p.id === place.id);
     },
@@ -232,13 +235,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-</style>
