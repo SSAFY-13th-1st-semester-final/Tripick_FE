@@ -1,8 +1,6 @@
 <template>
   <div class="w-full h-full flex flex-col space-y-4">
-    <!-- 검색창 + 카테고리 드롭다운 -->
     <div class="flex items-center shadow-md rounded px-4 py-3 bg-white">
-      <!-- 카테고리 드롭다운 -->
       <select
         v-model="selectedCategoryName"
         @change="resetAndSearch"
@@ -18,8 +16,6 @@
         </option>
       </select>
 
-
-      <!-- 검색 인풋 -->
       <input
         v-model="searchQuery"
         @keyup.enter="resetAndSearch"
@@ -48,14 +44,12 @@
       </button>
     </div>
 
-    <!-- 검색 결과 리스트 -->
-    <div class="flex flex-col space-y-3">
+    <div class="flex flex-col space-y-10">
       <div
         v-for="place in placeResults"
         :key="place.id"
         class="flex justify-between items-stretch bg-white text-sm"
       >
-        <!-- 장소 정보 -->
         <div class="flex-grow pr-2">
           <div class="text-base font-bold">{{ place.placeName }}</div>
           <div class="text-xs text-sky-500/70">
@@ -65,15 +59,12 @@
           <div class="text-xs text-gray-400 mt-1">{{ place.phone }}</div>
         </div>
 
-        <!-- 오른쪽: 버튼 -->
         <div class="flex items-stretch">
           <button
             @click="togglePlaceSelection(place)"
-            :class="[
-              'w-10 flex items-center justify-center rounded',
-              isPlaceSelected(place)
-                ? 'bg-pink-400 text-white'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+            :class="[ 
+              'w-10 flex items-center justify-center rounded', 
+              isPlaceSelected(place) ? 'bg-pink-400 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600' 
             ]"
           >
             <svg
@@ -126,13 +117,13 @@ export default {
   },
   data() {
     return {
-      searchQuery: '',
-      placeResults: [],
-      isLoading: false,
       page: 1,
+      searchQuery: '',
+      selectedCategoryName: '',
+      isLoading: false,
       noMoreResults: false,
       categories: [],
-      selectedCategoryName: '',  // ← name 값 저장
+      placeResults: [],
       selectedPlaces: [],
     };
   },
@@ -150,7 +141,7 @@ export default {
             query: this.searchQuery,
             page: this.page,
             size: 15,
-            category: this.selectedCategoryName || undefined, // ← name 값 전송
+            category: this.selectedCategoryName || undefined,
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -243,7 +234,6 @@ export default {
 </script>
 
 <style scoped>
-/* 스크롤바 최소화 */
 ::-webkit-scrollbar {
   width: 6px;
 }
