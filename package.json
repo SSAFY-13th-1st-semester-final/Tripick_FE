@@ -11,6 +11,7 @@
     "autoprefixer": "^10",
     "axios": "^1.9.0",
     "core-js": "^3.8.3",
+    "d3": "^7.9.0",
     "font-awesome": "^4.7.0",
     "jwt-decode": "^4.0.0",
     "lucide-vue-next": "^0.507.0",
