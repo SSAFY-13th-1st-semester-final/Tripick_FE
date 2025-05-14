@@ -26,10 +26,10 @@ export default {
         return;
       }
 
-      const width = 1000;
-      const height = 1000;
+      const width = 700;
+      const height = 700;
       const koreaCenter = [127.7, 36.2];
-      const initialScale = 7000;
+      const initialScale = 5500;
 
       const projection = d3.geo.mercator()
         .center(koreaCenter)

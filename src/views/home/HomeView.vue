@@ -1,27 +1,28 @@
 <template>
   <div>
     <ImageSlider />
-    <NavBar />
-  </div>
+    <NavBar @open-map="isMapModalOpen = true" />
 
-  <div>
-    <h1>대한민국 지도</h1>
-    <KoreaMap />
+    <KoreaMapModal v-if="isMapModalOpen" @close="isMapModalOpen = false" />
   </div>
 </template>
 
 <script>
 import ImageSlider from '@/components/slider/ImageSlider.vue';
 import NavBar from '@/components/layout/NavBar.vue';
-
-import KoreaMap from '@/components/destinations/KoreaMap.vue';
-
+import KoreaMapModal from '@/components/destinations/KoreaMapModal.vue';
 
 export default {
+  name: 'HomeView',
   components: {
     ImageSlider,
     NavBar,
-    KoreaMap
+    KoreaMapModal
+  },
+  data() {
+    return {
+      isMapModalOpen: false
+    };
   }
 };
 </script>
