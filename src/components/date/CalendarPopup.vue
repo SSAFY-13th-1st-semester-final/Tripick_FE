@@ -1,5 +1,5 @@
 <template>
-  <div class="relative mt-2 bg-white p-4 shadow rounded z-10 w-full" style="max-width: 1000px;">
+  <div class="relative mt-2 bg-white p-4 rounded z-10 w-full" style="max-width: 1000px;">
     <!-- 상단 텍스트 추가 -->
     <div class="text-center mt-10 mb-10">
       <h1 class="text-3xl font-bold">여행 기간이 어떻게 되시나요?</h1>

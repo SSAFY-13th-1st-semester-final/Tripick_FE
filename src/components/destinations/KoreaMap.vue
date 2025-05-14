@@ -150,6 +150,13 @@ export default {
         })
         .on('mouseout', function () {
           resetAllRegions();
+        }).on('click', (d) => {
+          if (d && d.properties) {
+            console.log('클릭된 지역:', d.properties.name);
+            this.$emit('region-selected', d.properties.name);
+          } else {
+            console.error('클릭된 데이터에 오류가 발생했습니다:', d);
+          }
         });
 
       svg.on('mouseleave', resetAllRegions);
