@@ -125,9 +125,8 @@ export default {
     };
   },
   computed: {
-    ...mapState({
-      selectedPlaces: state => state.selectedPlaces,
-    }),
+    ...mapState('places', ['selectedPlaces']),
+
     scrollContainer() {
       return this.$refs.scrollContainer;
     },
