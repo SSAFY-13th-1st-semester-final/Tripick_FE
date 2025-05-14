@@ -22,7 +22,7 @@
 import { mapGetters, mapMutations } from 'vuex';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import AppHeader from '@/components/layout/Header.vue';
+import AppHeader from '@/components/layout/header/Header.vue';
 import AppFooter from '@/components/layout/Footer.vue';
 import Notification from '@/components/alert/Notification.vue';
 

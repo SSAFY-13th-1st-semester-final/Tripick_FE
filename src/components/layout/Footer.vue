@@ -6,9 +6,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-1 gap-x-4 text-center">
           <router-link to="#" class="hover:text-gray-600 transition">개인정보 처리방침</router-link>
           <router-link to="#" class="hover:text-gray-600 transition">약관</router-link>
-          <router-link to="/refund" class="hover:text-gray-600 transition">판매 및 환불</router-link>
-          <router-link to="/legal" class="hover:text-gray-600 transition">법적 고지</router-link>
-          <router-link to="/sitemap" class="hover:text-gray-600 transition">사이트 맵</router-link>
+          <router-link to="#" class="hover:text-gray-600 transition">판매 및 환불</router-link>
+          <router-link to="#" class="hover:text-gray-600 transition">법적 고지</router-link>
+          <router-link to="#" class="hover:text-gray-600 transition">사이트 맵</router-link>
         </div>
       </div>
     </div>

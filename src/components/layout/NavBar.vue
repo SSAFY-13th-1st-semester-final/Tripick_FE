@@ -26,7 +26,7 @@ export default {
       menuItems: [
         { icon: iconMap, label: '지도', link: '/map' },
         { icon: iconCommunity, label: '커뮤니티', link: '/posts' },
-        { icon: iconBoard, label: '공지사항', link: '/notice' },
+        { icon: iconBoard, label: '공지사항', link: '#' },
       ],
     };
   },
