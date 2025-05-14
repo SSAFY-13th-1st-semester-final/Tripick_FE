@@ -45,7 +45,7 @@
                 </div>
                 <!-- 삭제 버튼 -->
                 <button
-                  @click="handleRemovePlace(place.id)"
+                  @click="removePlace(place.id)"
                   class="text-gray-600 w-10 flex items-center justify-center rounded"
                 >
                   <svg
@@ -105,7 +105,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapMutations, mapGetters } from 'vuex';
 
 export default {
   name: "AddPlaceList",
@@ -113,7 +113,10 @@ export default {
     isSidePanelExpanded: Boolean,
   },
   computed: {
-    ...mapState(['selectedPlaces']),
+    ...mapGetters('places', ['getSelectedPlaces']),
+    selectedPlaces() {
+      return this.getSelectedPlaces;
+    },
 
     formattedTotalStayTime() {
       const totalMinutes = this.selectedPlaces.reduce((total, place) => {
@@ -125,9 +128,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations({
-      removePlaceMutation: 'removePlace', // 이름 충돌 방지
-    }),
+    ...mapMutations('places', ['removePlace', 'updateStayTime', 'toggleEditingMode', 'exitEditingMode']),
 
     formattedStayTime(place) {
       return `${place.stayTime?.hours ?? 0}시간 ${place.stayTime?.minutes ?? 0}분`;
@@ -141,10 +142,6 @@ export default {
     saveStayTimeEdit(place) {
       place.isEditingStayTime = false;
     },
-
-    handleRemovePlace(placeId) {
-      this.removePlaceMutation(placeId);
-    }
   }
 };
 </script>

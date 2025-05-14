@@ -129,18 +129,16 @@ export default {
   },
 
   computed: {
-    ...mapState({
-      selectedPlaces: state => state.selectedPlaces,  // Vuex에서 selectedPlaces 가져오기
+    ...mapState('places', {
+      selectedPlaces: state => state.selectedPlaces,
     }),
-    ...mapGetters({
-      getSelectedPlaces: 'getSelectedPlaces',  // Vuex getter를 통해 선택된 장소를 가져오기
+    ...mapGetters('places', {
+      getSelectedPlaces: 'getSelectedPlaces',
     }),
   },
 
   methods: {
-    ...mapActions([
-      'togglePlaceSelection', // 장소 선택 토글하는 액션
-    ]),
+    ...mapActions('places', ['togglePlaceSelection']),
 
     async fetchPlaces() {
       if (!this.searchQuery || this.isLoading || this.noMoreResults) return;
@@ -185,7 +183,6 @@ export default {
             Authorization: `Bearer ${token}`,
           },
         });
-
         this.categories = res.data?.data || [];
       } catch (err) {
         console.error('카테고리 불러오기 실패:', err);

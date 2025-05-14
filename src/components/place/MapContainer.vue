@@ -7,9 +7,7 @@ import { mapState } from 'vuex';
 
 export default {
   name: "MapContainer",
-  computed: {
-    ...mapState(['selectedPlaces']),
-  },
+
   data() {
     return {
       map: null,
@@ -17,6 +15,19 @@ export default {
       infoWindow: null
     };
   },
+
+  computed: {
+    ...mapState('places', ['selectedPlaces']),
+  },
+
+  mounted() {
+    if (window.kakao && window.kakao.maps) {
+      this.loadMap();
+    } else {
+      this.loadScript();
+    }
+  },
+
   watch: {
     selectedPlaces: {
       handler(newPlaces) {
@@ -27,13 +38,7 @@ export default {
       deep: true
     }
   },
-  mounted() {
-    if (window.kakao && window.kakao.maps) {
-      this.loadMap();
-    } else {
-      this.loadScript();
-    }
-  },
+  
   methods: {
     triggerMapResize() {
       if (!this.map) return;
@@ -42,6 +47,7 @@ export default {
         this.recalculateMapBounds(); 
       }, 100); 
     },
+
     loadScript() {
       const script = document.createElement("script");
       script.src = "//dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
