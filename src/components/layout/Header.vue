@@ -71,7 +71,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import TokenService from '../../services/token.service';
+import TokenService from '@/services/token.service';
 
 export default {
   name: 'AppHeader',
@@ -82,29 +82,36 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['isLoggedIn', 'getRole']),
+    ...mapGetters('auth', ['isLoggedIn', 'getRole']),
     userRole() {
       return this.getRole;
     },
   },
   methods: {
-    ...mapActions(['logout']),
+    ...mapActions('auth', ['logout']),
     toggleProfilePopup() {
       this.isProfilePopupVisible = !this.isProfilePopupVisible;
     },
+    
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen;
     },
+
     closeMenu() {
       this.isMenuOpen = false;
     },
+
     logoutHandler() {
       TokenService.clear();
-      this.$store.commit('logout');
+
+      this.$store.commit('auth/logout');
+
       this.$router.push({ name: 'home' });
+
       this.isProfilePopupVisible = false;
       this.isMenuOpen = false;
     },
+
     closePopupIfClickedOutside(event) {
       const profilePopup = this.$refs.profilePopup;
       const profileIcon = this.$refs.profileIcon;

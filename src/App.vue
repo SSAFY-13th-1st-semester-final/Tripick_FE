@@ -35,10 +35,10 @@ export default {
     return { isMapView };
   },
   computed: {
-    ...mapGetters(['notificationMessage']),
+    ...mapGetters('notification', ['notificationMessage']),
   },
   methods: {
-    ...mapMutations(['clearNotification']),
+    ...mapMutations('notification', ['clearNotification']),
   },
 };
 </script>

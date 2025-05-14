@@ -125,12 +125,10 @@ import Notification from '@/components/alert/Notification.vue';
 
 <script>
 import axios from 'axios';
-import TokenService from '../../services/token.service';
+import TokenService from '@/services/token.service';
 
 export default {
-  components: {
-    Notification,
-  },
+
   data() {
     return {
       username: '',
@@ -168,15 +166,15 @@ export default {
           TokenService.setAccessToken(accessToken);
           TokenService.setRefreshToken(refreshToken);
 
-          this.$store.dispatch('notify', '환영합니다.');
-          this.$store.commit('login', accessToken);
+          this.$store.dispatch('notification/notify', '환영합니다.');
+          this.$store.commit('auth/login', accessToken);
           this.$router.push({ name: 'home' });
         } else {
-          this.setMessage('로그인에 실패했습니다. 토큰이 없습니다.');
+          this.$store.dispatch('notification/notify', '로그인 인증 정보 만료 (JWT)');
         }
       } catch (err) {
         console.error("로그인 중 오류 발생:", err);
-        this.$store.dispatch('notify', '로그인에 실패했습니다. 다시 시도하세요.');
+        this.$store.dispatch('notification/notify', '로그인에 실패했습니다. 다시 시도하세요.');
       }
     },
   },
