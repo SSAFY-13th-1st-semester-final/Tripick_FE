@@ -1,6 +1,6 @@
 <template>
   <div v-if="message" 
-       class="fixed top-20 max-w-xl px-4 py-3 bg-gray-300 text-white rounded-full shadow-lg text-center z-[9999] animate-fade-in-out">
+       class="px-4 py-3 bg-gray-300 text-white rounded-full shadow-lg text-center z-[9999] animate-fade-in-out min-w-[200px] whitespace-normal">
     <p>{{ message }}</p>
   </div>
 </template>

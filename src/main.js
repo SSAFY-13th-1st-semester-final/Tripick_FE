@@ -9,7 +9,6 @@ import 'font-awesome/css/font-awesome.min.css';
 
 import axios from 'axios';
 
-// baseURL 수정 (mvc 삭제)
 axios.defaults.baseURL = '/api'; // Spring 서버 주소
 
 createApp(App)

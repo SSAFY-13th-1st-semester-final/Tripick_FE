@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-gray-100 text-gray-400 py-2 text-xs font-apple-sdgothic font-medium w-full">
+  <footer class="bg-gray-100 text-gray-400 py-1 text-xs font-apple-sdgothic font-medium w-full">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col items-center text-center space-y-2">
         <p>&copy; 2025 SSAFY. 모든 권리 보유.</p>

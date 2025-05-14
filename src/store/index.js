@@ -7,6 +7,7 @@ export default createStore({
     role: localStorage.getItem('role') || null,
     id: localStorage.getItem('id') || null,
     selectedPlaces: [], // ✅ 장소 리스트 상태 추가
+    notificationMessage: '',
   },
   mutations: {
     login(state, token) {
@@ -64,6 +65,13 @@ export default createStore({
       if (place) {
         place.isEditingStayTime = false;
       }
+    },
+    // ✅ 알림 메시지 설정
+    setNotification(state, message) {
+      state.notificationMessage = message;
+    },
+    clearNotification(state) {
+      state.notificationMessage = '';
     }
   },
   actions: {
@@ -74,6 +82,12 @@ export default createStore({
       } else {
         commit('addPlace', place);
       }
+    },
+    notify({ commit }, message) {
+      commit('setNotification', message);
+      setTimeout(() => {
+        commit('clearNotification');
+      }, 5000);
     }
   },
   getters: {
@@ -81,5 +95,6 @@ export default createStore({
     getRole: (state) => state.role,
     getId: (state) => state.id,
     getSelectedPlaces: (state) => state.selectedPlaces, // ✅ getter 추가
+    notificationMessage: (state) => state.notificationMessage,
   }
 });

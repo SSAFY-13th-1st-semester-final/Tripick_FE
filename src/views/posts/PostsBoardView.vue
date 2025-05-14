@@ -12,7 +12,6 @@
 
     <!-- 게시글 목록 -->
     <div
-      ref="scrollContainer"
       class="grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
     >
       <PostCard
@@ -73,8 +72,18 @@ const isLoading = ref(false)
 const hasMore = ref(true)
 const isCreatePostModalOpen = ref(false)
 const selectedPost = ref(null)
-const scrollContainer = ref(null)
 const showScrollButton = ref(false)
+
+// 디바운스 함수 추가
+const debounce = (fn, delay) => {
+  let timer = null
+  return function (...args) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      fn.apply(this, args)
+    }, delay)
+  }
+}
 
 const fetchPosts = async () => {
   if (isLoading.value || !hasMore.value) return
@@ -130,12 +139,23 @@ const closeCreatePostModal = () => {
   isCreatePostModalOpen.value = false
 }
 
-const handleScroll = () => {
-  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 50
-  if (nearBottom) fetchPosts()
+// 스크롤 이벤트 핸들러 개선
+const handleScroll = debounce(() => {
+  // 현재 스크롤 위치
+  const scrollY = window.scrollY || window.pageYOffset
+  // 화면 높이
+  const windowHeight = window.innerHeight
+  // 문서 전체 높이
+  const documentHeight = document.documentElement.scrollHeight
 
-  showScrollButton.value = window.scrollY > 100
-}
+  // 스크롤이 하단에 가까워지면 추가 데이터 로드
+  if (scrollY + windowHeight >= documentHeight - 200) {
+    fetchPosts()
+  }
+
+  // 위로 가기 버튼 표시 여부
+  showScrollButton.value = scrollY > 100
+}, 100)
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -145,6 +165,7 @@ onMounted(() => {
   fetchPosts()
   window.addEventListener('scroll', handleScroll)
 })
+
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   document.body.style.overflow = ''

@@ -1,13 +1,13 @@
 <template>
 
-  <div class="min-h-[calc(100vh-48px)] flex items-center justify-center bg-white">
+  <div class="min-h-[calc(100vh-98px)] flex items-center justify-center bg-white">
         <!-- Notification 컴포넌트 -->
-    <Notification
+    <!-- <Notification
       v-if="message"
       :message="message"
       :key="messageKey"
       @clear-message="clearMessage"
-    />
+    /> -->
     <div class="transform -translate-y-10 w-full max-w-lg p-6">
       <h2 class="text-2xl font-semibold text-center text-gray-900 mb-6 font-apple-sdgothic">
         Wanna enjoy your trip?
@@ -168,6 +168,7 @@ export default {
           TokenService.setAccessToken(accessToken);
           TokenService.setRefreshToken(refreshToken);
 
+          this.$store.dispatch('notify', '환영합니다.');
           this.$store.commit('login', accessToken);
           this.$router.push({ name: 'home' });
         } else {
@@ -175,16 +176,8 @@ export default {
         }
       } catch (err) {
         console.error("로그인 중 오류 발생:", err);
-        const errorMessage = '로그인에 실패했습니다. 다시 시도하세요.';
-        this.setMessage(errorMessage);
+        this.$store.dispatch('notify', '로그인에 실패했습니다. 다시 시도하세요.');
       }
-    },
-    setMessage(message) {
-      this.message = message;
-      this.messageKey += 1; // 메시지 설정 시 고유 키 증가
-    },
-    clearMessage() {
-      this.message = '';
     },
   },
 };
