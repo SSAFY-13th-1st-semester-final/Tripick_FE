@@ -146,6 +146,10 @@ export default {
   },
 
   actions: {
+    updateSelectedPlacesByDay({ commit }, newPlacesByDay) {
+  commit('SET_SELECTED_PLACES_BY_DAY', newPlacesByDay);
+},
+
     // 장소 토글 (추가/삭제) - selectedDay 기준으로 일차별 장소도 관리
     togglePlaceSelection({ commit, state }, place) {
       const exists = state.selectedPlaces.find(p => p.id === place.id);
