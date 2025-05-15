@@ -1,15 +1,15 @@
 <template>
-  <div class="relative mt-2 bg-white p-4 rounded z-10 w-full" style="max-width: 1000px;">
-    <!-- 상단 텍스트 추가 -->
-    <div class="text-center mt-10 mb-10">
-      <h1 class="text-3xl font-bold">여행 기간이 어떻게 되시나요?</h1>
+  <div class="relative bg-white p-4 rounded z-10 w-full" style="max-width: 1000px;">
+
+        <!-- 상단 텍스트 추가 -->
+    <div class="text-center mt-0 mb-10">
       <p class="text-sm text-gray-500 mt-2 underline">
         현지 여행 기간<span class="font-bold">(여행지 도착날짜, 여행지 출발날짜)</span>으로 입력해주세요.
       </p>
     </div>
 
     <!-- 달력 영역 중앙 정렬 -->
-    <div class="flex justify-center gap-8 mb-20">
+    <div class="flex justify-center gap-8 mb-0">
       <!-- 현재 월 달력 -->
       <div class="w-96">
         <div class="flex items-center justify-between mb-4">
@@ -71,17 +71,6 @@
       </div>
     </div>
 
-    <!-- 하단 버튼을 우측 하단으로 이동 -->
-    <div class="absolute bottom-4 right-4 flex gap-4">
-      <button @click="emitCancel" class="px-6 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm">취소</button>
-      <button
-        @click="emitConfirm"
-        :disabled="!startDate || !endDate"
-        class="px-6 py-2 rounded bg-black text-white hover:bg-gray-800 text-sm disabled:opacity-50"
-      >
-        선택
-      </button>
-    </div>
   </div>
 </template>
 
@@ -90,32 +79,31 @@ export default {
   data() {
     const today = new Date();
     return {
-      month: today.getMonth(),  // 현재 월 (0부터 시작)
-      year: today.getFullYear(), // 현재 연도
+      month: today.getMonth(),
+      year: today.getFullYear(),
       startDate: null,
       endDate: null,
       daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     };
   },
   methods: {
-    // 월 계산 (1부터 시작하도록)
     getMonth(offset) {
       const month = this.month + offset;
-      if (month < 0) return 12 + month; // 12월로 넘어가는 경우
-      if (month > 11) return month - 12; // 1월로 넘어가는 경우
-      return month + 1; // 1부터 시작하도록 수정
+      if (month < 0) return 12 + month;
+      if (month > 11) return month - 12;
+      return month + 1;
     },
     getYear(offset) {
       return this.year + Math.floor((this.month + offset) / 12);
     },
     daysInMonth(offset) {
       const year = this.getYear(offset);
-      const month = this.getMonth(offset) - 1; // 내부적으로 0부터 시작하는 월로 처리해야 하므로 1을 빼줍니다.
+      const month = this.getMonth(offset) - 1;
       return new Date(year, month + 1, 0).getDate();
     },
     firstDayOfMonth(offset) {
       const year = this.getYear(offset);
-      const month = this.getMonth(offset) - 1; // 월을 0부터 시작하는 값으로 수정
+      const month = this.getMonth(offset) - 1;
       return new Date(year, month, 1).getDay();
     },
     handleDateClick(monthOffset, day) {
@@ -126,12 +114,25 @@ export default {
       if (!this.startDate || this.endDate) {
         this.startDate = selected;
         this.endDate = null;
+        // Vuex에 바로 저장
+        this.$store.commit('places/setTripDates', {
+          startDate: this.startDate,
+          endDate: null,
+        });
+      } else if (selected >= this.startDate) {
+        this.endDate = selected;
+        // Vuex에 바로 저장
+        this.$store.commit('places/setTripDates', {
+          startDate: this.startDate,
+          endDate: this.endDate,
+        });
       } else {
-        if (selected >= this.startDate) this.endDate = selected;
-        else {
-          this.startDate = selected;
-          this.endDate = null;
-        }
+        this.startDate = selected;
+        this.endDate = null;
+        this.$store.commit('places/setTripDates', {
+          startDate: this.startDate,
+          endDate: null,
+        });
       }
     },
     changeMonth(delta) {
@@ -176,18 +177,10 @@ export default {
 
       return classes.join(' ');
     },
-    emitConfirm() {
-      this.$emit('confirm', {
-        startDate: this.startDate,
-        endDate: this.endDate,
-      });
-    },
-    emitCancel() {
-      this.$emit('cancel');
-    },
   },
 };
 </script>
+
 
 <style scoped>
 /* 팝업 크기 고정 */

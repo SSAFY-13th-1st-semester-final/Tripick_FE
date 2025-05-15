@@ -61,6 +61,7 @@ export default {
     },
   },
   mounted() {
+    this.isProfilePopupVisible = false;
     document.addEventListener('click', this.closePopupIfClickedOutside);
   },
   beforeUnmount() {

@@ -13,6 +13,7 @@
       <HeaderDesktopMenu
         :is-logged-in="isLoggedIn"
         :user-role="userRole"
+        @close-menu="closeMenu"
         @logout="logout"
       />
     </div>
