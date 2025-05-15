@@ -3,7 +3,7 @@
     class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[100] backdrop-blur-sm"
     @click.self="$emit('close')"
   >
-    <div class="bg-white rounded-3xl p-4 w-full max-w-[45%] h-[70vh] relative flex flex-col">
+    <div class="bg-white rounded-3xl p-4 w-full max-w-[55%] h-[70vh] relative flex flex-col">
       <!-- 닫기 버튼 -->
         <button
           class="absolute top-4 right-5 z-30 text-gray-500 hover:text-gray-800 transition-colors duration-200"
@@ -34,7 +34,7 @@
         <!-- 단계 인디케이터 -->
         <div class="flex items-center mt-1">
           <div class="flex space-x-2">
-            <div class="w-8 h-1 rounded-full" :class="slideIndex === 0 ? 'bg-blue-500' : 'bg-gray-200'"></div>
+            <div class="w-8 h-1 rounded-full" :class="slideIndex === 0 || slideIndex === 1 ? 'bg-blue-500' : 'bg-gray-200'"></div>
             <div class="w-8 h-1 rounded-full" :class="slideIndex === 1 ? 'bg-blue-500' : 'bg-gray-200'"></div>
           </div>
         </div>
@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 import KoreaMap from '@/components/destinations/KoreaMap.vue';
 import CalendarPopup from '@/components/date/CalendarPopup.vue';
 import TravelHeader from '@/components/destinations/TravelHeader.vue';
@@ -117,6 +117,8 @@ export default {
     return {
       selectedRegion: '',
       slideIndex: 0,
+      nightCount: 0,
+      dayCount: 0,
     };
   },
   computed: {
@@ -127,31 +129,15 @@ export default {
     canProceed() {
       return this.selectedRegion && this.startDate && this.endDate;
     },
-    formattedStartDate() {
-      if (!this.startDate) return '';
-      return new Date(this.startDate).toLocaleDateString();
-    },
-    formattedEndDate() {
-      if (!this.endDate) return '';
-      return new Date(this.endDate).toLocaleDateString();
-    },
-    nightCount() {
-      if (!this.startDate || !this.endDate) return 0;
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
-    },
-    dayCount() {
-      if (!this.startDate || !this.endDate) return 0;
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      const diffTime = Math.abs(end - start);
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    }
+  },
+  watch: {
+    startDate: 'updateDateCounts',
+    endDate: 'updateDateCounts',
   },
   methods: {
+    ...mapMutations('places', {
+      setTripDates: 'SET_TRIP_DATES',
+    }),
     onRegionSelected(region) {
       this.selectedRegion = region;
     },
@@ -165,8 +151,29 @@ export default {
         this.slideIndex--;
       }
     },
+    updateDateCounts() {
+      if (!this.startDate || !this.endDate) {
+        this.nightCount = 0;
+        this.dayCount = 0;
+        return;
+      }
+
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      const diffTime = Math.abs(end - start);
+      const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const days = nights + 1;
+
+      this.nightCount = nights;
+      this.dayCount = days;
+    },
     completeSelection() {
       if (this.startDate && this.endDate) {
+        this.$store.commit('places/setTripCount', {
+          nightCount: this.nightCount,
+          dayCount: this.dayCount,
+        });
+        this.$store.commit('places/setSelectedRegion', this.selectedRegion);
         this.$router.push('/map');
       } else {
         alert('여행 시작일과 종료일을 모두 선택해주세요.');

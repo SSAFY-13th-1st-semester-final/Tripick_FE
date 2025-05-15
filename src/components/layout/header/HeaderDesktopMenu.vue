@@ -9,7 +9,7 @@
         <img src="@/assets/icons/icon_member.svg"
              alt="user icon"
              class="h-5 w-5 cursor-pointer"
-             @click="togglePopup" />
+             @click.stop="togglePopup" />
         <div v-if="isProfilePopupVisible"
              ref="profilePopup"
              class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10">

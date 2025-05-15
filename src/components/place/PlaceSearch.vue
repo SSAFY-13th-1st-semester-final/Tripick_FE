@@ -1,5 +1,13 @@
 <template>
   <div class="w-full h-full flex flex-col space-y-4">
+    <!-- 1. 상단 지역명 표시 -->
+    <h1 class="text-lg font-bold mb-2">{{ selectedRegion || '지역 미선택' }}</h1>
+
+    <!-- 2. 출발일-도착일 표시 -->
+    <h2 class="text-sm font-semibold mb-4">
+      {{ formattedStart || '출발일 미선택' }} - {{ formattedEnd || '도착일 미선택' }}
+    </h2>
+    
     <div class="flex items-center shadow-md rounded px-4 py-3 bg-white">
       <select
         v-model="selectedCategoryName"
@@ -129,16 +137,31 @@ export default {
   },
 
   computed: {
-    ...mapState('places', {
-      selectedPlaces: state => state.selectedPlaces,
-    }),
-    ...mapGetters('places', {
-      getSelectedPlaces: 'getSelectedPlaces',
-    }),
+  ...mapState('places', ['selectedPlaces']),
+  ...mapGetters('places', ['getSelectedRegion', 'getTripDates', 'getSelectedPlaces']),
+    tripDates() {
+      // null 방지용 빈 객체 리턴
+      return this.getTripDates || {};
+    },
+    selectedRegion() {
+      console.log(this.getSelectedRegion);
+      return this.getSelectedRegion || '';
+    },
+    formattedStart() {
+      return this.tripDates.startDate ? this.formatDate(this.tripDates.startDate) : null;
+    },
+    formattedEnd() {
+      return this.tripDates.endDate ? this.formatDate(this.tripDates.endDate) : null;
+    },
   },
 
   methods: {
     ...mapActions('places', ['togglePlaceSelection']),
+
+    formatDate(date) {
+      const d = new Date(date);
+      return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')}`;
+    },
 
     async fetchPlaces() {
       if (!this.searchQuery || this.isLoading || this.noMoreResults) return;
@@ -216,18 +239,16 @@ export default {
   },
 
   mounted() {
-    const el = this.scrollTarget;
-    if (el) {
-      el.addEventListener('scroll', this.handleScroll);
+    if (this.scrollTarget) {
+      this.scrollTarget.addEventListener('scroll', this.handleScroll);
     }
     this.fetchCategories();
     this.fetchPlaces();
   },
 
   unmounted() {
-    const el = this.scrollTarget;
-    if (el) {
-      el.removeEventListener('scroll', this.handleScroll);
+    if (this.scrollTarget) {
+      this.scrollTarget.removeEventListener('scroll', this.handleScroll);
     }
   },
 };
