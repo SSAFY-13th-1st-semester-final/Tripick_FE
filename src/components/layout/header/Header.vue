@@ -13,7 +13,7 @@
       <HeaderDesktopMenu
         :is-logged-in="isLoggedIn"
         :user-role="userRole"
-        @logout="logoutHandler"
+        @logout="logout"
       />
     </div>
     <HeaderMobileMenu
@@ -21,49 +21,33 @@
       :is-logged-in="isLoggedIn"
       :user-role="userRole"
       @close-menu="closeMenu"
-      @logout="logoutHandler"
+      @logout="logout"
     />
   </nav>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import TokenService from '@/services/token.service';
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useAuth } from '@/composables/useAuth';
 
 import HeaderLogo from '@/components/layout/header/HeaderLogo.vue';
 import HeaderDesktopMenu from '@/components/layout/header/HeaderDesktopMenu.vue';
 import HeaderMobileMenu from '@/components/layout/header/HeaderMobileMenu.vue';
 
-export default {
-  name: 'AppHeader',
-  components: {
-    HeaderLogo,
-    HeaderDesktopMenu,
-    HeaderMobileMenu,
-  },
-  data() {
-    return {
-      isMenuOpen: false,
-    };
-  },
-  computed: {
-    ...mapGetters('auth', ['isLoggedIn', 'getRole']),
-    userRole() {
-      return this.getRole;
-    },
-  },
-  methods: {
-    toggleMenu() {
-      this.isMenuOpen = !this.isMenuOpen;
-    },
-    closeMenu() {
-      this.isMenuOpen = false;
-    },
-    logoutHandler() {
-      TokenService.clear();
-      this.$store.commit('auth/logout');
-      this.$router.push({ name: 'home' });
-    },
-  },
-};
+const store = useStore();
+const isMenuOpen = ref(false);
+
+const userRole = computed(() => store.getters['auth/getRole']);
+const isLoggedIn = computed(() => store.getters['auth/isLoggedIn']);
+
+const { logout } = useAuth();
+
+function toggleMenu() {
+  isMenuOpen.value = !isMenuOpen.value;
+}
+
+function closeMenu() {
+  isMenuOpen.value = false;
+}
 </script>

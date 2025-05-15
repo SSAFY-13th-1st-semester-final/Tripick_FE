@@ -82,7 +82,7 @@
 
     <!-- 지도 영역: 분리된 컴포넌트 사용 -->
     <div class="flex-grow h-full relative z-0">
-      <MapContainer ref="mapRef" :selected-places="selectedPlaces" />
+      <MapContainer />
     </div>
 
     <!-- 캘린더 팝업 -->

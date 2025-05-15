@@ -1,131 +1,134 @@
 <template>
-    <div ref="mapContainer" class="h-full" />
+  <KakaoMap
+    :lat="center.lat"
+    :lng="center.lng"
+    :level="3"
+    @onLoadKakaoMap="onLoadKakaoMap"
+    style="height: 100%; width: 100%;"
+  >
+    <KakaoMapMarker
+      v-for="(place, index) in parsedPlaces"
+      :key="index"
+      :lat="place.y"
+      :lng="place.x"
+      :clickable="true"
+      @mouseover="() => showInfoWindow(index)"
+      @mouseout="hideInfoWindow"
+    />
+
+    <KakaoMapInfoWindow
+      v-if="infoWindowIndex !== null && parsedPlaces.length > infoWindowIndex"
+      :lat="parsedPlaces[infoWindowIndex].y"
+      :lng="parsedPlaces[infoWindowIndex].x"
+      :z-index="3"
+    >
+      <div style="padding:15px; font-size:16px;">
+        <strong style="font-size:18px;">
+          {{ parsedPlaces[infoWindowIndex].placeName }}
+        </strong><br />
+        <span>{{ parsedPlaces[infoWindowIndex].addressName || '' }}</span><br />
+        <span>{{ parsedPlaces[infoWindowIndex].phone || '' }}</span>
+      </div>
+    </KakaoMapInfoWindow>
+  </KakaoMap>
 </template>
 
 <script>
+import { KakaoMap, KakaoMapMarker, KakaoMapInfoWindow } from 'vue3-kakao-maps';
 import { mapState } from 'vuex';
 
 export default {
-  name: "MapContainer",
-
+  name: 'MapContainer',
+  components: {
+    KakaoMap,
+    KakaoMapMarker,
+    KakaoMapInfoWindow,
+  },
   data() {
     return {
-      map: null,
-      markers: [],
-      infoWindow: null
+      center: { lat: 33.450701, lng: 126.570667 },
+      mapInstance: null,
+      infoWindowIndex: null,
+      isMapLoaded: false,
     };
   },
-
   computed: {
     ...mapState('places', ['selectedPlaces']),
+    parsedPlaces() {
+      return this.selectedPlaces.map((place) => ({
+        ...place,
+        x: Number(place.x),
+        y: Number(place.y),
+      }));
+    },
   },
-
-  mounted() {
-    if (window.kakao && window.kakao.maps) {
-      this.loadMap();
-    } else {
-      this.loadScript();
-    }
-  },
-
   watch: {
     selectedPlaces: {
       handler(newPlaces) {
-        this.clearMarkers();
-        this.renderMarkers(newPlaces);
+        if (this.isMapLoaded && newPlaces.length > 0) {
+          this.$nextTick(() => {
+            this.fitMapToMarkers();
+          });
+        }
       },
-      immediate: true,
-      deep: true
-    }
+      deep: true,
+    },
   },
-  
   methods: {
-    triggerMapResize() {
-      if (!this.map) return;
-      setTimeout(() => {
-        window.kakao.maps.event.trigger(this.map, 'resize');
-        this.recalculateMapBounds(); 
-      }, 100); 
-    },
+    onLoadKakaoMap(map) {
+      console.log('지도 로드 완료:', map);
+      this.mapInstance = map;
+      this.isMapLoaded = true;
 
-    loadScript() {
-      const script = document.createElement("script");
-      script.src = "//dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
-      script.onload = () => window.kakao.maps.load(this.loadMap);
-      document.head.appendChild(script);
+      if (this.parsedPlaces.length > 0) {
+        this.$nextTick(() => {
+          this.fitMapToMarkers();
+        });
+      } else {
+        this.setUserLocation();
+      }
     },
-    loadMap() {
+    setUserLocation() {
+      if (!navigator.geolocation) return;
+
+      if (this.selectedPlaces.length > 0) return;
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.initMap(pos.coords.latitude, pos.coords.longitude);
+          this.center = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
+          if (this.mapInstance) {
+            this.mapInstance.setCenter(
+              new window.kakao.maps.LatLng(this.center.lat, this.center.lng)
+            );
+          }
         },
         () => {
-          this.initMap(33.450701, 126.570667); // fallback
         }
       );
     },
-    initMap(lat, lng) {
-      const container = this.$refs.mapContainer;
-      const options = {
-        center: new window.kakao.maps.LatLng(lat, lng),
-        level: 3
-      };
-      this.map = new window.kakao.maps.Map(container, options);
-      this.infoWindow = new window.kakao.maps.InfoWindow({ zIndex: 3 });
-
-      // 마커 최초 렌더링
-      this.renderMarkers(this.selectedPlaces);
+    showInfoWindow(index) {
+      this.infoWindowIndex = index;
     },
-
-    recalculateMapBounds() {
-      if (!this.markers.length) return;
-      const bounds = new window.kakao.maps.LatLngBounds();
-      this.markers.forEach(marker => bounds.extend(marker.getPosition()));
-      this.map.setBounds(bounds);
+    hideInfoWindow() {
+      this.infoWindowIndex = null;
     },
+    fitMapToMarkers() {
+      if (!this.mapInstance || this.parsedPlaces.length === 0) return;
 
-    renderMarkers(places) {
-      if (!this.map || !window.kakao) return;
       const bounds = new window.kakao.maps.LatLngBounds();
 
-      places.forEach((place) => {
-        const position = new window.kakao.maps.LatLng(place.y, place.x);
-        const marker = new window.kakao.maps.Marker({
-          position,
-          title: place.placeName
-        });
-
-        marker.setMap(this.map);
-        this.markers.push(marker);
-        bounds.extend(position);
-
-        const content = `
-          <div style="padding:15px; font-size:16px;">
-            <strong style="font-size:18px;">${place.placeName}</strong><br/>
-            <span>${place.addressName || ''}</span><br/>
-            <span>${place.phone || ''}</span>
-          </div>
-        `;
-        window.kakao.maps.event.addListener(marker, 'mouseover', () => {
-          this.infoWindow.setContent(content);
-          this.infoWindow.open(this.map, marker);
-        });
-        window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-          this.infoWindow.close();
-        });
+      this.parsedPlaces.forEach((place) => {
+        bounds.extend(new window.kakao.maps.LatLng(place.y, place.x));
       });
 
-      this.recalculateMapBounds();
-    },
-
-    // 마커를 모두 삭제하는 메소드
-    clearMarkers() {
-      this.markers.forEach(marker => marker.setMap(null));
-      this.markers = [];
-      if (this.infoWindow) {
-        this.infoWindow.close();
+      // bounds가 빈 경우도 방지
+      if (!bounds.isEmpty()) {
+        this.mapInstance.setBounds(bounds);
       }
     },
-  }
+  },
 };
 </script>
