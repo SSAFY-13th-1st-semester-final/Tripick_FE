@@ -8,21 +8,21 @@
 </template>
 
 <script>
-import ImageSlider from '@/components/slider/ImageSlider.vue';
-import NavBar from '@/components/layout/NavBar.vue';
-import KoreaMapModal from '@/components/destinations/KoreaMapModal.vue';
+import ImageSlider from "@/components/slider/ImageSlider.vue";
+import NavBar from "@/components/layout/NavBar.vue";
+import KoreaMapModal from "@/components/destinations/KoreaMapModal.vue";
 
 export default {
-  name: 'HomeView',
+  name: "HomeView",
   components: {
     ImageSlider,
     NavBar,
-    KoreaMapModal
+    KoreaMapModal,
   },
   data() {
     return {
-      isMapModalOpen: false
+      isMapModalOpen: false,
     };
-  }
+  },
 };
 </script>

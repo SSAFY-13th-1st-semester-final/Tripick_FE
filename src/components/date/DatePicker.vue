@@ -1,11 +1,14 @@
 <template>
   <div class="relative w-full max-w-3xl p-4 bg-white">
     <!-- 1. 상단 지역명 표시 -->
-    <h1 class="text-xl font-bold mb-2">{{ selectedRegion || '지역 미선택' }}</h1>
+    <h1 class="text-xl font-bold mb-2">
+      {{ selectedRegion || "지역 미선택" }}
+    </h1>
 
     <!-- 2. 출발일-도착일 표시 -->
     <h2 class="text-lg font-semibold mb-4">
-      {{ formattedStart || '출발일 미선택' }} - {{ formattedEnd || '도착일 미선택' }}
+      {{ formattedStart || "출발일 미선택" }} -
+      {{ formattedEnd || "도착일 미선택" }}
     </h2>
 
     <!-- 3. 여행 시간 상세 설정 토글 -->
@@ -20,9 +23,14 @@
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
           :class="{ 'transform rotate-180': showTimeSettings }"
         >
           <path d="m6 9 6 6 6-6" />
@@ -41,18 +49,12 @@
       </p>
 
       <!-- 5. 날짜별 설정 -->
-      <div
-        v-for="index in tripDates.dayCount"
-        :key="index"
-        class="mb-3"
-      >
-        <div class="flex-grow">
-          <StayTimeEditor
-            :stayTime="timeSettings[index - 1]"
-            :dateInfo="getDayInfo(index - 1)"
-            @save="updated => saveTimeSettings(index - 1, updated)"
-          />
-        </div>
+      <div v-for="index in tripDates.dayCount" :key="index" class="mb-3">
+        <StayTimeEditor
+          :stayTime="timeSettings[index - 1]"
+          :dateInfo="getDayInfo(index - 1)"
+          @save="(updated) => saveTimeSettings(index - 1, updated)"
+        />
       </div>
 
       <!-- 6. 완료 버튼 -->
@@ -67,24 +69,24 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapMutations } from 'vuex';
-import StayTimeEditor from '@/components/date/StayTimeEditor.vue';
+import { mapGetters, mapActions, mapMutations } from "vuex";
+import StayTimeEditor from "@/components/date/StayTimeEditor.vue";
 
 export default {
   name: "DatePicker",
   components: {
-    StayTimeEditor
+    StayTimeEditor,
   },
   data() {
     return {
-      showTimeSettings: false,
+      showTimeSettings: true,
     };
   },
   computed: {
-    ...mapGetters('places', [
-      'getTripDates',
-      'getSelectedRegion',
-      'getTimeSettings'
+    ...mapGetters("places", [
+      "getTripDates",
+      "getSelectedRegion",
+      "getTimeSettings",
     ]),
     tripDates() {
       return this.getTripDates;
@@ -96,42 +98,60 @@ export default {
       return this.getTimeSettings;
     },
     formattedStart() {
-      return this.tripDates.startDate ? this.formatDate(this.tripDates.startDate) : null;
+      return this.tripDates.startDate
+        ? this.formatDate(this.tripDates.startDate)
+        : null;
     },
     formattedEnd() {
-      return this.tripDates.endDate ? this.formatDate(this.tripDates.endDate) : null;
+      return this.tripDates.endDate
+        ? this.formatDate(this.tripDates.endDate)
+        : null;
     },
     totalDuration() {
+      console.log(
+        "timeSettings 변경됨 (watch):",
+        JSON.stringify(this.timeSettings, null, 2)
+      );
+
+      let totalHours = 0;
       let totalMinutes = 0;
-      this.timeSettings.forEach(setting => {
-        totalMinutes += (setting.hours * 60) + setting.minutes;
+
+      this.timeSettings.forEach((setting) => {
+        totalHours += setting.hours ?? 0;
+        totalMinutes += setting.minutes ?? 0;
       });
+
+      // 60분 이상이면 시간으로 변환
+      totalHours += Math.floor(totalMinutes / 60);
+      totalMinutes = totalMinutes % 60;
+
+      console.log(totalHours, totalMinutes);
+
       return {
-        hours: Math.floor(totalMinutes / 60),
-        minutes: totalMinutes % 60
+        hours: totalHours,
+        minutes: totalMinutes,
       };
-    }
+    },
   },
   methods: {
-    ...mapActions('places', [
-      'initializeTimeSettings',
-      'updateOneTimeSetting'
-    ]),
-    ...mapMutations('places', [
-      'setTimeSettings'
-    ]),
+    ...mapActions("places", ["initializeTimeSettings", "updateOneTimeSetting"]),
+    ...mapMutations("places", ["setTimeSettings"]),
 
     formatDate(date) {
       const d = new Date(date);
-      return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')}`;
+      return `${d.getFullYear()}.${(d.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}.${d.getDate().toString().padStart(2, "0")}`;
     },
 
     getDayInfo(index) {
-      if (!this.tripDates.startDate) return '';
+      if (!this.tripDates.startDate) return "";
       const date = new Date(this.tripDates.startDate);
       date.setDate(date.getDate() + index);
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      return `${date.getMonth() + 1}/${date.getDate()} (${weekdays[date.getDay()]})`;
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      return `${date.getMonth() + 1}/${date.getDate()} (${
+        weekdays[date.getDay()]
+      })`;
     },
 
     toggleTimeSettings() {
@@ -139,33 +159,37 @@ export default {
     },
 
     saveTimeSettings(index, updated) {
+      console.log(index + " " + updated.hours);
       this.updateOneTimeSetting({
         index,
         hours: updated.hours,
-        minutes: updated.minutes
+        minutes: updated.minutes,
       });
-      console.log(`${index + 1}일차 시간 설정 저장:`, updated);
     },
 
     completeTimeSettings() {
       this.$emit("complete-times", this.timeSettings);
       this.showTimeSettings = false;
-    }
+    },
   },
   watch: {
-    'tripDates.dayCount': {
+    timeSettings: {
+      deep: true,
+      handler(newVal) {},
+    },
+    "tripDates.dayCount": {
       immediate: true,
       handler(newVal) {
         if (newVal) {
           this.initializeTimeSettings(newVal);
         }
-      }
-    }
+      },
+    },
   },
   created() {
     if (this.tripDates.dayCount) {
       this.initializeTimeSettings(this.tripDates.dayCount);
     }
-  }
+  },
 };
 </script>

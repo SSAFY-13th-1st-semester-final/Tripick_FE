@@ -4,7 +4,7 @@
     :lng="center.lng"
     :level="3"
     @onLoadKakaoMap="onLoadKakaoMap"
-    style="height: 100%; width: 100%;"
+    style="height: 100%; width: 100%"
   >
     <KakaoMapMarker
       v-for="(place, index) in parsedPlaces"
@@ -22,28 +22,35 @@
       :lng="parsedPlaces[infoWindowIndex].x"
       :z-index="3"
     >
-      <div style="padding:15px; font-size:16px;">
-        <strong style="font-size:18px;">
-          {{ parsedPlaces[infoWindowIndex].placeName }}
-        </strong><br />
-        <span>{{ parsedPlaces[infoWindowIndex].addressName || '' }}</span><br />
-        <span>{{ parsedPlaces[infoWindowIndex].phone || '' }}</span>
+      <div style="padding: 15px; font-size: 16px">
+        <strong style="font-size: 18px">
+          {{ parsedPlaces[infoWindowIndex].placeName }} </strong
+        ><br />
+        <span>{{ parsedPlaces[infoWindowIndex].addressName || "" }}</span
+        ><br />
+        <span>{{ parsedPlaces[infoWindowIndex].phone || "" }}</span>
       </div>
     </KakaoMapInfoWindow>
   </KakaoMap>
 </template>
 
 <script>
-import { KakaoMap, KakaoMapMarker, KakaoMapInfoWindow } from 'vue3-kakao-maps';
-import { mapState } from 'vuex';
+import { KakaoMap, KakaoMapMarker, KakaoMapInfoWindow } from "vue3-kakao-maps";
+import { mapState } from "vuex";
 
 export default {
-  name: 'MapContainer',
+  name: "MapContainer",
+
+  props: {
+    sidePanelExpanded: Boolean,
+  },
+
   components: {
     KakaoMap,
     KakaoMapMarker,
     KakaoMapInfoWindow,
   },
+
   data() {
     return {
       center: { lat: 33.450701, lng: 126.570667 },
@@ -52,8 +59,9 @@ export default {
       isMapLoaded: false,
     };
   },
+
   computed: {
-    ...mapState('places', ['selectedPlaces']),
+    ...mapState("places", ["selectedPlaces"]),
     parsedPlaces() {
       return this.selectedPlaces.map((place) => ({
         ...place,
@@ -73,10 +81,23 @@ export default {
       },
       deep: true,
     },
+
+    sidePanelExpanded() {
+      console.log("!!");
+      this.fitMapToMarkers();
+    },
   },
   methods: {
+    relayoutMap() {
+      this.$nextTick(() => {
+        if (this.mapInstance && window.kakao?.maps) {
+          this.mapInstance.relayout();
+          console.log(this.mapInstance.relayout());
+        }
+      });
+    },
     onLoadKakaoMap(map) {
-      console.log('지도 로드 완료:', map);
+      console.log("지도 로드 완료:", map);
       this.mapInstance = map;
       this.isMapLoaded = true;
 
@@ -105,8 +126,7 @@ export default {
             );
           }
         },
-        () => {
-        }
+        () => {}
       );
     },
     showInfoWindow(index) {

@@ -1,14 +1,19 @@
 <template>
-  <div class="w-full h-full flex flex-col space-y-4">
-    <!-- 1. 상단 지역명 표시 -->
-    <h1 class="text-lg font-bold mb-2">{{ selectedRegion || '지역 미선택' }}</h1>
+  <div class="w-full h-full flex flex-col">
+    <div>
+      <!-- 1. 상단 지역명 표시 -->
+      <h1 class="text-xl font-bold mb-2">
+        {{ selectedRegion || "지역 미선택" }}
+      </h1>
 
-    <!-- 2. 출발일-도착일 표시 -->
-    <h2 class="text-sm font-semibold mb-4">
-      {{ formattedStart || '출발일 미선택' }} - {{ formattedEnd || '도착일 미선택' }}
-    </h2>
-    
-    <div class="flex items-center shadow-md rounded px-4 py-3 bg-white">
+      <!-- 2. 출발일-도착일 표시 -->
+      <h2 class="text-lg mb-4">
+        {{ formattedStart || "출발일 미선택" }} -
+        {{ formattedEnd || "도착일 미선택" }}
+      </h2>
+    </div>
+
+    <div class="flex items-center shadow-md rounded px-2 py-2 mb-6">
       <select
         v-model="selectedCategoryName"
         @change="resetAndSearch"
@@ -56,7 +61,7 @@
       <div
         v-for="place in placeResults"
         :key="place.id"
-        class="flex justify-between items-stretch bg-white text-sm"
+        class="flex justify-between items-stretch bg-white text-sm h-20"
       >
         <div class="flex-grow pr-2">
           <div class="text-base font-bold">{{ place.placeName }}</div>
@@ -70,9 +75,11 @@
         <div class="flex items-stretch">
           <button
             @click="togglePlaceSelection(place)"
-            :class="[ 
-              'w-10 flex items-center justify-center rounded', 
-              isPlaceSelected(place) ? 'bg-pink-400 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600' 
+            :class="[
+              'w-10 flex items-center justify-center rounded',
+              isPlaceSelected(place)
+                ? 'bg-pink-400 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
             ]"
           >
             <svg
@@ -113,22 +120,24 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex';
-import axios from 'axios';
+import { mapState, mapActions, mapGetters } from "vuex";
+import axios from "axios";
 
 export default {
-  name: 'PlaceResult',
+  name: "PlaceResult",
+
   props: {
     scrollTarget: {
       type: [Object, null],
       default: null,
     },
   },
+
   data() {
     return {
       page: 1,
-      searchQuery: '',
-      selectedCategoryName: '',
+      searchQuery: "",
+      selectedCategoryName: "",
       isLoading: false,
       noMoreResults: false,
       categories: [],
@@ -137,40 +146,51 @@ export default {
   },
 
   computed: {
-  ...mapState('places', ['selectedPlaces']),
-  ...mapGetters('places', ['getSelectedRegion', 'getTripDates', 'getSelectedPlaces']),
+    ...mapState("places", ["selectedPlaces"]),
+    ...mapGetters("places", [
+      "getSelectedRegion",
+      "getTripDates",
+      "getSelectedPlaces",
+    ]),
+
     tripDates() {
       // null 방지용 빈 객체 리턴
       return this.getTripDates || {};
     },
     selectedRegion() {
       console.log(this.getSelectedRegion);
-      return this.getSelectedRegion || '';
+      return this.getSelectedRegion || "";
     },
     formattedStart() {
-      return this.tripDates.startDate ? this.formatDate(this.tripDates.startDate) : null;
+      return this.tripDates.startDate
+        ? this.formatDate(this.tripDates.startDate)
+        : null;
     },
     formattedEnd() {
-      return this.tripDates.endDate ? this.formatDate(this.tripDates.endDate) : null;
+      return this.tripDates.endDate
+        ? this.formatDate(this.tripDates.endDate)
+        : null;
     },
   },
 
   methods: {
-    ...mapActions('places', ['togglePlaceSelection']),
+    ...mapActions("places", ["togglePlaceSelection"]),
 
     formatDate(date) {
       const d = new Date(date);
-      return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')}`;
+      return `${d.getFullYear()}.${(d.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}.${d.getDate().toString().padStart(2, "0")}`;
     },
 
     async fetchPlaces() {
       if (!this.searchQuery || this.isLoading || this.noMoreResults) return;
 
       this.isLoading = true;
-      const token = localStorage.getItem('access-token');
+      const token = localStorage.getItem("access-token");
 
       try {
-        const res = await axios.get('/v1/place', {
+        const res = await axios.get("/v1/place", {
           params: {
             query: this.searchQuery,
             page: this.page,
@@ -191,24 +211,24 @@ export default {
           this.page++;
         }
       } catch (err) {
-        console.error('검색 실패:', err);
+        console.error("검색 실패:", err);
       } finally {
         this.isLoading = false;
       }
     },
 
     async fetchCategories() {
-      const token = localStorage.getItem('access-token');
+      const token = localStorage.getItem("access-token");
 
       try {
-        const res = await axios.get('/v1/place/category', {
+        const res = await axios.get("/v1/place/category", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         this.categories = res.data?.data || [];
       } catch (err) {
-        console.error('카테고리 불러오기 실패:', err);
+        console.error("카테고리 불러오기 실패:", err);
       }
     },
 
@@ -234,13 +254,13 @@ export default {
     },
 
     isPlaceSelected(place) {
-      return this.selectedPlaces.some(p => p.id === place.id);
+      return this.selectedPlaces.some((p) => p.id === place.id);
     },
   },
 
   mounted() {
     if (this.scrollTarget) {
-      this.scrollTarget.addEventListener('scroll', this.handleScroll);
+      this.scrollTarget.addEventListener("scroll", this.handleScroll);
     }
     this.fetchCategories();
     this.fetchPlaces();
@@ -248,7 +268,7 @@ export default {
 
   unmounted() {
     if (this.scrollTarget) {
-      this.scrollTarget.removeEventListener('scroll', this.handleScroll);
+      this.scrollTarget.removeEventListener("scroll", this.handleScroll);
     }
   },
 };

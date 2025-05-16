@@ -1,13 +1,12 @@
 <template>
   <div class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[9999]">
-      <Notification
-        :message="notificationMessage"
-        @clear-message="clearNotification"
-      />
-    </div>
+    <Notification
+      :message="notificationMessage"
+      @clear-message="clearNotification"
+    />
+  </div>
 
   <div class="app-container">
-
     <AppHeader v-if="!isMapView" />
 
     <div :class="isMapView ? 'flex-grow overflow-hidden' : 'content-area'">
@@ -19,36 +18,37 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import AppHeader from '@/components/layout/header/Header.vue';
-import AppFooter from '@/components/layout/Footer.vue';
-import Notification from '@/components/alert/Notification.vue';
+import { mapGetters, mapMutations } from "vuex";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import AppHeader from "@/components/layout/header/Header.vue";
+import AppFooter from "@/components/layout/Footer.vue";
+import Notification from "@/components/alert/Notification.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: { AppHeader, AppFooter, Notification },
   setup() {
     const route = useRoute();
-    const isMapView = computed(() => route.path === '/map');
+    const isMapView = computed(() => route.path === "/map");
     return { isMapView };
   },
   computed: {
-    ...mapGetters('notification', ['notificationMessage']),
+    ...mapGetters("notification", ["notificationMessage"]),
   },
   methods: {
-    ...mapMutations('notification', ['clearNotification']),
+    ...mapMutations("notification", ["clearNotification"]),
   },
 };
 </script>
 
 <style>
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Apple SD Gothic Neo', sans-serif;
 }
 
 * {
