@@ -41,67 +41,74 @@ Spring Boot 기반의 RESTful API 서버와 연동되며, Kakao Maps API를 이�
 ## 프로젝트 구조
 
 ```bash
-src/
+src
 ├── App.vue
-├── assets/
-│   ├── images/
-│   └── styles/
+├── assets
+│   ├── data
+│   │   └── regionData.json
+│   ├── images
+│   └── styles
 │       ├── _glassmorphism.scss
 │       ├── _variables.scss
 │       ├── index.scss
 │       └── main.scss
-├── components/
-│   ├── common/              # 공통 UI 컴포넌트
+├── components
+│   ├── common
 │   │   ├── AppButton.vue
 │   │   ├── AppCard.vue
 │   │   ├── AppFooter.vue
 │   │   ├── AppInput.vue
 │   │   ├── AppNavbar.vue
 │   │   ├── AppNotification.vue
-│   │   └── DateRangePicker.vue
-│   ├── posts/
+│   │   ├── DatePicker.vue
+│   │   └── KakaoMap.vue
+│   ├── posts
 │   │   └── PostCard.vue
-│   ├── travel/
-│   │   └── RegionSelector.vue
-│   └── user/
+│   ├── travel
+│   │   ├── PlaceSearch.vue
+│   │   ├── RegionSelector.vue
+│   │   ├── TripPlanner.vue
+│   │   └── TripSchedule.vue
+│   └── user
 │       ├── LoginForm.vue
 │       ├── SignupForm.vue
 │       └── UserProfile.vue
-├── constants/
+├── constants
 │   └── index.js
-├── layouts/
+├── layouts
 │   ├── AuthLayout.vue
 │   └── DefaultLayout.vue
 ├── main.js
-├── router/
+├── router
 │   └── index.js
-├── services/ # API 서비스 로직
+├── services
 │   ├── api.service.js
 │   ├── auth.service.js
 │   ├── post.service.js
 │   ├── token.service.js
 │   └── travel.service.js
-├── stores/ # Pinia 스토어
+├── stores
 │   ├── auth.js
 │   ├── notification.js
 │   └── travel.js
 ├── style.css
-├── utils/                 
+├── utils
 │   ├── formatters.js
+│   ├── kakaoMapService.js
 │   └── validators.js
-└── views/
-    ├── auth/
+└── views
+    ├── auth
     │   ├── ChangePasswordView.vue
     │   ├── LoginView.vue
     │   └── SignupView.vue
     ├── HomeView.vue
-    ├── posts/
+    ├── posts
     │   ├── PostDetailView.vue
     │   ├── PostFormView.vue
     │   └── PostsListView.vue
-    ├── travels/
+    ├── travels
     │   └── TripPlannerView.vue
-    └── users/
+    └── users
         └── ProfileView.vue
 ```
 
