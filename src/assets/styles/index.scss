@@ -1,0 +1,6 @@
+// 이 파일은 모든 SCSS 변수와 믹스인을 내보냅니다
+@forward './variables';
+@forward './glassmorphism';
+
+// 다른 파일에서는 이 파일을 @use로 가져오면 됩니다
+// 예: @use '@/assets/styles' as *;
