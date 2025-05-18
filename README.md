@@ -41,67 +41,74 @@ Spring Boot 기반의 RESTful API 서버와 연동되며, Kakao Maps API를 이�
 ## 프로젝트 구조
 
 ```bash
-src/
+src
 ├── App.vue
-├── assets/
-│   ├── images/
-│   └── styles/
+├── assets
+│   ├── data
+│   │   └── regionData.json
+│   ├── images
+│   └── styles
 │       ├── _glassmorphism.scss
 │       ├── _variables.scss
 │       ├── index.scss
 │       └── main.scss
-├── components/
-│   ├── common/              # 공통 UI 컴포넌트
+├── components
+│   ├── common
 │   │   ├── AppButton.vue
 │   │   ├── AppCard.vue
 │   │   ├── AppFooter.vue
 │   │   ├── AppInput.vue
 │   │   ├── AppNavbar.vue
 │   │   ├── AppNotification.vue
-│   │   └── DateRangePicker.vue
-│   ├── posts/
+│   │   ├── DatePicker.vue
+│   │   └── KakaoMap.vue
+│   ├── posts
 │   │   └── PostCard.vue
-│   ├── travel/
-│   │   └── RegionSelector.vue
-│   └── user/
+│   ├── travel
+│   │   ├── PlaceSearch.vue
+│   │   ├── RegionSelector.vue
+│   │   ├── TripPlanner.vue
+│   │   └── TripSchedule.vue
+│   └── user
 │       ├── LoginForm.vue
 │       ├── SignupForm.vue
 │       └── UserProfile.vue
-├── constants/
+├── constants
 │   └── index.js
-├── layouts/
+├── layouts
 │   ├── AuthLayout.vue
 │   └── DefaultLayout.vue
 ├── main.js
-├── router/
+├── router
 │   └── index.js
-├── services/ # API 서비스 로직
+├── services
 │   ├── api.service.js
 │   ├── auth.service.js
 │   ├── post.service.js
 │   ├── token.service.js
 │   └── travel.service.js
-├── stores/ # Pinia 스토어
+├── stores
 │   ├── auth.js
 │   ├── notification.js
 │   └── travel.js
 ├── style.css
-├── utils/                 
+├── utils
 │   ├── formatters.js
+│   ├── kakaoMapService.js
 │   └── validators.js
-└── views/
-    ├── auth/
+└── views
+    ├── auth
     │   ├── ChangePasswordView.vue
     │   ├── LoginView.vue
     │   └── SignupView.vue
     ├── HomeView.vue
-    ├── posts/
+    ├── posts
     │   ├── PostDetailView.vue
     │   ├── PostFormView.vue
     │   └── PostsListView.vue
-    ├── travels/
+    ├── travels
     │   └── TripPlannerView.vue
-    └── users/
+    └── users
         └── ProfileView.vue
 ```
 
@@ -120,13 +127,13 @@ src/
 - [x] 게시글 작성, 수정, 삭제 기능
 
 ### 3. 여행 계획 기능
-- [ ] 여행 지역 선택 (예: 서울, 부산 등)
-- [ ] 장소 및 숙소 검색 및 조회 (Kakao Map 기반)
-- [ ] 장소를 일정에 추가 및 일자별 여행 계획 구성
-- [ ] Kakao 지도에서 장소 마커 및 상세 정보 표시
-- [ ] 선택된 장소를 기반으로 최적 경로 자동 생성 (경로 알고리즘 적용 예정)
-- [ ] 여행 일자별로 경로 및 장소 저장 가능
-- [ ] 장소 간 경로 시각화 및 최적화 알고리즘 개선 예정
+- [x] 여행 지역 선택 (예: 서울, 부산 등)
+- [x] 장소 및 숙소 검색 및 조회 (Kakao Map 기반)
+- [x] 장소를 일정에 추가 및 일자별 여행 계획 구성
+- [x] Kakao 지도에서 장소 마커 및 상세 정보 표시
+- [ ] 선택된 장소를 기반으로 최적 경로 자동 생성
+- [ ] 여행 일자별 경로 및 장소 저장
+- [ ] 장소 간 경로 시각화
 
 
 ## 데이터 유효성 검증
