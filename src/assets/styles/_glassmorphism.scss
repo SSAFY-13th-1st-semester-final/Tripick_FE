@@ -1,0 +1,137 @@
+// 변수를 가져와서 사용
+@use 'variables' as *;
+
+/* 글래스모피즘 믹스인 */
+@mixin glassmorphism($opacity: 0.6, $blur: 10px, $border-opacity: 0.18) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, $border-opacity);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+@mixin glassmorphism-dark($opacity: 0.2, $blur: 10px, $border-opacity: 0.18) {
+  background: rgba($primary-color, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, $border-opacity);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* 글래스모피즘 카드 스타일 */
+.glass-card {
+  @include glassmorphism();
+  border-radius: 16px;
+  padding: $spacing-lg;
+  transition: transform $transition-normal, box-shadow $transition-normal;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+  }
+}
+
+/* 글래스모피즘 버튼 스타일 */
+.glass-btn {
+  @include glassmorphism(0.5, 8px);
+  color: $primary-color;
+  border-radius: 8px;
+  padding: $spacing-sm $spacing-lg;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+  cursor: pointer;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 10px 20px rgba(31, 38, 135, 0.2);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &.primary {
+    background: rgba($accent-color, 0.85);
+    color: white;
+    
+    &:hover {
+      background: rgba($accent-color, 0.95);
+    }
+  }
+  
+  &.accent {
+    background: rgba($accent-color, 0.85);
+    color: white;
+    
+    &:hover {
+      background: rgba($accent-color, 0.95);
+    }
+  }
+  
+  &.success {
+    background: rgba($success-color, 0.85);
+    color: white;
+    
+    &:hover {
+      background: rgba($success-color, 0.95);
+    }
+  }
+}
+
+/* 글래스모피즘 내비게이션 스타일 */
+.glass-nav {
+  @include glassmorphism(0.6, 12px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-index-fixed;
+  padding: $spacing-md $spacing-xl;
+}
+
+/* 글래스모피즘 입력 필드 스타일 */
+.glass-input {
+  @include glassmorphism(0.4, 5px);
+  border-radius: 8px;
+  padding: $spacing-md;
+  color: $primary-color;
+  transition: all $transition-fast;
+  
+  &:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2);
+  }
+  
+  &::placeholder {
+    color: $dark-gray;
+  }
+}
+
+/* 글래스모피즘 모달 스타일 */
+.glass-modal {
+  @include glassmorphism(0.7, 15px);
+  border-radius: 16px;
+  padding: $spacing-xl;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  margin: 0 auto;
+  
+  &__backdrop {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+}
+
+/* 글래스모피즘 태그 스타일 */
+.glass-tag {
+  @include glassmorphism(0.3, 5px);
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  margin-right: $spacing-xs;
+  margin-bottom: $spacing-xs;
+}

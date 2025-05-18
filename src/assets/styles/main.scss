@@ -1,0 +1,289 @@
+@use 'variables' as *;
+@use 'glassmorphism' as *;
+
+/* 기본 CSS 리셋 및 폰트 설정 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: $font-size-base;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: $font-family;
+  line-height: 1.6;
+  color: $primary-color;
+  background-color: $white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 백그라운드 그라데이션 배경 */
+.app-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #ffffff, #f5f7fa);
+  z-index: -1;
+}
+
+/* 배경 장식 요소 (유기적인 모양) */
+.bg-shapes {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  opacity: 0.5;
+  
+  .shape {
+    position: absolute;
+    opacity: 0.15;
+    
+    &.shape-1 {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, $accent-color, #5b21b6);
+      top: -100px;
+      right: -100px;
+    }
+    
+    &.shape-2 {
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #0ea5e9, #06b6d4);
+      bottom: -200px;
+      left: -150px;
+    }
+    
+    &.shape-3 {
+      width: 200px;
+      height: 200px;
+      border-radius: 40%;
+      background: linear-gradient(45deg, #f59e0b, #fcd34d);
+      top: 30%;
+      left: 10%;
+    }
+  }
+}
+
+/* 컨테이너 및 레이아웃 */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: 0 $spacing-sm;
+  }
+}
+
+.section {
+  padding: $spacing-3xl 0;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-2xl 0;
+  }
+}
+
+/* 타이포그래피 */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: $font-weight-bold;
+  line-height: 1.3;
+  margin-bottom: $spacing-md;
+  color: $primary-color;
+}
+
+h1 {
+  font-size: 2.5rem;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: 2rem;
+  }
+}
+
+h2 {
+  font-size: 2rem;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: 1.75rem;
+  }
+}
+
+h3 {
+  font-size: 1.75rem;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: 1.5rem;
+  }
+}
+
+h4 {
+  font-size: 1.5rem;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: 1.25rem;
+  }
+}
+
+p {
+  margin-bottom: $spacing-md;
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+  transition: color $transition-fast;
+  
+  &:hover {
+    color: $accent-color;
+  }
+}
+
+/* 유틸리티 클래스 */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-sm {
+  gap: $spacing-sm;
+}
+
+.gap-md {
+  gap: $spacing-md;
+}
+
+.gap-lg {
+  gap: $spacing-lg;
+}
+
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+
+.py-md { 
+  padding-top: $spacing-md;
+  padding-bottom: $spacing-md;
+}
+
+.py-lg { 
+  padding-top: $spacing-lg;
+  padding-bottom: $spacing-lg;
+}
+
+.px-md { 
+  padding-left: $spacing-md;
+  padding-right: $spacing-md;
+}
+
+.px-lg { 
+  padding-left: $spacing-lg;
+  padding-right: $spacing-lg;
+}
+
+/* 반응형 그리드 */
+.grid {
+  display: grid;
+  gap: $spacing-lg;
+}
+
+.grid-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+.grid-cols-2 {
+  grid-template-columns: 1fr 1fr;
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba($light-gray, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba($dark-gray, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba($primary-color, 0.5);
+}
