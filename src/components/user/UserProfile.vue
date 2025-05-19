@@ -4,7 +4,7 @@
     <div class="user-profile__image-section">
       <div class="user-profile__image-wrapper">
         <img
-          :src="profileImageUrl || '/default-profile.jpg'"
+          :src="profileImageUrl || 'https://picsum.photos/200'"
           alt="프로필 이미지"
           class="user-profile__image"
           @error="handleImageError"

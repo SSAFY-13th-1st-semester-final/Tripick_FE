@@ -58,8 +58,8 @@ import { reactive, ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
-import AppInput from "@/components/common/AppInput.vue";
-import AppButton from "@/components/common/AppButton.vue";
+import AppInput from "@/components/common/shared/AppInput.vue";
+import AppButton from "@/components/common/shared/AppButton.vue";
 import { isRequired } from "@/utils/validators";
 
 // 라우터와 Pinia 스토어 사용
