@@ -3,23 +3,27 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-section">
-          <h3 class="footer-title">Travel Glass</h3>
+          <h3 class="footer-title">Trapick</h3>
           <p class="footer-description">
-            최고의 여행 경험을 위한 당신의 파트너.<br>
+            최고의 여행 경험을 위한 당신의 파트너.<br />
             글래스모피즘 디자인으로 더 세련되고 직관적인 여행 앱을 만나보세요.
           </p>
         </div>
-        
+
         <div class="footer-section">
           <h3 class="footer-title">바로가기</h3>
           <ul class="footer-links">
             <li><router-link to="/">홈</router-link></li>
-            <li><router-link :to="{ name: 'travel-create' }">여행 목록</router-link></li>
+            <li>
+              <router-link :to="{ name: 'travel-create' }"
+                >여행 목록</router-link
+              >
+            </li>
             <li><router-link to="/auth/login">로그인</router-link></li>
             <li><router-link to="/auth/signup">회원가입</router-link></li>
           </ul>
         </div>
-        
+
         <div class="footer-section">
           <h3 class="footer-title">고객 지원</h3>
           <ul class="footer-links">
@@ -29,7 +33,7 @@
             <li><a href="#">개인정보 처리방침</a></li>
           </ul>
         </div>
-        
+
         <div class="footer-section">
           <h3 class="footer-title">문의하기</h3>
           <ul class="footer-contact">
@@ -39,7 +43,7 @@
           </ul>
         </div>
       </div>
-      
+
       <div class="footer-bottom">
         <p>&copy; {{ currentYear }} Travel Glass. All rights reserved.</p>
       </div>
@@ -48,10 +52,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 // 현재 년도 계산
-const currentYear = computed(() => new Date().getFullYear())
+const currentYear = computed(() => new Date().getFullYear());
 </script>
 
 <style lang="scss" scoped>
@@ -68,11 +72,11 @@ const currentYear = computed(() => new Date().getFullYear())
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: $spacing-xl;
-  
+
   @media (max-width: $breakpoint-lg) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: $breakpoint-md) {
     grid-template-columns: 1fr;
   }
@@ -88,9 +92,9 @@ const currentYear = computed(() => new Date().getFullYear())
   margin-bottom: $spacing-md;
   position: relative;
   display: inline-block;
-  
+
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     bottom: -5px;
@@ -111,18 +115,18 @@ const currentYear = computed(() => new Date().getFullYear())
   list-style: none;
   padding: 0;
   margin: 0;
-  
+
   li {
     margin-bottom: $spacing-sm;
     color: $primary-color;
     font-size: 0.9rem;
   }
-  
+
   a {
     color: $primary-color;
     text-decoration: none;
     transition: color $transition-fast;
-    
+
     &:hover {
       color: $accent-color;
     }
@@ -134,7 +138,7 @@ const currentYear = computed(() => new Date().getFullYear())
   padding-top: $spacing-md;
   border-top: 1px solid rgba($primary-color, 0.1);
   text-align: center;
-  
+
   p {
     color: $dark-gray;
     font-size: 0.875rem;

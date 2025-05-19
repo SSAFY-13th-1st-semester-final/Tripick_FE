@@ -4,7 +4,9 @@
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">특별한 여행을 발견하세요</h1>
-          <p class="hero-subtitle">글래스모피즘 디자인의 세련된 여행 웹앱과 함께 여정을 시작하세요</p>
+          <p class="hero-subtitle">
+            글래스모피즘 디자인의 세련된 여행 웹앱과 함께 여정을 시작하세요
+          </p>
           <div class="hero-actions">
             <button @click="openTripPlanner" class="hero-btn primary">
               여행 둘러보기
@@ -17,34 +19,8 @@
       </div>
     </section>
 
-    <section class="features">
-      <div class="container">
-        <h2 class="section-title">Travel Glass의 특별한 기능</h2>
-        <div class="features-grid">
-          <div class="feature-card glass-card">
-            <div class="feature-icon">🔍</div>
-            <h3 class="feature-title">맞춤형 여행 검색</h3>
-            <p class="feature-description">
-              취향과 예산에 맞는 완벽한 여행 계획을 찾아보세요.
-            </p>
-          </div>
-          <div class="feature-card glass-card">
-            <div class="feature-icon">💎</div>
-            <h3 class="feature-title">특별한 경험</h3>
-            <p class="feature-description">
-              현지 문화를 체험할 수 있는 특별한 여행 경험을 제공합니다.
-            </p>
-          </div>
-          <div class="feature-card glass-card">
-            <div class="feature-icon">📱</div>
-            <h3 class="feature-title">모바일 최적화</h3>
-            <p class="feature-description">
-              언제 어디서나 모바일로 여행 정보를 확인하고 예약하세요.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- 기능 섹션을 컴포넌트로 대체 -->
+    <FeatureSection :features="homeFeatures" />
 
     <section class="cta">
       <div class="container">
@@ -59,17 +35,17 @@
         </div>
       </div>
     </section>
-    
+
     <!-- TripPlanner 모달 -->
     <Teleport to="body" v-if="showTripModal">
       <!-- 모달 배경 오버레이 -->
       <div class="modal-backdrop" @click="closeTripPlanner"></div>
-      
+
       <!-- 모달 컨테이너 -->
       <div class="modal-container">
-        <TripPlanner 
-          class="modal-content" 
-          :is-modal="true" 
+        <TripPlanner
+          class="modal-content"
+          :is-modal="true"
           @close="closeTripPlanner"
           @trip-created="handleTripCreated"
         />
@@ -79,9 +55,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import TripPlanner from '@/components/travel/TripPlanner.vue';
+import { ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import TripPlanner from "@/components/travel/TripPlanner.vue";
+import FeatureSection from "@/components/home/FeatureSection.vue";
 
 // 라우팅 관련 정보 가져오기
 const route = useRoute();
@@ -90,48 +67,70 @@ const router = useRouter();
 // 모달 표시 상태
 const showTripModal = ref(false);
 
+// 홈 화면에 표시할 기능 목록 정의
+const homeFeatures = [
+  {
+    id: 1,
+    icon: "🔍",
+    title: "맞춤형 여행 검색",
+    description: "취향과 예산에 맞는 완벽한 여행 계획을 찾아보세요.",
+  },
+  {
+    id: 2,
+    icon: "💎",
+    title: "특별한 경험",
+    description: "현지 문화를 체험할 수 있는 특별한 여행 경험을 제공합니다.",
+  },
+  {
+    id: 3,
+    icon: "📱",
+    title: "모바일 최적화",
+    description: "언제 어디서나 모바일로 여행 정보를 확인하고 예약하세요.",
+  },
+];
+
 // 여행 계획 모달 열기
 const openTripPlanner = () => {
   showTripModal.value = true;
-  
+
   // URL 상태 업데이트
-  router.push({ 
-    name: 'travel-create',
-    query: { returnTo: route.fullPath } // 현재 페이지로 돌아올 수 있게 정보 저장
+  router.push({
+    name: "travel-create",
+    query: { returnTo: route.fullPath }, // 현재 페이지로 돌아올 수 있게 정보 저장
   });
 };
 
 // 여행 계획 모달 닫기
 const closeTripPlanner = () => {
   showTripModal.value = false;
-  
+
   // 이전 URL로 돌아가기
   if (route.query.returnTo) {
     router.push(route.query.returnTo);
   } else {
-    router.push({ name: 'home' });
+    router.push({ name: "home" });
   }
 };
 
 // 여행 계획 생성 완료 처리
 const handleTripCreated = () => {
   // 여행 계획이 성공적으로 생성되면 일정 계획 페이지로 이동
-  router.push({ name: 'travel-planner' });
+  router.push({ name: "travel-planner" });
 };
 
 // URL 경로에 따라 모달 표시 여부 결정
 watch(
   () => route.name,
   (routeName) => {
-    showTripModal.value = routeName === 'travel-create';
+    showTripModal.value = routeName === "travel-create";
   },
   { immediate: true }
 );
 </script>
 
 <style lang="scss" scoped>
-@use 'sass:color';
-@use '@/assets/styles/glassmorphism' as *;
+@use "sass:color";
+@use "@/assets/styles/glassmorphism" as *;
 
 .home-view {
   padding-top: $spacing-lg;
@@ -142,58 +141,62 @@ watch(
   text-align: center;
   position: relative;
   overflow: hidden;
-  
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -50%;
     left: -10%;
     width: 120%;
     height: 200%;
-    background: radial-gradient(ellipse at center, rgba($accent-color, 0.05) 0%, rgba($white, 0) 70%);
+    background: radial-gradient(
+      ellipse at center,
+      rgba($accent-color, 0.05) 0%,
+      rgba($white, 0) 70%
+    );
     z-index: -1;
   }
-  
+
   &-content {
     max-width: 800px;
     margin: 0 auto;
   }
-  
+
   &-title {
     font-size: 3rem;
     margin-bottom: $spacing-md;
     color: $primary-color;
-    
+
     @media (max-width: $breakpoint-md) {
       font-size: 2.5rem;
     }
-    
+
     @media (max-width: $breakpoint-sm) {
       font-size: 2rem;
     }
   }
-  
+
   &-subtitle {
     font-size: 1.25rem;
     margin-bottom: $spacing-xl;
     color: rgba($primary-color, 0.8);
-    
+
     @media (max-width: $breakpoint-md) {
       font-size: 1.125rem;
     }
   }
-  
+
   &-actions {
     display: flex;
     justify-content: center;
     gap: $spacing-md;
-    
+
     @media (max-width: $breakpoint-sm) {
       flex-direction: column;
       align-items: center;
     }
   }
-  
+
   &-btn {
     display: inline-flex;
     align-items: center;
@@ -206,27 +209,27 @@ watch(
     border: none;
     cursor: pointer;
     font-family: $font-family;
-    
+
     &.primary {
       background-color: $accent-color;
       color: $white;
-      
+
       &:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 20px rgba($accent-color, 0.3);
       }
     }
-    
+
     &.secondary {
       @include glassmorphism(0.4, 5px);
       color: $primary-color;
-      
+
       &:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 20px rgba($primary-color, 0.15);
       }
     }
-    
+
     @media (max-width: $breakpoint-sm) {
       width: 100%;
       max-width: 300px;
@@ -234,60 +237,9 @@ watch(
   }
 }
 
-.features {
-  padding: $spacing-3xl 0;
-  background-color: rgba($light-gray, 0.3);
-  
-  .section-title {
-    text-align: center;
-    margin-bottom: $spacing-2xl;
-  }
-  
-  &-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: $spacing-xl;
-    
-    @media (max-width: $breakpoint-lg) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    @media (max-width: $breakpoint-md) {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
-.feature-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: $spacing-xl;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-  
-  &-icon {
-    font-size: 3rem;
-    margin-bottom: $spacing-md;
-  }
-  
-  &-title {
-    font-size: 1.25rem;
-    margin-bottom: $spacing-md;
-  }
-  
-  &-description {
-    color: rgba($primary-color, 0.8);
-    line-height: 1.6;
-  }
-}
-
 .cta {
   padding: $spacing-3xl 0;
-  
+
   &-content {
     text-align: center;
     padding: $spacing-2xl;
@@ -295,27 +247,27 @@ watch(
     margin: 0 auto;
     border-radius: 16px;
     @include glassmorphism(0.7, 10px);
-    
+
     &:hover {
       transform: none;
     }
   }
-  
+
   &-title {
     font-size: 2rem;
     margin-bottom: $spacing-md;
-    
+
     @media (max-width: $breakpoint-md) {
       font-size: 1.75rem;
     }
   }
-  
+
   &-description {
     font-size: 1.125rem;
     margin-bottom: $spacing-xl;
     color: rgba($primary-color, 0.8);
   }
-  
+
   &-btn {
     display: inline-flex;
     align-items: center;
@@ -327,7 +279,7 @@ watch(
     font-weight: $font-weight-medium;
     text-decoration: none;
     transition: all $transition-fast;
-    
+
     &:hover {
       transform: translateY(-3px);
       box-shadow: 0 10px 20px rgba($accent-color, 0.3);
@@ -355,23 +307,23 @@ watch(
   transform: translateX(-50%); /* 가로 중앙 정렬만 적용 */
   width: 100%;
   max-width: 1000px;
-  height: 90vh; /* 높이를 뷰포트 높이의 90%로 고정 */
+  height: 60vh; /* 높이를 뷰포트 높이의 90%로 고정 */
   z-index: $z-index-modal + 1;
   border-radius: 16px;
   padding: 0;
   overflow: hidden;
   @include glassmorphism(0.9, 15px);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  
+
   /* hover 효과 제거 */
   &:hover {
     transform: translateX(-50%) !important;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15) !important;
   }
-  
+
   /* 모달이 열릴 때 애니메이션 */
   animation: modal-open 0.4s cubic-bezier(0.17, 0.67, 0.21, 0.99);
-  
+
   @keyframes modal-open {
     from {
       opacity: 0;
@@ -382,7 +334,7 @@ watch(
       transform: translateX(-50%) translateY(0);
     }
   }
-  
+
   @media (max-width: $breakpoint-md) {
     width: 95%;
     height: 95vh; /* 모바일에서는 뷰포트 높이의 95%로 설정 */
@@ -396,17 +348,17 @@ watch(
   height: 100%;
   display: block;
   overflow-y: auto;
-  
+
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background-color: rgba($dark-gray, 0.3);
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background-color: rgba($medium-gray, 0.1);
   }

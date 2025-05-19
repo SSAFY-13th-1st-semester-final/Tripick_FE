@@ -1,8 +1,23 @@
 <template>
   <div class="region-selector-container">
-    <div class="region-selector-input glass-card" @click="toggleDropdown" ref="inputRef">
+    <div
+      class="region-selector-input glass-card"
+      @click="toggleDropdown"
+      ref="inputRef"
+    >
       <div class="input-wrapper">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="search-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
@@ -10,14 +25,28 @@
           ref="searchRef"
           type="text"
           class="search-input"
-          v-model="searchQuery"
+          :value="searchQuery"
+          @input="updateSearchQuery"
           placeholder="여행할 지역을 검색하세요"
-          @input="onSearch"
           @focus="showDropdown = true"
           @click.stop
         />
-        <button v-if="searchQuery || selectedRegion" @click.stop="clearSelection" class="clear-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button
+          v-if="searchQuery || selectedRegion"
+          @click.stop="clearSelection"
+          class="clear-btn"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -27,7 +56,17 @@
         <div class="region-tag glass-tag">
           {{ getFullRegionName(selectedRegion) }}
           <button class="remove-btn" @click.stop="clearSelection">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
@@ -37,29 +76,19 @@
     </div>
 
     <transition name="dropdown-fade">
-      <div v-show="showDropdown" class="region-dropdown glass-card">
-        <!-- 지역 탭 -->
-        <div class="region-tabs">
-          <button
-            v-for="(province, idx) in provinces"
-            :key="province.id"
-            class="tab-btn"
-            :class="{ active: activeProvinceIndex === idx }"
-            @click="selectProvince(idx); selectRegion({ provinceId: province.id, provinceName: province.name })"
-          >
-            {{ province.name }}
-          </button>
-        </div>
-
+      <div v-show="showDropdown" class="region-dropdown glass-card" @click.stop>
         <!-- 검색 결과 표시 (검색어가 있을 때) -->
-        <div v-if="searchQuery && filteredRegions.length > 0" class="search-results">
+        <div
+          v-if="searchQuery && filteredRegions.length > 0"
+          class="search-results"
+        >
           <h4 class="result-heading">검색 결과</h4>
           <div class="result-list">
             <button
               v-for="region in filteredRegions"
               :key="`${region.provinceId}-${region.districtId}`"
               class="region-btn"
-              @click="selectRegion(region)"
+              @click.stop="selectRegion(region)"
             >
               {{ getFullRegionName(region) }}
             </button>
@@ -67,43 +96,44 @@
         </div>
 
         <!-- 검색 결과 없음 -->
-        <div v-else-if="searchQuery && filteredRegions.length === 0" class="no-results">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div
+          v-else-if="searchQuery && filteredRegions.length === 0"
+          class="no-results"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="8" y1="12" x2="16" y2="12"></line>
           </svg>
           <p>검색 결과가 없습니다</p>
         </div>
 
-        <!-- 시/군/구 표시 (검색어가 없을 때) -->
-        <div v-else-if="activeProvince" class="districts-container">
-          <h4 class="region-heading">{{ activeProvince.name }}</h4>
-          <div class="districts-grid">
-            <button
-              v-for="district in activeProvince.districts"
-              :key="district.id"
-              class="district-btn"
-              @click="selectRegion({
-                provinceId: activeProvince.id,
-                provinceName: activeProvince.name,
-                districtId: district.id,
-                districtName: district.name
-              })"
-            >
-              {{ district.name }}
-            </button>
-          </div>
-        </div>
+        <!-- 지역 탭 컴포넌트 (검색어가 없을 때) -->
+        <RegionTabs
+          v-else
+          :provinces="provinces"
+          :selected-region="selectedRegion"
+          @region-selected="selectRegion"
+        />
 
         <!-- 인기 여행지 -->
-        <div class="popular-regions">
+        <div class="popular-regions" @click.stop>
           <h4 class="popular-heading">인기 여행지</h4>
           <div class="popular-tags">
             <button
               v-for="region in popularRegions"
               :key="`${region.provinceId}-${region.districtId}`"
               class="popular-tag"
-              @click="selectRegion(region)"
+              @click.stop="selectRegion(region)"
             >
               {{ getFullRegionName(region) }}
             </button>
@@ -115,54 +145,53 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import regionData from '@/assets/data/regionData.json';
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import regionData from "@/assets/data/regionData.json";
+import RegionTabs from "@/components/common/RegionTabs.vue";
 
 // Props
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: null
-  }
+    default: null,
+  },
 });
 
 // Emits
-const emit = defineEmits(['update:modelValue', 'region-selected']);
+const emit = defineEmits(["update:modelValue", "region-selected"]);
 
 // Refs
 const inputRef = ref(null);
 const searchRef = ref(null);
 const showDropdown = ref(false);
-const searchQuery = ref('');
+const searchQuery = ref("");
 const selectedRegion = ref(props.modelValue);
-const activeProvinceIndex = ref(0);
 
 // 대한민국 행정구역 데이터를 JSON 파일에서 불러옴
 const provinces = ref(regionData.provinces);
 const popularRegions = ref(regionData.popularRegions);
 
-// Computed
-const activeProvince = computed(() => provinces.value[activeProvinceIndex.value]);
-
-// 검색어에 맞는 지역 필터링
 const filteredRegions = computed(() => {
   if (!searchQuery.value) return [];
 
   const query = searchQuery.value.toLowerCase();
   const results = [];
 
-  provinces.value.forEach(province => {
-    province.districts.forEach(district => {
+  provinces.value.forEach((province) => {
+    province.districts.forEach((district) => {
       const provinceName = province.name.toLowerCase();
       const districtName = district.name.toLowerCase();
-      
-      if (provinceName.includes(query) || districtName.includes(query) ||
-          `${provinceName} ${districtName}`.includes(query)) {
+
+      if (
+        provinceName.includes(query) ||
+        districtName.includes(query) ||
+        `${provinceName} ${districtName}`.includes(query)
+      ) {
         results.push({
           provinceId: province.id,
           provinceName: province.name,
           districtId: district.id,
-          districtName: district.name
+          districtName: district.name,
         });
       }
     });
@@ -183,38 +212,46 @@ const toggleDropdown = () => {
 };
 
 const closeDropdown = (e) => {
-  if (inputRef.value && !inputRef.value.contains(e.target)) {
+  // 클릭된 요소가 드롭다운 내부에 있는지 확인
+  const isClickInsideDropdown = e.target.closest(".region-dropdown");
+
+  // 입력 영역이나 드롭다운 내부를 클릭한 경우가 아니면 드롭다운 닫기
+  if (
+    inputRef.value &&
+    !inputRef.value.contains(e.target) &&
+    !isClickInsideDropdown
+  ) {
     showDropdown.value = false;
   }
 };
 
-const onSearch = () => {
-  // 검색어가 있으면 자동으로 드롭다운 표시
+// UpdateSearchQuery 메서드 추가
+const updateSearchQuery = (e) => {
+  searchQuery.value = e.target.value;
+  // 검색어가 있으면 드롭다운 표시
   if (searchQuery.value) {
     showDropdown.value = true;
   }
 };
 
-const selectProvince = (index) => {
-  activeProvinceIndex.value = index;
-};
-
 const selectRegion = (region) => {
   selectedRegion.value = region;
-  searchQuery.value = '';
-  showDropdown.value = false;
-  emit('update:modelValue', region);
-  emit('region-selected', region);
+  searchQuery.value = "";
+  emit("update:modelValue", region);
+  emit("region-selected", region);
+
+  // 지역 선택 후에도 드롭다운은 유지
+  // showDropdown.value = false; // 이 줄 제거
 };
 
 const clearSelection = () => {
   selectedRegion.value = null;
-  searchQuery.value = '';
-  emit('update:modelValue', null);
+  searchQuery.value = "";
+  emit("update:modelValue", null);
 };
 
 const getFullRegionName = (region) => {
-  if (!region) return '';
+  if (!region) return "";
   if (region.districtName) {
     return `${region.provinceName} ${region.districtName}`;
   }
@@ -223,22 +260,25 @@ const getFullRegionName = (region) => {
 
 // Lifecycle hooks
 onMounted(() => {
-  document.addEventListener('click', closeDropdown);
+  document.addEventListener("click", closeDropdown);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', closeDropdown);
+  document.removeEventListener("click", closeDropdown);
 });
 
 // Watch for prop changes
-watch(() => props.modelValue, (newValue) => {
-  selectedRegion.value = newValue;
-}, { deep: true });
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    selectedRegion.value = newValue;
+  },
+  { deep: true }
+);
 </script>
 
-
 <style lang="scss" scoped>
-@use '@/assets/styles' as *;
+@use "@/assets/styles" as *;
 
 .region-selector-container {
   position: relative;
@@ -254,7 +294,7 @@ watch(() => props.modelValue, (newValue) => {
   cursor: pointer;
   transition: all $transition-normal;
   border-radius: 12px;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: $shadow-md;
@@ -279,11 +319,11 @@ watch(() => props.modelValue, (newValue) => {
   font-size: 15px;
   color: $primary-color;
   font-family: $font-family;
-  
+
   &:focus {
     outline: none;
   }
-  
+
   &::placeholder {
     color: $dark-gray;
   }
@@ -300,7 +340,7 @@ watch(() => props.modelValue, (newValue) => {
   justify-content: center;
   border-radius: 50%;
   transition: all $transition-fast;
-  
+
   &:hover {
     background-color: rgba($primary-color, 0.1);
     color: $primary-color;
@@ -323,7 +363,7 @@ watch(() => props.modelValue, (newValue) => {
   color: $primary-color;
   border-radius: 16px;
   background-color: rgba($accent-color, 0.1);
-  
+
   .remove-btn {
     background: transparent;
     border: none;
@@ -334,7 +374,7 @@ watch(() => props.modelValue, (newValue) => {
     color: $primary-color;
     cursor: pointer;
     transition: all $transition-fast;
-    
+
     &:hover {
       color: $accent-color;
     }
@@ -355,78 +395,12 @@ watch(() => props.modelValue, (newValue) => {
   box-shadow: $shadow-lg;
 }
 
-.region-tabs {
-  display: flex;
-  gap: $spacing-xs;
-  overflow-x: auto;
-  padding-bottom: $spacing-sm;
-  margin-bottom: $spacing-md;
-  border-bottom: 1px solid rgba($medium-gray, 0.3);
-  
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: rgba($dark-gray, 0.3);
-    border-radius: 4px;
-  }
-  
-  .tab-btn {
-    flex: 0 0 auto;
-    background: transparent;
-    border: none;
-    padding: $spacing-xs $spacing-sm;
-    font-size: 14px;
-    color: $dark-gray;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all $transition-fast;
-    
-    &:hover {
-      color: $primary-color;
-      background-color: rgba($primary-color, 0.05);
-    }
-    
-    &.active {
-      color: $accent-color;
-      background-color: rgba($accent-color, 0.1);
-      font-weight: $font-weight-medium;
-    }
-  }
-}
-
-.region-heading,
 .result-heading,
 .popular-heading {
   font-size: 15px;
   color: $primary-color;
   margin-bottom: $spacing-sm;
   font-weight: $font-weight-medium;
-}
-
-.districts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: $spacing-xs;
-  margin-bottom: $spacing-lg;
-}
-
-.district-btn {
-  background: transparent;
-  border: none;
-  padding: $spacing-xs $spacing-sm;
-  font-size: 14px;
-  color: $primary-color;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all $transition-fast;
-  
-  &:hover {
-    background-color: rgba($accent-color, 0.1);
-    color: $accent-color;
-  }
 }
 
 .search-results {
@@ -449,7 +423,7 @@ watch(() => props.modelValue, (newValue) => {
   text-align: left;
   cursor: pointer;
   transition: all $transition-fast;
-  
+
   &:hover {
     background-color: rgba($accent-color, 0.1);
     color: $accent-color;
@@ -464,11 +438,11 @@ watch(() => props.modelValue, (newValue) => {
   padding: $spacing-lg 0;
   gap: $spacing-sm;
   color: $dark-gray;
-  
+
   svg {
     opacity: 0.5;
   }
-  
+
   p {
     font-size: 14px;
     margin: 0;
@@ -497,7 +471,7 @@ watch(() => props.modelValue, (newValue) => {
   border: 1px solid rgba($medium-gray, 0.5);
   cursor: pointer;
   transition: all $transition-fast;
-  
+
   &:hover {
     background-color: rgba($accent-color, 0.1);
     border-color: $accent-color;
@@ -521,7 +495,7 @@ watch(() => props.modelValue, (newValue) => {
   .region-selector-container {
     max-width: 100%;
   }
-  
+
   .region-dropdown {
     position: fixed;
     top: 50%;
@@ -532,15 +506,11 @@ watch(() => props.modelValue, (newValue) => {
     max-height: 80vh;
     z-index: $z-index-modal;
   }
-  
+
   .dropdown-fade-enter-from,
   .dropdown-fade-leave-to {
     transform: translate(-50%, -45%);
     opacity: 0;
-  }
-  
-  .districts-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
 }
 </style>
