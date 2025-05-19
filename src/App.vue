@@ -16,8 +16,44 @@
     <AppNotification />
   </div>
 </template>
+
 <script setup>
+import { onMounted, onUnmounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/auth';
+import TokenMonitorService from '@/services/token-monitor.service';
 import AppNotification from "@/components/common/utils/AppNotification.vue";
+
+// Auth 스토어 접근
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
+
+// 컴포넌트 마운트 시 초기화
+onMounted(() => {
+  // 인증 상태 초기화
+  authStore.initAuth();
+  
+  // 로그인 상태면 토큰 모니터링 시작
+  if (isAuthenticated.value) {
+    TokenMonitorService.startMonitoring();
+  }
+});
+
+// 인증 상태 변경 감시
+watch(isAuthenticated, (newValue) => {
+  if (newValue) {
+    // 로그인 됨 - 모니터링 시작
+    TokenMonitorService.startMonitoring();
+  } else {
+    // 로그아웃 됨 - 모니터링 중지
+    TokenMonitorService.stopMonitoring();
+  }
+});
+
+// 컴포넌트 언마운트 시 정리
+onUnmounted(() => {
+  TokenMonitorService.stopMonitoring();
+});
 </script>
 
 <style lang="scss">

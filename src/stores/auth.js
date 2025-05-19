@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import AuthService from '@/services/auth.service'
+import TokenService from '@/services/token.service'
 import router from '@/router'
 
 export const useAuthStore = defineStore('auth', {
@@ -143,7 +144,7 @@ export const useAuthStore = defineStore('auth', {
      * 초기 인증 상태 복원
      */
     initAuth() {
-      const token = AuthService.getToken()
+      const token = TokenService.getToken()
       const user = AuthService.getStoredUser()
       
       if (token && user) {

@@ -78,15 +78,15 @@ const refreshAccessToken = async () => {
       : newAccessToken
     
 
-// 디버깅 코드: 토큰 비교
-const oldAccessToken = TokenService.getToken();
-console.log("기존 토큰:", oldAccessToken)
-console.log("새 토큰:", tokenValue)
-console.log("토큰 동일 여부:", oldAccessToken === tokenValue)
+    // 디버깅 코드: 토큰 비교
+    const oldAccessToken = TokenService.getToken();
+    console.log("기존 토큰:", oldAccessToken)
+    console.log("새 토큰:", tokenValue)
+    console.log("토큰 동일 여부:", oldAccessToken === tokenValue)
 
-// 토큰 길이 등 추가 정보 확인
-console.log("기존 토큰 길이:", oldAccessToken ? oldAccessToken.length : 0)
-console.log("새 토큰 길이:", tokenValue ? tokenValue.length : 0)
+    // 토큰 길이 등 추가 정보 확인
+    console.log("기존 토큰 길이:", oldAccessToken ? oldAccessToken.length : 0)
+    console.log("새 토큰 길이:", tokenValue ? tokenValue.length : 0)
 
 
     // 토큰 저장 (자동으로 디코딩도 수행됨)
@@ -112,23 +112,60 @@ console.log("새 토큰 길이:", tokenValue ? tokenValue.length : 0)
 
 // 요청 인터셉터 설정
 apiClient.interceptors.request.use(
-  config => {
+  async config => {
     // 로그인 요청의 경우 토큰 없이 진행
     if (config.url === '/auth/login' && config.method === 'post') {
       return config
     }
     
-    // 리프레시 토큰 요청은 특별히 처리하지 않음 (refreshAccessToken 함수에서 직접 처리)
+    // 리프레시 토큰 요청은 특별히 처리하지 않음
     if (config.url === '/auth/token/refresh' && config.method === 'post') {
       return config
     }
     
-    // 액세스 토큰이 유효한지 미리 확인
-    // 유효하지 않으면 요청 전에 갱신 시도 가능 (선택적)
-    if (!TokenService.isTokenValid()) {
-      // 토큰이 이미 만료되었다면, 요청 전에 갱신을 시도할 수 있음
-      // 이 부분은 선택적이며, 요청 후 401 에러로 처리할 수도 있음
-      console.log('토큰이 만료되었거나 없습니다. 리프레시 시도 전입니다.')
+    // 액세스 토큰이 유효한지 확인
+    if (!TokenService.isTokenValid() && !config._retry) {
+      console.log('토큰이 만료되었거나 없습니다. 요청 전 토큰 리프레시를 시도합니다.')
+      
+      // 이미 리프레시 진행 중인 경우 대기 후 처리
+      if (isRefreshing) {
+        console.log('다른 요청에서 이미 리프레시 진행 중. 대기 후 처리합니다.')
+        return new Promise((resolve) => {
+          subscribeTokenRefresh(token => {
+            console.log('대기 중이던 요청에 새 토큰 적용:', config.url)
+            config.headers['Authorization'] = `Bearer ${token}`
+            resolve(config)
+          })
+        })
+      }
+      
+      // 리프레시 진행 상태로 변경
+      isRefreshing = true
+      config._retry = true
+      
+      try {
+        console.log('요청 인터셉터에서 리프레시 토큰으로 새 토큰 발급 요청 시작')
+        // 리프레시 토큰으로 새 액세스 토큰 발급 요청
+        const newAccessToken = await refreshAccessToken()
+        console.log('요청 인터셉터에서 새 토큰 발급 완료:', config.url)
+        
+        // 대기 중인 요청들에게 새 토큰 전달
+        onRefreshed(newAccessToken)
+        
+        // 현재 요청에 새 토큰 설정
+        config.headers['Authorization'] = `Bearer ${newAccessToken}`
+        
+        // 리프레시 상태 종료
+        isRefreshing = false
+        
+        return config
+      } catch (error) {
+        // 리프레시 실패 - 대기 중인 요청들 모두 취소
+        console.error('요청 인터셉터에서 토큰 리프레시 실패:', error)
+        onRefreshFailed(error)
+        isRefreshing = false
+        return Promise.reject(error)
+      }
     }
     
     // 그 외 요청에는 액세스 토큰 추가 (TokenService 사용)
@@ -191,10 +228,10 @@ apiClient.interceptors.response.use(
       config._retry = true
       
       try {
-        console.log("리프레시 토큰으로 새 토큰 발급 요청 전")
+        console.log("응답 인터셉터: 리프레시 토큰으로 새 토큰 발급 요청 전")
         // 리프레시 토큰으로 새 액세스 토큰 발급 요청
         const newAccessToken = await refreshAccessToken()
-        console.log("리프레시 토큰으로 새 토큰 발급 요청 후")
+        console.log("응답 인터셉터: 리프레시 토큰으로 새 토큰 발급 요청 후")
         // 대기 중인 요청들에게 새 토큰 전달
         onRefreshed(newAccessToken)
         
