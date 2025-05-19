@@ -109,9 +109,7 @@ const toggleMenu = () => {
 // 로그아웃 함수
 const logout = async () => {
   try {
-    // 서버 로그아웃 API 호출
-    await AuthService.logout();
-    // 로컬 상태 정리
+
     authStore.logout();
 
     if (isMenuOpen.value) {
