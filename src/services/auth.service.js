@@ -174,7 +174,7 @@ class AuthService {
    */
   async findUsername(verificationData) {
     try {
-      const response = await apiClient.get("/member/id", verificationData);
+      const response = await apiClient.post("/member/id", verificationData);
 
       if (!response || response.status != 200) {
         throw new Error("확인 실패");

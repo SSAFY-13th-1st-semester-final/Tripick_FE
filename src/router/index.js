@@ -14,6 +14,7 @@ const ProfileView = () => import("@/views/users/ProfileView.vue");
 const LoginView = () => import("@/views/auth/LoginView.vue");
 const SignupView = () => import("@/views/auth/SignupView.vue");
 const ForgotPasswordView = () => import("@/views/auth/ForgotPasswordView.vue");
+const ForgotUsernameView = () => import("@/views/auth/ForgotUsernameView.vue");
 const ResetPasswordView = () => import("@/views/auth/ResetPasswordView.vue");
 
 // posts 관련 뷰 컴포넌트
@@ -145,6 +146,16 @@ const routes = [
         meta: {
           guest: true,
           title: "비밀번호 재설정 - Travel Glass",
+        },
+      },
+      // 아이디 찾기 라우트 추가
+      {
+        path: "forgot-username",
+        name: "forgot-username",
+        component: ForgotUsernameView,
+        meta: {
+          guest: true,
+          title: "아이디 찾기 - Travel Glass",
         },
       },
     ],
