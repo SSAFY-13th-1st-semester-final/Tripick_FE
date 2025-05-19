@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import FeatureCard from "@/components/common/FeatureCard.vue";
+import FeatureCard from "@/components/common/shared/FeatureCard.vue";
 
 // Props 정의
 const props = defineProps({

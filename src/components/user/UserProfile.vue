@@ -3,27 +3,31 @@
     <!-- 프로필 이미지 섹션 -->
     <div class="user-profile__image-section">
       <div class="user-profile__image-wrapper">
-        <img 
-          :src="profileImageUrl || '/default-profile.jpg'" 
+        <img
+          :src="profileImageUrl || '/default-profile.jpg'"
           alt="프로필 이미지"
           class="user-profile__image"
           @error="handleImageError"
         />
-        <div v-if="editable" class="user-profile__image-overlay" @click="triggerImageUpload">
+        <div
+          v-if="editable"
+          class="user-profile__image-overlay"
+          @click="triggerImageUpload"
+        >
           <div class="user-profile__image-upload-label">
             <i class="icon-camera"></i>
             <span>이미지 변경</span>
           </div>
-          <input 
-            type="file" 
+          <input
+            type="file"
             ref="imageUploadInput"
-            class="user-profile__image-upload" 
+            class="user-profile__image-upload"
             accept="image/*"
             @change="handleImageUpload"
           />
         </div>
       </div>
-      <p class="user-profile__role">{{ userData.role || '일반 회원' }}</p>
+      <p class="user-profile__role">{{ userData.role || "일반 회원" }}</p>
     </div>
 
     <!-- 프로필 정보 섹션 -->
@@ -46,7 +50,9 @@
                 :invalid="!!errors.nickname"
                 :error-message="errors.nickname"
               />
-              <p v-else class="user-profile__info-value">{{ userData.nickname || '-' }}</p>
+              <p v-else class="user-profile__info-value">
+                {{ userData.nickname || "-" }}
+              </p>
             </div>
           </div>
 
@@ -60,7 +66,9 @@
                 :invalid="!!errors.email"
                 :error-message="errors.email"
               />
-              <p v-else class="user-profile__info-value">{{ userData.email || '-' }}</p>
+              <p v-else class="user-profile__info-value">
+                {{ userData.email || "-" }}
+              </p>
             </div>
           </div>
 
@@ -74,7 +82,9 @@
                 :invalid="!!errors.phoneNumber"
                 :error-message="errors.phoneNumber"
               />
-              <p v-else class="user-profile__info-value">{{ userData.phoneNumber || '-' }}</p>
+              <p v-else class="user-profile__info-value">
+                {{ userData.phoneNumber || "-" }}
+              </p>
             </div>
           </div>
 
@@ -94,160 +104,174 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import AppInput from '@/components/common/AppInput.vue'
-import { isValidEmail, isValidPhoneNumber, isRequired } from '@/utils/validators'
+import { ref, reactive, computed, watch } from "vue";
+import AppInput from "@/components/common/shared/AppInput.vue";
 
 // Props 정의
 const props = defineProps({
   userData: {
     type: Object,
     required: true,
-    default: () => ({})
+    default: () => ({}),
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   editMode: {
     type: Boolean,
-    default: false
+    default: false,
   },
   editable: {
     type: Boolean,
-    default: false
+    default: false,
   },
   errors: {
     type: Object,
-    default: () => ({})
-  }
-})
+    default: () => ({}),
+  },
+});
 
 // 이벤트 정의
-const emit = defineEmits([
-  'update:userData', 
-  'imageSelected', 
-  'validateField'
-])
+const emit = defineEmits(["update:userData", "imageSelected", "validateField"]);
 
 // 내부 상태
-const imageUploadInput = ref(null)
+const imageUploadInput = ref(null);
 const editData = reactive({
-  nickname: props.userData.nickname || '',
-  email: props.userData.email || '',
-  phoneNumber: props.userData.phoneNumber || '',
-  profileImageUrl: props.userData.profileImageUrl || null
-})
+  nickname: props.userData.nickname || "",
+  email: props.userData.email || "",
+  phoneNumber: props.userData.phoneNumber || "",
+  profileImageUrl: props.userData.profileImageUrl || null,
+});
 
 // 프로필 이미지 URL 계산
 const profileImageUrl = computed(() => {
   // 편집 모드일 때는 편집 중인 이미지 우선
   if (props.editMode && editData.profileImageUrl) {
-    return editData.profileImageUrl
+    return editData.profileImageUrl;
   }
-  return props.userData.profileImageUrl || null
-})
+  return props.userData.profileImageUrl || null;
+});
 
 // 가입일 포맷 적용
 const formattedCreatedAt = computed(() => {
-  if (!props.userData.createdAt) return '-'
-  
+  if (!props.userData.createdAt) return "-";
+
   try {
-    const date = new Date(props.userData.createdAt)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    const date = new Date(props.userData.createdAt);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   } catch (error) {
-    return '-'
+    return "-";
   }
-})
+});
 
 // 이미지 업로드 입력란 선택
 const triggerImageUpload = () => {
   if (props.editable && props.editMode && imageUploadInput.value) {
-    imageUploadInput.value.click()
+    imageUploadInput.value.click();
   }
-}
+};
 
 // 프로필 이미지 업로드 처리
 const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file || !props.editable || !props.editMode) return
-  
+  const file = event.target.files[0];
+  if (!file || !props.editable || !props.editMode) return;
+
   // 파일 유효성 검사
-  const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  const validImageTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
   if (!validImageTypes.includes(file.type)) {
-    emit('validateField', { field: 'profileImageUrl', error: '이미지 파일만 업로드 가능합니다. (JPEG, PNG, GIF, WEBP)' })
-    return
+    emit("validateField", {
+      field: "profileImageUrl",
+      error: "이미지 파일만 업로드 가능합니다. (JPEG, PNG, GIF, WEBP)",
+    });
+    return;
   }
-  
+
   // 파일 크기 제한 (5MB)
-  const maxSize = 5 * 1024 * 1024 // 5MB
+  const maxSize = 5 * 1024 * 1024; // 5MB
   if (file.size > maxSize) {
-    emit('validateField', { field: 'profileImageUrl', error: '이미지 크기는 5MB 이하여야 합니다.' })
-    return
+    emit("validateField", {
+      field: "profileImageUrl",
+      error: "이미지 크기는 5MB 이하여야 합니다.",
+    });
+    return;
   }
-  
+
   // 임시 URL 생성 (미리보기용)
-  const tempURL = URL.createObjectURL(file)
-  editData.profileImageUrl = tempURL
-  
+  const tempURL = URL.createObjectURL(file);
+  editData.profileImageUrl = tempURL;
+
   // 이미지 선택 이벤트 발생
-  emit('imageSelected', { file, previewUrl: tempURL })
-}
+  emit("imageSelected", { file, previewUrl: tempURL });
+};
 
 // 프로필 이미지 로딩 오류 처리
 const handleImageError = (event) => {
-  event.target.src = '/default-profile.jpg'
-}
+  event.target.src = "/default-profile.jpg";
+};
 
 // userData가 변경되면 editData 업데이트
-watch(() => props.userData, (newValue) => {
-  if (newValue) {
-    editData.nickname = newValue.nickname || ''
-    editData.email = newValue.email || ''
-    editData.phoneNumber = newValue.phoneNumber || ''
-    if (!editData.profileImageUrl || !props.editMode) {
-      editData.profileImageUrl = newValue.profileImageUrl || null
+watch(
+  () => props.userData,
+  (newValue) => {
+    if (newValue) {
+      editData.nickname = newValue.nickname || "";
+      editData.email = newValue.email || "";
+      editData.phoneNumber = newValue.phoneNumber || "";
+      if (!editData.profileImageUrl || !props.editMode) {
+        editData.profileImageUrl = newValue.profileImageUrl || null;
+      }
     }
-  }
-}, { deep: true })
+  },
+  { deep: true }
+);
 
 // userData를 부모 컴포넌트에 업데이트
-watch(editData, (newValue) => {
-  if (props.editMode) {
-    emit('update:userData', { ...newValue })
-  }
-}, { deep: true })
+watch(
+  editData,
+  (newValue) => {
+    if (props.editMode) {
+      emit("update:userData", { ...newValue });
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/glassmorphism' as *;
+@use "@/assets/styles/glassmorphism" as *;
 
 .user-profile {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  
+
   @media (min-width: $breakpoint-md) {
     flex-direction: row;
     gap: $spacing-xl;
   }
-  
+
   &__image-section {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: $spacing-lg;
-    
+
     @media (min-width: $breakpoint-md) {
       margin-bottom: 0;
       width: 30%;
     }
   }
-  
+
   &__image-wrapper {
     width: 150px;
     height: 150px;
@@ -258,14 +282,14 @@ watch(editData, (newValue) => {
     margin-bottom: $spacing-md;
     position: relative;
   }
-  
+
   &__image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
   }
-  
+
   &__image-overlay {
     position: absolute;
     top: 0;
@@ -280,33 +304,33 @@ watch(editData, (newValue) => {
     transition: opacity $transition-fast;
     border-radius: 50%;
     cursor: pointer;
-    
+
     &:hover {
       opacity: 1;
     }
   }
-  
+
   &__image-upload-label {
     color: $white;
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    
+
     i {
       font-size: 1.5rem;
       margin-bottom: $spacing-xs;
     }
-    
+
     span {
       font-size: 0.8rem;
     }
   }
-  
+
   &__image-upload {
     display: none;
   }
-  
+
   &__role {
     color: $primary-color;
     font-weight: $font-weight-medium;
@@ -315,19 +339,19 @@ watch(editData, (newValue) => {
     border-radius: 20px;
     font-size: 0.9rem;
   }
-  
+
   &__info-section {
     flex: 1;
     position: relative;
   }
-  
+
   &__loading {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: $spacing-xl 0;
-    
+
     .loading-spinner {
       width: 40px;
       height: 40px;
@@ -337,42 +361,44 @@ watch(editData, (newValue) => {
       animation: spin 1s linear infinite;
       margin-bottom: $spacing-md;
     }
-    
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
   }
-  
+
   &__form {
     display: flex;
     flex-direction: column;
     gap: $spacing-md;
   }
-  
+
   &__form-item {
     display: flex;
     flex-direction: column;
     gap: $spacing-xs;
-    
+
     @media (min-width: $breakpoint-md) {
       flex-direction: row;
       align-items: center;
     }
-    
+
     label {
       color: $primary-color;
       font-weight: $font-weight-medium;
       min-width: 120px;
-      
+
       @media (max-width: $breakpoint-md) {
         margin-bottom: $spacing-xs;
       }
     }
-    
+
     .user-profile__form-input {
       flex: 1;
     }
-    
+
     .user-profile__info-value {
       color: $primary-color;
       padding: $spacing-xs 0;

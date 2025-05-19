@@ -11,18 +11,24 @@
             <button @click="openTripPlanner" class="hero-btn primary">
               여행 둘러보기
             </button>
-            <router-link to="/auth/signup" class="hero-btn secondary">
+            <router-link
+              v-if="!isAuthenticated"
+              to="/auth/signup"
+              class="hero-btn secondary"
+            >
               회원가입
+            </router-link>
+            <router-link v-else to="/travel/create" class="hero-btn secondary">
+              내 여행 계획
             </router-link>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 기능 섹션을 컴포넌트로 대체 -->
     <FeatureSection :features="homeFeatures" />
 
-    <section class="cta">
+    <section v-if="!isAuthenticated" class="cta">
       <div class="container">
         <div class="cta-content glass-card">
           <h2 class="cta-title">지금 바로 시작하세요</h2>
@@ -36,12 +42,32 @@
       </div>
     </section>
 
-    <!-- TripPlanner 모달 -->
+    <section v-else class="recommendations">
+      <div class="container">
+        <div class="recommendations-content glass-card">
+          <h2 class="recommendations-title">맞춤형 여행 추천</h2>
+          <p class="recommendations-description">
+            {{ authStore.user?.nickname || "회원" }}님을 위한 특별한 여행
+            추천입니다.
+          </p>
+          <div class="recommendations-actions">
+            <router-link to="#" class="recommendations-btn">
+              추천 여행지 보기
+            </router-link>
+            <button
+              @click="openTripPlanner"
+              class="recommendations-btn secondary"
+            >
+              새 여행 계획하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <Teleport to="body" v-if="showTripModal">
-      <!-- 모달 배경 오버레이 -->
       <div class="modal-backdrop" @click="closeTripPlanner"></div>
 
-      <!-- 모달 컨테이너 -->
       <div class="modal-container">
         <TripPlanner
           class="modal-content"
@@ -55,14 +81,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 import TripPlanner from "@/components/travel/TripPlanner.vue";
 import FeatureSection from "@/components/home/FeatureSection.vue";
 
 // 라우팅 관련 정보 가져오기
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+
+// 인증 상태 확인
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 // 모달 표시 상태
 const showTripModal = ref(false);
@@ -283,6 +314,82 @@ watch(
     &:hover {
       transform: translateY(-3px);
       box-shadow: 0 10px 20px rgba($accent-color, 0.3);
+    }
+  }
+}
+
+/* 로그인 사용자를 위한 추천 섹션 스타일 */
+.recommendations {
+  padding: $spacing-3xl 0;
+
+  &-content {
+    text-align: center;
+    padding: $spacing-2xl;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 16px;
+    @include glassmorphism(0.7, 10px);
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  &-title {
+    font-size: 2rem;
+    margin-bottom: $spacing-md;
+    color: $primary-color;
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 1.75rem;
+    }
+  }
+
+  &-description {
+    font-size: 1.125rem;
+    margin-bottom: $spacing-xl;
+    color: rgba($primary-color, 0.8);
+  }
+
+  &-actions {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-md;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  &-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-md $spacing-xl;
+    border-radius: 30px;
+    background-color: $accent-color;
+    color: $white;
+    font-weight: $font-weight-medium;
+    text-decoration: none;
+    transition: all $transition-fast;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba($accent-color, 0.3);
+    }
+
+    &.secondary {
+      @include glassmorphism(0.4, 5px);
+      color: $primary-color;
+
+      &:hover {
+        box-shadow: 0 10px 20px rgba($primary-color, 0.15);
+      }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      width: 100%;
     }
   }
 }

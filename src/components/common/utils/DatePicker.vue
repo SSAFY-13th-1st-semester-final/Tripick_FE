@@ -69,7 +69,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useNotificationStore } from "@/stores/notification";
-import Calendar from "@/components/common/AppCalendar.vue";
+import Calendar from "@/components/common/utils/AppCalendar.vue";
 
 // Notification store
 const notificationStore = useNotificationStore();

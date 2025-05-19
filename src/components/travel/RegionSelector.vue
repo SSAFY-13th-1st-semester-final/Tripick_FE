@@ -147,7 +147,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import regionData from "@/assets/data/regionData.json";
-import RegionTabs from "@/components/common/RegionTabs.vue";
+import RegionTabs from "@/components/common/utils/RegionTabs.vue";
 
 // Props
 const props = defineProps({

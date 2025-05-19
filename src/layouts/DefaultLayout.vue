@@ -11,17 +11,17 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
-import AppNavbar from '@/components/common/AppNavbar.vue'
-import AppFooter from '@/components/common/AppFooter.vue'
+import { useRoute } from "vue-router";
+import AppNavbar from "@/components/common/layout/AppNavbar.vue";
+import AppFooter from "@/components/common/layout/AppFooter.vue";
 
-const route = useRoute()
-const hideLayoutRoutes = ['travel-planner']
-const isFullScreen = hideLayoutRoutes.includes(route.name)
+const route = useRoute();
+const hideLayoutRoutes = ["travel-planner"];
+const isFullScreen = hideLayoutRoutes.includes(route.name);
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/glassmorphism' as *;
+@use "@/assets/styles/glassmorphism" as *;
 
 .default-layout {
   display: flex;

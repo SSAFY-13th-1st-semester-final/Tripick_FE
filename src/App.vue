@@ -7,8 +7,6 @@
       <div class="shape shape-2"></div>
       <div class="shape shape-3"></div>
     </div>
-    
-
 
     <!-- 라우터 뷰 - key 추가하여 항상 재렌더링 -->
     <router-view v-slot="{ Component, route }">
@@ -16,16 +14,14 @@
         <component :is="Component" :key="route.fullPath" />
       </transition>
     </router-view>
-    
+
     <!-- 글로벌 알림 컴포넌트 -->
-    <app-notification />
+    <AppNotification />
   </div>
 </template>
-
 <script setup>
 // Composition API를 사용한 App 컴포넌트
-import AppNotification from '@/components/common/AppNotification.vue'
-
+import AppNotification from "@/components/common/utils/AppNotification.vue";
 </script>
 
 <style lang="scss">

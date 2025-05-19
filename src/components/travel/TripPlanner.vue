@@ -170,7 +170,7 @@ import { useRouter } from "vue-router";
 import { useNotificationStore } from "@/stores/notification";
 import { useTravelStore } from "@/stores/travel";
 import RegionSelector from "@/components/travel/RegionSelector.vue";
-import DatePicker from "@/components/common/DatePicker.vue";
+import DatePicker from "@/components/common/utils/DatePicker.vue";
 
 // Props 정의
 const props = defineProps({

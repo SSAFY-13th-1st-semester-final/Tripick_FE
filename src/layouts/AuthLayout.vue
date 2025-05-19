@@ -11,8 +11,7 @@
 
       <div class="auth-footer">
         <p>
-          &copy; {{ new Date().getFullYear() }} Travel Glass. All rights
-          reserved.
+          &copy; {{ new Date().getFullYear() }} Trap!ck. All rights reserved.
         </p>
       </div>
     </div>

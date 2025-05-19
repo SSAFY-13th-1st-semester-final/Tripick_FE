@@ -16,6 +16,7 @@ const SignupView = () => import("@/views/auth/SignupView.vue");
 const ForgotPasswordView = () => import("@/views/auth/ForgotPasswordView.vue");
 const ForgotUsernameView = () => import("@/views/auth/ForgotUsernameView.vue");
 const ResetPasswordView = () => import("@/views/auth/ResetPasswordView.vue");
+const ChangePasswordView = () => import("@/views/auth/ChangePasswordView.vue");
 
 // posts 관련 뷰 컴포넌트
 const PostsListView = () => import("@/views/posts/PostsListView.vue");
@@ -145,6 +146,16 @@ const routes = [
         props: true,
         meta: {
           guest: true,
+          title: "비밀번호 재설정",
+        },
+      },
+      {
+        path: "change-password/:email?",
+        name: "change-password",
+        component: ChangePasswordView,
+        props: true,
+        meta: {
+          requiresAuth: true,
           title: "비밀번호 재설정",
         },
       },
