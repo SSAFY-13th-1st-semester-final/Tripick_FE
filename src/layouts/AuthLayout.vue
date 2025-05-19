@@ -3,14 +3,17 @@
     <div class="auth-container glass-card">
       <div class="auth-logo">
         <router-link to="/" class="logo-link">
-          <h1>Travel Glass</h1>
+          <h1>Trap!ck</h1>
         </router-link>
       </div>
-      
+
       <router-view />
-      
+
       <div class="auth-footer">
-        <p>&copy; {{ new Date().getFullYear() }} Travel Glass. All rights reserved.</p>
+        <p>
+          &copy; {{ new Date().getFullYear() }} Travel Glass. All rights
+          reserved.
+        </p>
       </div>
     </div>
   </div>
@@ -21,7 +24,7 @@
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/glassmorphism' as *;
+@use "@/assets/styles/glassmorphism" as *;
 
 .auth-layout {
   display: flex;
@@ -39,7 +42,7 @@
   align-items: center;
   padding: $spacing-xl;
   margin-top: -$spacing-xl;
-  
+
   @include glassmorphism(0.8, 12px);
   box-shadow: $shadow-xl;
 }
@@ -47,10 +50,10 @@
 .auth-logo {
   margin-bottom: $spacing-xl;
   text-align: center;
-  
+
   .logo-link {
     text-decoration: none;
-    
+
     h1 {
       font-size: 2rem;
       color: $primary-color;

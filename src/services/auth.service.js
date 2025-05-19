@@ -17,11 +17,10 @@ class AuthService {
       TokenService.setToken(accessToken);
       if (refreshToken) TokenService.setRefreshToken(refreshToken);
 
-      // 사용자 정보 추출 및 저장
       const decoded = TokenService.getDecodedToken();
       const userId = decoded?.sub || decoded?.user_id || decoded?.userId;
-      const userRole = decoded?.role || decoded?.authorities || "USER";
-      console.log(decoded);
+      const userRole = decoded?.role || decoded?.authorities?.[0] || "USER";
+
       const basicUserInfo = {
         id: userId,
         role: userRole,
@@ -30,7 +29,6 @@ class AuthService {
 
       localStorage.setItem("user", JSON.stringify(basicUserInfo));
 
-      // 서버로부터 사용자 상세 정보 불러오기
       try {
         const userResponse = await this.getCurrentUser();
         if (userResponse.data?.data) {
@@ -87,7 +85,6 @@ class AuthService {
   }
 
   changePassword(passwordData) {
-    // 기존 updateProfile 메서드를 활용하되, password 필드만 포함
     return this.updateProfile({ password: passwordData.newPassword });
   }
 
@@ -119,6 +116,75 @@ class AuthService {
 
   getDecodedToken() {
     return TokenService.getDecodedToken();
+  }
+
+  /**
+   * 비밀번호 찾기 - 이메일로 인증코드 전송 요청
+   * @param {string} email - 사용자 이메일
+   * @returns {Promise}
+   */
+  async sendVerificationCode(email) {
+    try {
+      const response = await apiClient.post("/auth/code-send", { email });
+
+      if (!response || response.status !== 200) {
+        throw new Error("이메일 전송 실패");
+      }
+
+      return response;
+    } catch (error) {
+      console.error("이메일 전송 실패:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 비밀번호 찾기 - 인증코드 검증 요청
+   */
+  async verifyCode(verificationData) {
+    try {
+      const response = await apiClient.post(
+        "/auth/code-verify",
+        verificationData
+      );
+
+      if (!response || response.status != 200) {
+        throw new Error("확인 실패");
+      }
+
+      return response;
+    } catch (error) {
+      console.error("이메일 코드 인증 실패:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 비밀번호 재설정 요청
+   */
+  resetPassword(resetData) {
+    return apiClient.post("/member/password", resetData);
+  }
+
+  /**
+   *
+   * 아이디 찾기
+   * @param {string} verificationData(phonenumber, email)
+   * @return {response}
+   */
+  async findUsername(verificationData) {
+    try {
+      const response = await apiClient.get("/member/id", verificationData);
+
+      if (!response || response.status != 200) {
+        throw new Error("확인 실패");
+      }
+
+      return response;
+    } catch (error) {
+      console.error("아이디 찾기 중 문제 발생:", error);
+      throw error;
+    }
   }
 }
 
