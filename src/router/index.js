@@ -32,7 +32,7 @@ const routes = [
         name: "home",
         component: HomeView,
         meta: {
-          title: "홈 - Travel Glass",
+          title: "홈",
         },
       },
       {
@@ -41,7 +41,7 @@ const routes = [
         component: ProfileView,
         meta: {
           requiresAuth: true,
-          title: "내 프로필 - Travel Glass",
+          title: "내 프로필",
         },
       },
       {
@@ -52,7 +52,7 @@ const routes = [
             name: "travel-create",
             component: HomeView,
             meta: {
-              title: "여행 계획 생성 - Travel Glass",
+              title: "여행 계획 생성",
               showTripModal: true,
             },
           },
@@ -61,7 +61,7 @@ const routes = [
             name: "travel-planner",
             component: TripPlannerView,
             meta: {
-              title: "여행 일정 계획 - Travel Glass",
+              title: "여행 일정 계획",
             },
           },
         ],
@@ -73,7 +73,7 @@ const routes = [
         name: "posts-list",
         component: PostsListView,
         meta: {
-          title: "게시글 목록 - Travel Glass",
+          title: "게시글 목록",
           saveScrollPosition: true,
         },
       },
@@ -83,7 +83,7 @@ const routes = [
         component: PostDetailView,
         props: true,
         meta: {
-          title: "게시글 상세 - Travel Glass",
+          title: "게시글 상세",
         },
       },
       {
@@ -92,7 +92,7 @@ const routes = [
         component: PostFormView,
         meta: {
           requiresAuth: true,
-          title: "게시글 작성 - Travel Glass",
+          title: "게시글 작성",
         },
       },
       {
@@ -102,7 +102,7 @@ const routes = [
         props: true,
         meta: {
           requiresAuth: true,
-          title: "게시글 수정 - Travel Glass",
+          title: "게시글 수정",
         },
       },
     ],
@@ -117,7 +117,7 @@ const routes = [
         component: LoginView,
         meta: {
           guest: true,
-          title: "로그인 - Travel Glass",
+          title: "로그인",
         },
       },
       {
@@ -126,7 +126,7 @@ const routes = [
         component: SignupView,
         meta: {
           guest: true,
-          title: "회원가입 - Travel Glass",
+          title: "회원가입",
         },
       },
       {
@@ -135,7 +135,7 @@ const routes = [
         component: ForgotPasswordView,
         meta: {
           guest: true,
-          title: "비밀번호 찾기 - Travel Glass",
+          title: "비밀번호 찾기",
         },
       },
       {
@@ -145,7 +145,7 @@ const routes = [
         props: true,
         meta: {
           guest: true,
-          title: "비밀번호 재설정 - Travel Glass",
+          title: "비밀번호 재설정",
         },
       },
       // 아이디 찾기 라우트 추가
@@ -155,7 +155,7 @@ const routes = [
         component: ForgotUsernameView,
         meta: {
           guest: true,
-          title: "아이디 찾기 - Travel Glass",
+          title: "아이디 찾기",
         },
       },
     ],
@@ -182,7 +182,7 @@ const router = createRouter({
 // 네비게이션 가드
 router.beforeEach((to, from, next) => {
   // 페이지 제목 설정
-  document.title = to.meta.title || "Travel Glass";
+  document.title = to.meta.title || "Trap!ck";
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const authStore = useAuthStore();

@@ -45,7 +45,7 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} Travel Glass. All rights reserved.</p>
+        <p>&copy; {{ currentYear }} Trap!ck. All rights reserved.</p>
       </div>
     </div>
   </footer>

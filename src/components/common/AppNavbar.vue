@@ -3,41 +3,78 @@
     <div class="container">
       <div class="navbar-content">
         <router-link to="/" class="navbar-logo">
-          <h1>Travel Glass</h1>
+          <h1>Trap!ck</h1>
         </router-link>
-        
+
         <nav class="navbar-menu" :class="{ 'is-active': isMenuOpen }">
           <ul class="navbar-menu-list">
             <li class="navbar-menu-item">
-              <router-link to="/" exact-active-class="router-link-active" class="navbar-menu-link">홈</router-link>
+              <router-link
+                to="/"
+                exact-active-class="router-link-active"
+                class="navbar-menu-link"
+                >홈</router-link
+              >
             </li>
             <li class="navbar-menu-item">
-              <router-link :to="{ name: 'travel-create' }" active-class="router-link-active" class="navbar-menu-link">여행 계획</router-link>
+              <router-link
+                :to="{ name: 'travel-create' }"
+                active-class="router-link-active"
+                class="navbar-menu-link"
+                >여행 계획</router-link
+              >
             </li>
             <li class="navbar-menu-item">
-              <router-link to="/posts" active-class="router-link-active" class="navbar-menu-link">게시판</router-link>
+              <router-link
+                to="/posts"
+                active-class="router-link-active"
+                class="navbar-menu-link"
+                >게시판</router-link
+              >
             </li>
             <!-- 인증 상태에 따른 메뉴 렌더링 -->
             <template v-if="isAuthenticated">
               <li class="navbar-menu-item">
-                <router-link to="/profile" active-class="router-link-active" class="navbar-menu-link">내 프로필</router-link>
+                <router-link
+                  to="/profile"
+                  active-class="router-link-active"
+                  class="navbar-menu-link"
+                  >내 프로필</router-link
+                >
               </li>
               <li class="navbar-menu-item">
-                <button @click="logout" class="navbar-menu-link">로그아웃</button>
+                <button @click="logout" class="navbar-menu-link">
+                  로그아웃
+                </button>
               </li>
             </template>
             <template v-else>
               <li class="navbar-menu-item">
-                <router-link to="/auth/login" active-class="router-link-active" class="navbar-menu-link">로그인</router-link>
+                <router-link
+                  to="/auth/login"
+                  active-class="router-link-active"
+                  class="navbar-menu-link"
+                  >로그인</router-link
+                >
               </li>
               <li class="navbar-menu-item">
-                <router-link to="/auth/signup" active-class="router-link-active" class="navbar-menu-link">회원가입</router-link>
+                <router-link
+                  to="/auth/signup"
+                  active-class="router-link-active"
+                  class="navbar-menu-link"
+                  >회원가입</router-link
+                >
               </li>
             </template>
           </ul>
         </nav>
-        
-        <button class="navbar-toggle" :class="{ 'is-active': isMenuOpen }" @click="toggleMenu" aria-label="메뉴 토글">
+
+        <button
+          class="navbar-toggle"
+          :class="{ 'is-active': isMenuOpen }"
+          @click="toggleMenu"
+          aria-label="메뉴 토글"
+        >
           <span></span>
           <span></span>
           <span></span>
@@ -48,66 +85,66 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import AuthService from '@/services/auth.service'
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import AuthService from "@/services/auth.service";
 
 // Pinia 스토어 사용
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
 // 컴포지션 API를 사용한 반응형 상태
-const isMenuOpen = ref(false)
-const isAuthenticated = computed(() => authStore.isAuthenticated)
+const isMenuOpen = ref(false);
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 // 메뉴 토글 함수
 const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
+  isMenuOpen.value = !isMenuOpen.value;
   if (isMenuOpen.value) {
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = "hidden";
   } else {
-    document.body.style.overflow = ''
+    document.body.style.overflow = "";
   }
-}
+};
 
 // 로그아웃 함수
 const logout = async () => {
   try {
     // 서버 로그아웃 API 호출
-    await AuthService.logout()
+    await AuthService.logout();
     // 로컬 상태 정리
-    authStore.logout()
-    
+    authStore.logout();
+
     if (isMenuOpen.value) {
-      toggleMenu()
+      toggleMenu();
     }
   } catch (error) {
-    console.error('로그아웃 중 오류가 발생했습니다:', error)
+    console.error("로그아웃 중 오류가 발생했습니다:", error);
     // 오류가 발생해도 로컬 상태는 정리
-    authStore.logout()
+    authStore.logout();
   }
-}
+};
 
 // 화면 크기 변경에 따른 메뉴 상태 조정
 const handleResize = () => {
   if (window.innerWidth > 768 && isMenuOpen.value) {
-    isMenuOpen.value = false
-    document.body.style.overflow = ''
+    isMenuOpen.value = false;
+    document.body.style.overflow = "";
   }
-}
+};
 
 // 컴포넌트 마운트 및 언마운트 시 이벤트 리스너 설정
 onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
+  window.addEventListener("resize", handleResize);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  document.body.style.overflow = ''
-})
+  window.removeEventListener("resize", handleResize);
+  document.body.style.overflow = "";
+});
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/glassmorphism' as *;
+@use "@/assets/styles/glassmorphism" as *;
 
 .navbar {
   width: 100%;
@@ -123,7 +160,7 @@ onUnmounted(() => {
 
 .navbar-logo {
   text-decoration: none;
-  
+
   h1 {
     font-size: 1.5rem;
     color: $primary-color;
@@ -145,7 +182,7 @@ onUnmounted(() => {
   flex-direction: row; /* 수평 정렬 확실히 지정 */
   align-items: center; /* 메뉴 항목들의 높이를 동일하게 정렬 */
   height: 100%;
-  
+
   @media (max-width: $breakpoint-md) {
     flex-direction: column;
     width: 100%;
@@ -157,7 +194,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   height: 100%;
-  
+
   @media (max-width: $breakpoint-md) {
     margin: $spacing-md 0;
     margin-left: 0;
@@ -177,9 +214,9 @@ onUnmounted(() => {
   font-size: 1rem;
   line-height: 1.5;
   font-family: inherit;
-  
+
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     bottom: 0;
@@ -188,12 +225,12 @@ onUnmounted(() => {
     background-color: $accent-color;
     transition: width $transition-fast;
   }
-  
+
   &:hover::after,
   &.router-link-active::after {
     width: 100%;
   }
-  
+
   &.router-link-active {
     font-weight: $font-weight-bold;
     color: $accent-color;
@@ -216,17 +253,17 @@ onUnmounted(() => {
     transform: translateX(100%);
     transition: transform $transition-normal;
     z-index: $z-index-modal;
-    
+
     &.is-active {
       transform: translateX(0);
     }
-    
+
     .navbar-menu-list {
       flex-direction: column;
       align-items: flex-start;
     }
   }
-  
+
   .navbar-toggle {
     display: block;
     background: transparent;
@@ -234,7 +271,7 @@ onUnmounted(() => {
     cursor: pointer;
     padding: $spacing-xs;
     z-index: $z-index-modal + 1;
-    
+
     span {
       display: block;
       width: 24px;
@@ -243,24 +280,24 @@ onUnmounted(() => {
       background-color: $primary-color;
       transition: transform $transition-fast, opacity $transition-fast;
     }
-    
+
     &.is-active {
       span {
         &:nth-child(1) {
           transform: translateY(7px) rotate(45deg);
         }
-        
+
         &:nth-child(2) {
           opacity: 0;
         }
-        
+
         &:nth-child(3) {
           transform: translateY(-7px) rotate(-45deg);
         }
       }
     }
   }
-} 
+}
 
 @media (min-width: $breakpoint-md) {
   .navbar-toggle {
