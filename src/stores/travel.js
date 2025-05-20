@@ -31,9 +31,28 @@ export const useTravelStore = defineStore('travel', {
     
     // 장소 검색 모드 ('place' | 'hotel')
     searchMode: 'place',
+
+    // 경로 API 호출 관련 상태
+    routeApiCallCount: 0, // API 호출 횟수
+    hasRouteOptimization: false, // 경로 최적화 여부
+    lastRouteApiCall: null, // 마지막 API 호출 시간
   }),
   
   getters: {
+    /**
+     * 경로 표시 여부 결정
+     */
+    shouldShowRoutes: (state) => {
+      return state.routeApiCallCount > 0 && state.hasRouteOptimization;
+    },
+    
+    /**
+     * 첫 번째 경로 요청 여부
+     */
+    isFirstRouteRequest: (state) => {
+      return state.routeApiCallCount === 0;
+    },
+
     /**
      * 전체 여행 기간(일)
      */
@@ -188,6 +207,7 @@ export const useTravelStore = defineStore('travel', {
   },
   
   actions: {
+    
     saveAllTripData() {
       const tripData = {
         tripInfo: this.tripInfo,
@@ -195,9 +215,39 @@ export const useTravelStore = defineStore('travel', {
         hotels: this.hotels,
         currentDay: this.currentDay,
         selectedPlace: this.selectedPlace,
+        routeApiCallCount: this.routeApiCallCount, // API 호출 상태도 저장
+        hasRouteOptimization: this.hasRouteOptimization,
       };
       console.log(tripData);
       localStorage.setItem("savedTrip", JSON.stringify(tripData));
+    },
+
+    /**
+     * 경로 API 호출 횟수 증가
+     */
+    incrementRouteApiCall() {
+      this.routeApiCallCount++;
+      this.lastRouteApiCall = new Date().toISOString();
+      console.log(`🚀 경로 API 호출 횟수: ${this.routeApiCallCount}`);
+      console.log(`🕐 마지막 호출 시간: ${this.lastRouteApiCall}`);
+    },
+    
+    /**
+     * 경로 최적화 상태 설정
+     */
+    setRouteOptimization(hasOptimization) {
+      this.hasRouteOptimization = hasOptimization;
+      console.log(`✅ 경로 최적화 상태: ${hasOptimization}`);
+    },
+    
+    /**
+     * 경로 관련 상태 초기화
+     */
+    resetRouteState() {
+      this.routeApiCallCount = 0;
+      this.hasRouteOptimization = false;
+      this.lastRouteApiCall = null;
+      console.log('🔄 경로 상태 초기화');
     },
 
     /**
@@ -488,6 +538,306 @@ export const useTravelStore = defineStore('travel', {
       this.searchMode = 'hotel';
       console.log(">>>>>", this.searchMode);
     },
+
+    /**
+     * 최적화된 경로 응답을 기반으로 일차별 방문지 순서 재정렬
+     * @param {Object} routeResponse - API 응답 객체 (전체 response 또는 response.data)
+     * @returns {Object} 성공/실패 결과와 메시지
+     */
+    reorderPlacesByOptimizedRoutes(routeResponse) {
+      try {
+        console.log('=== 경로 최적화 시작 ===');
+        console.log('routeResponse 존재 여부:', !!routeResponse);
+        console.log('routeResponse 타입:', typeof routeResponse);
+        
+        if (!routeResponse) {
+          console.log('❌ routeResponse가 null/undefined');
+          return { success: false, message: 'API 응답이 없습니다.' };
+        }
+        
+        // 실제 데이터 위치 찾기
+        let actualData = null;
+        
+        // Case 1: 이미 data.data 형태로 전달된 경우
+        if (routeResponse.data && routeResponse.data.paths) {
+          console.log('✅ Case 1: routeResponse.data.paths 발견');
+          actualData = routeResponse.data;
+        }
+        // Case 2: 중첩된 data.data.data 형태인 경우 (axios 응답)
+        else if (routeResponse.data && routeResponse.data.data && routeResponse.data.data.paths) {
+          console.log('✅ Case 2: routeResponse.data.data.paths 발견');
+          actualData = routeResponse.data.data;
+        }
+        // Case 3: 직접 paths가 있는 경우
+        else if (routeResponse.paths) {
+          console.log('✅ Case 3: routeResponse.paths 발견');
+          actualData = routeResponse;
+        }
+        else {
+          console.log('❌ paths를 찾을 수 없음');
+          return { success: false, message: 'paths 데이터를 찾을 수 없습니다.' };
+        }
+        
+        if (!Array.isArray(actualData.paths)) {
+          console.log('❌ paths가 배열이 아님, 타입:', typeof actualData.paths);
+          return { success: false, message: 'paths가 배열이 아닙니다.' };
+        }
+        
+        console.log('✅ paths 배열 확인됨, 길이:', actualData.paths.length);
+
+        let reorderedCount = 0;
+        const results = [];
+
+        // 각 일차별로 경로 처리
+        actualData.paths.forEach(dayPath => {
+          console.log(`\n--- ${dayPath.day}일차 처리 시작 ---`);
+          
+          const dayIndex = dayPath.day - 1; // 1일차 = index 0
+          
+          // 유효한 일차인지 확인
+          if (dayIndex < 0 || dayIndex >= this.itinerary.length) {
+            console.error(`❌ 유효하지 않은 일차: ${dayPath.day}`);
+            results.push({
+              day: dayPath.day,
+              success: false,
+              message: `${dayPath.day}일차는 존재하지 않습니다.`
+            });
+            return;
+          }
+
+          // 현재 일차의 장소들
+          const currentDayPlaces = this.itinerary[dayIndex] || [];
+          console.log(`📍 ${dayPath.day}일차 현재 장소 수:`, currentDayPlaces.length);
+          
+          if (currentDayPlaces.length > 0) {
+            console.log('현재 장소들:', currentDayPlaces.map(p => ({ id: p.id, name: p.placeName })));
+          }
+          
+          if (currentDayPlaces.length === 0) {
+            console.log(`ℹ️ ${dayPath.day}일차에 장소가 없음`);
+            results.push({
+              day: dayPath.day,
+              success: true,
+              message: `${dayPath.day}일차에 장소가 없습니다.`
+            });
+            return;
+          }
+
+          // path 배열 확인
+          if (!dayPath.path || !Array.isArray(dayPath.path)) {
+            console.log(`❌ path가 배열이 아님:`, typeof dayPath.path);
+            results.push({
+              day: dayPath.day,
+              success: false,
+              message: `${dayPath.day}일차의 경로 데이터가 올바르지 않습니다.`
+            });
+            return;
+          }
+
+          console.log(`🛣️ ${dayPath.day}일차 path 세그먼트 수:`, dayPath.path.length);
+
+          // 경로에서 방문지 순서 추출
+          const optimizedOrder = [];
+          
+          if (dayPath.path.length > 0) {
+            console.log('=== 경로 세그먼트 분석 ===');
+            
+            // 첫 번째 세그먼트의 destinationId (첫 번째 방문지)
+            if (dayPath.path[0] && dayPath.path[0].destinationId) {
+              const firstDestinationId = dayPath.path[0].destinationId;
+              console.log('첫 번째 목적지 ID:', firstDestinationId);
+              
+              const firstDestination = currentDayPlaces.find(place => place.id === firstDestinationId);
+              if (firstDestination) {
+                optimizedOrder.push({
+                  id: firstDestination.id,
+                  placeName: firstDestination.placeName
+                });
+                console.log(`✅ 첫 번째 방문지 추가: ${firstDestination.placeName}`);
+              } else {
+                console.log(`⚠️ 첫 번째 방문지를 찾을 수 없음: ID ${firstDestinationId}`);
+              }
+            }
+            
+            // 두 번째 세그먼트부터의 origin들 처리
+            dayPath.path.forEach((pathSegment, segmentIndex) => {
+              console.log(`세그먼트 ${segmentIndex}:`, {
+                origin: pathSegment.origin ? { id: pathSegment.origin.id, name: pathSegment.origin.placeName } : null,
+                destinationId: pathSegment.destinationId
+              });
+
+              if (segmentIndex > 0 && pathSegment.origin) {
+                const placeId = pathSegment.origin.id;
+                const placeName = pathSegment.origin.placeName;
+                
+                // 현재 일차 장소 목록에서 해당 장소가 있는지 확인
+                const foundPlace = currentDayPlaces.find(place => place.id === placeId);
+                
+                if (foundPlace) {
+                  // 이미 추가된 장소인지 확인
+                  const alreadyAdded = optimizedOrder.find(item => item.id === placeId);
+                  if (!alreadyAdded) {
+                    optimizedOrder.push({
+                      id: placeId,
+                      placeName: placeName
+                    });
+                    console.log(`✅ 추가됨: ${placeName} (ID: ${placeId})`);
+                  } else {
+                    console.log(`ℹ️ 이미 추가됨: ${placeName}`);
+                  }
+                } else {
+                  console.log(`⚠️ 장소를 찾을 수 없음: ${placeName} (ID: ${placeId})`);
+                }
+              }
+            });
+          }
+
+          console.log('최적화된 순서:', optimizedOrder.map(p => p.placeName));
+
+          if (optimizedOrder.length === 0) {
+            console.log(`❌ ${dayPath.day}일차 최적화 순서 없음`);
+            results.push({
+              day: dayPath.day,
+              success: false,
+              message: `${dayPath.day}일차의 최적화 경로를 찾을 수 없습니다.`
+            });
+            return;
+          }
+
+          // 현재 장소들을 최적화된 순서로 재정렬
+          const reorderedPlaces = [];
+          const usedPlaces = new Set();
+
+          // 최적화된 순서대로 장소 찾기
+          optimizedOrder.forEach(optimizedPlace => {
+            const foundPlace = currentDayPlaces.find(place => 
+              place.id === optimizedPlace.id && !usedPlaces.has(place.id)
+            );
+            
+            if (foundPlace) {
+              reorderedPlaces.push(foundPlace);
+              usedPlaces.add(foundPlace.id);
+              console.log(`📋 재정렬에 추가: ${foundPlace.placeName}`);
+            }
+          });
+
+          // 최적화 순서에 없는 나머지 장소들 추가
+          currentDayPlaces.forEach(place => {
+            if (!usedPlaces.has(place.id)) {
+              reorderedPlaces.push(place);
+              console.log(`📋 나머지 장소 추가: ${place.placeName}`);
+            }
+          });
+
+          console.log('기존 순서:', currentDayPlaces.map(p => p.placeName));
+          console.log('재정렬 순서:', reorderedPlaces.map(p => p.placeName));
+
+          // 순서가 실제로 변경되었는지 확인
+          const hasChanged = !currentDayPlaces.every((place, index) => 
+            reorderedPlaces[index] && place.id === reorderedPlaces[index].id
+          );
+
+          console.log('순서 변경됨:', hasChanged);
+
+          if (hasChanged) {
+            // 일차별 장소 순서 업데이트
+            this.itinerary[dayIndex] = reorderedPlaces;
+            reorderedCount++;
+            
+            results.push({
+              day: dayPath.day,
+              success: true,
+              message: `${dayPath.day}일차 순서가 최적화되었습니다. (${reorderedPlaces.length}개 장소)`,
+              placesCount: reorderedPlaces.length,
+              reordered: true
+            });
+
+            console.log(`✅ ${dayPath.day}일차 재정렬 완료!`);
+          } else {
+            results.push({
+              day: dayPath.day,
+              success: true,
+              message: `${dayPath.day}일차는 이미 최적 순서입니다.`,
+              placesCount: reorderedPlaces.length,
+              reordered: false
+            });
+            console.log(`ℹ️ ${dayPath.day}일차 순서 변경 없음`);
+          }
+        });
+
+        // 경로 최적화 완료 상태 설정
+        this.setRouteOptimization(true);
+
+        // 재정렬 완료 후 로컬 스토리지 업데이트
+        if (reorderedCount > 0) {
+          this.saveAllTripData();
+          console.log('💾 로컬 스토리지 업데이트 완료');
+        }
+
+        const finalResult = {
+          success: true,
+          message: `총 ${reorderedCount}개 일차의 순서가 최적화되었습니다.`,
+          reorderedDays: reorderedCount,
+          totalDays: actualData.paths.length,
+          details: results
+        };
+
+        console.log('=== 경로 최적화 완료 ===');
+        console.log('최종 결과:', finalResult);
+
+        return finalResult;
+
+      } catch (error) {
+        console.error('❌ 경로 최적화 처리 중 오류:', error);
+        console.error('Error stack:', error.stack);
+        this.setRouteOptimization(false);
+        return {
+          success: false,
+          message: '경로 최적화 처리 중 오류가 발생했습니다.',
+          error: error.message
+        };
+      }
+    },
+
+    /**
+     * 특정 일차의 장소 순서를 수동으로 재정렬
+     * @param {number} day - 일차 (0부터 시작)
+     * @param {Array} newOrder - 새로운 순서의 장소 ID 배열
+     * @returns {boolean} 성공 여부
+     */
+    reorderPlacesInDay(day, newOrder) {
+      console.log(`수동 재정렬 시도: ${day + 1}일차`, newOrder);
+      
+      if (day < 0 || day >= this.itinerary.length || !this.itinerary[day]) {
+        console.error('유효하지 않은 일차 또는 장소 데이터');
+        return false;
+      }
+
+      const currentPlaces = this.itinerary[day];
+      const reorderedPlaces = [];
+
+      // 새로운 순서대로 장소 배치
+      newOrder.forEach(placeId => {
+        const place = currentPlaces.find(p => p.id === placeId);
+        if (place) {
+          reorderedPlaces.push(place);
+        }
+      });
+
+      // 순서에 없는 나머지 장소들 추가
+      currentPlaces.forEach(place => {
+        if (!newOrder.includes(place.id)) {
+          reorderedPlaces.push(place);
+        }
+      });
+
+      this.itinerary[day] = reorderedPlaces;
+      this.saveAllTripData();
+      
+      console.log(`${day + 1}일차 수동 재정렬 완료:`, reorderedPlaces.map(p => p.placeName));
+      
+      return true;
+    },
     
     /**
      * 여행 계획 초기화
@@ -505,6 +855,7 @@ export const useTravelStore = defineStore('travel', {
       this.currentDay = 0;
       this.selectedPlace = null;
       this.searchMode = 'place';
+      this.resetRouteState(); // 경로 상태도 초기화
     },
     
     /**
@@ -522,12 +873,20 @@ export const useTravelStore = defineStore('travel', {
       // 숙소 정보 불러오기
       this.hotels = tripData.hotels || [];
       
+      // 경로 상태 불러오기
+      this.routeApiCallCount = tripData.routeApiCallCount || 0;
+      this.hasRouteOptimization = tripData.hasRouteOptimization || false;
+      
       // 기간에 맞게 일정 배열 조정
       this.adjustItinerary();
       this.adjustHotels();
       
       // 현재 일차 초기화
       this.currentDay = 0;
+      
+      console.log('✅ 여행 데이터 로드 완료');
+      console.log('- API 호출 횟수:', this.routeApiCallCount);
+      console.log('- 경로 최적화:', this.hasRouteOptimization);
     },
     
     /**
@@ -537,7 +896,9 @@ export const useTravelStore = defineStore('travel', {
       return {
         tripInfo: this.tripInfo,
         itinerary: this.itinerary,
-        hotels: this.hotels
+        hotels: this.hotels,
+        routeApiCallCount: this.routeApiCallCount,
+        hasRouteOptimization: this.hasRouteOptimization
       };
     }
   }

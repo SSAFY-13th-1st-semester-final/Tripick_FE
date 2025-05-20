@@ -423,48 +423,65 @@ class KakaoMapService {
     }
   }
   
-  /**
-   * 경로 표시하기
-   * @param {Array} places 장소 데이터 배열 (순서대로 표시됨)
-   * @param {Object} options 경로 표시 옵션
-   */
-  drawRoute(places, options = {}) {
-    if (!this.map || places.length < 2) return;
-    
-    const defaultOptions = {
-      strokeWeight: 4,
-      strokeColor: '#0064FF',
-      strokeOpacity: 0.7,
-      strokeStyle: 'solid'
-    };
-    
-    const polylineOptions = { ...defaultOptions, ...options };
-    const path = [];
-    
-    places.forEach(place => {
-      if (place.latitude && place.longitude) {
-        path.push(new window.kakao.maps.LatLng(place.latitude, place.longitude));
-      }
+/**
+ * 경로 표시하기
+ * @param {Array} places 장소 데이터 배열 (순서대로 표시됨)
+ * @param {Object} options 경로 표시 옵션
+ * @param {number} day 일차 번호 (선택사항, 기본값 1)
+ */
+drawRoute(places, options = {}, day = 1) {
+  if (!this.map || places.length < 2) return;
+  
+  const defaultOptions = {
+    strokeWeight: 4,
+    strokeColor: '#0064FF',
+    strokeOpacity: 0.7,
+    strokeStyle: 'solid'
+  };
+  
+  const polylineOptions = { ...defaultOptions, ...options };
+  const path = [];
+  
+  places.forEach(place => {
+    if (place.latitude && place.longitude) {
+      path.push(new window.kakao.maps.LatLng(place.latitude, place.longitude));
+    }
+  });
+  
+  if (path.length >= 2) {
+    const polyline = new window.kakao.maps.Polyline({
+      map: this.map,
+      path: path,
+      strokeWeight: polylineOptions.strokeWeight,
+      strokeColor: polylineOptions.strokeColor,
+      strokeOpacity: polylineOptions.strokeOpacity,
+      strokeStyle: polylineOptions.strokeStyle
     });
     
-    if (path.length >= 2) {
-      const polyline = new window.kakao.maps.Polyline({
-        map: this.map,
-        path: path,
-        strokeWeight: polylineOptions.strokeWeight,
-        strokeColor: polylineOptions.strokeColor,
-        strokeOpacity: polylineOptions.strokeOpacity,
-        strokeStyle: polylineOptions.strokeStyle
-      });
-      
-      const bounds = new window.kakao.maps.LatLngBounds();
-      path.forEach(point => {
-        bounds.extend(point);
-      });
-      
-      this.map.setBounds(bounds);
+    // routeOverlays에 저장 (중요! 이 부분이 누락되어 있었음)
+    if (!this.routeOverlays.has(day)) {
+      this.routeOverlays.set(day, []);
     }
+    this.routeOverlays.get(day).push(polyline);
+    
+    // routes에도 경로 데이터 저장
+    if (!this.routes.has(day)) {
+      this.routes.set(day, []);
+    }
+    this.routes.get(day).push(places);
+    
+    console.log(`${day}일차 경로 추가됨. 현재 총 오버레이: ${this.routeOverlays.get(day).length}`);
+    
+    const bounds = new window.kakao.maps.LatLngBounds();
+    path.forEach(point => {
+      bounds.extend(point);
+    });
+    
+    this.map.setBounds(bounds);
+    
+    return polyline;
   }
+}
   
   /**
    * 커스텀 오버레이 생성 및 추가
@@ -631,6 +648,10 @@ class KakaoMapService {
    * 모든 경로 제거
    */
   clearAllRoutes() {
+    console.log('routeOverlays 크기:', this.routeOverlays?.size || 0);
+console.log('routes 크기:', this.routes?.size || 0);
+console.log('routeOverlays 내용:', this.routeOverlays);
+
     this.routeOverlays.forEach((overlays, day) => {
       overlays.forEach(overlay => {
         overlay.setMap(null);

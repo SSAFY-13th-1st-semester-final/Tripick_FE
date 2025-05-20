@@ -77,7 +77,7 @@ import { isRequired } from "@/utils/validators";
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
-const notificationStore = useNotificationStore(); // 알림 스토어 추가
+const notificationStore = useNotificationStore();
 
 // 폼 데이터 정의
 const formData = reactive({

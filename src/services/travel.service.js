@@ -63,12 +63,6 @@ class TravelService {
   async getOptimalPaths() {
     try {
 
-      const { useTravelResultStore } = await import('@/stores/travel.result');
-      const resultStore = useTravelResultStore();
-      
-      // 로딩 시작
-      resultStore.setLoading(true);
-
       // Pinia 스토어에서 데이터 직접 가져오기
       const { useTravelStore } = await import('@/stores/travel');
       const travelStore = useTravelStore();
@@ -92,9 +86,11 @@ class TravelService {
       const response = await apiClient.post("/place/path", {
         requests: validRequests
       });
-      
+      travelStore.incrementRouteApiCall();
+      console.log("api 요청 응답 후 스토어 로직 호출 전");
+
       // 결과를 result 스토어에 저장
-      resultStore.setOptimalResult(response.data);
+      travelStore.reorderPlacesByOptimizedRoutes(response.data.data);
       
       return response.data;
 

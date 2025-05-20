@@ -409,12 +409,12 @@ watch(
 /* 모달 컨테이너 - 크기와 스타일링 적용 */
 .modal-container {
   position: fixed;
-  top: 5vh; /* 상단에서 5vh 떨어진 위치에 배치 */
+  top: 10vh; /* 상단에서 5vh 떨어진 위치에 배치 */
   left: 50%;
   transform: translateX(-50%); /* 가로 중앙 정렬만 적용 */
   width: 100%;
   max-width: 1000px;
-  height: 60vh; /* 높이를 뷰포트 높이의 90%로 고정 */
+  height: 80vh; /* 높이를 뷰포트 높이의 90%로 고정 */
   z-index: $z-index-modal + 1;
   border-radius: 16px;
   padding: 0;
