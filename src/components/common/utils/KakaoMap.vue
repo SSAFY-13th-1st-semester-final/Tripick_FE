@@ -47,6 +47,7 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useTravelStore } from '@/stores/travel';
+import { useTravelResultStore } from '@/stores/travel.result';
 import { useNotificationStore } from '@/stores/notification';
 import kakaoMapService from '@/utils/kakaoMapService';
 
@@ -66,7 +67,7 @@ const props = defineProps({
   },
   defaultCenter: {
     type: Object,
-    default: () => ({ lat: 37.566826, lng: 126.9786567 }) // 서울시청 기본값
+    default: () => ({ lat: 37.566826, lng: 126.9786567 })
   },
   defaultZoom: {
     type: Number,
@@ -78,12 +79,16 @@ const props = defineProps({
   },
   showAllDays: {
     type: Boolean,
-    default: true  // 기본값을 true로 변경
+    default: true
+  },
+  showRoutes: {
+    type: Boolean,
+    default: true
   }
 });
 
 // Emit
-const emit = defineEmits(['map-ready', 'place-focused']);
+const emit = defineEmits(['map-ready', 'place-focused', 'routes-updated']);
 
 // 상태 변수
 const mapContainer = ref(null);
@@ -93,12 +98,19 @@ const errorMessage = ref('');
 const selectedPlaceIndex = ref(-1);
 const mapInstance = ref(null);
 
+// 경로 표시 관련 상태
+const showAllRoutes = ref(true);
+const visibleDays = ref(new Set());
+
 // 스토어
 const travelStore = useTravelStore();
+const travelResultStore = useTravelResultStore();
 const notificationStore = useNotificationStore();
-const { currentDayPlaces, currentDay, itinerary, tripDuration } = storeToRefs(travelStore);
 
-// 컴포넌트에서 사용할 장소 데이터 (스토어 또는 props)
+const { currentDayPlaces, currentDay, itinerary } = storeToRefs(travelStore);
+const { optimizedPaths, hasResult } = storeToRefs(travelResultStore);
+
+// 컴포넌트에서 사용할 장소 데이터
 const displayPlaces = computed(() => {
   if (props.usePlacesFromStore) {
     return currentDayPlaces.value || [];
@@ -111,19 +123,15 @@ const allDaysPlaces = computed(() => {
   if (!props.usePlacesFromStore || !itinerary.value || itinerary.value.length === 0) return [];
   
   const allPlaces = [];
-  // 각 일차별로 처리
   for (let day = 0; day < itinerary.value.length; day++) {
     const placesForDay = itinerary.value[day] || [];
-    
-    // 각 장소에 일차 정보 추가
     placesForDay.forEach(place => {
       allPlaces.push({
         ...place,
-        day: day + 1  // 일차는 1부터 시작 (0번 인덱스가 1일차)
+        day: day + 1
       });
     });
   }
-  
   return allPlaces;
 });
 
@@ -132,6 +140,15 @@ const hasPlaces = computed(() => {
   return displayPlaces.value.length > 0;
 });
 
+// 경로 데이터가 있는지 확인
+const hasRoutePaths = computed(() => {
+  return hasResult.value && optimizedPaths.value.length > 0;
+});
+
+// 일차별 색상 반환
+const getDayColor = (dayIndex) => {
+  return kakaoMapService.getDayColor(dayIndex + 1);
+};
 
 const initializeMap = async () => {
   if (!mapContainer.value) return;
@@ -143,19 +160,26 @@ const initializeMap = async () => {
     await kakaoMapService.loadScript();
     mapContainer.value.style.height = props.height;
 
-    // 🟡 1. 여행 지역 이름 추출
-    const region = travelStore.tripInfo.region;
-    const regionName = region?.districtName
-      ? `${region.provinceName} ${region.districtName}`
-      : region?.provinceName || '서울';
+    // 여행 지역 이름 추출
+    const region = travelStore.tripInfo?.region;
+    let initialCoord = props.defaultCenter;
+    
+    if (region) {
+      try {
+        const regionName = region.districtName
+          ? `${region.provinceName} ${region.districtName}`
+          : region.provinceName || '서울';
 
-    console.log(regionName);
-    // 🟡 2. 주소 → 좌표 변환
-    const coord = await kakaoMapService.convertAddressToCoord(regionName);
+        const coord = await kakaoMapService.convertAddressToCoord(regionName);
+        initialCoord = { lat: coord.lat, lng: coord.lng };
+      } catch (error) {
+        console.warn('지역 좌표 변환 실패, 기본 좌표 사용');
+      }
+    }
 
-    const initialCenter = new window.kakao.maps.LatLng(coord.lat, coord.lng);
+    const initialCenter = new window.kakao.maps.LatLng(initialCoord.lat, initialCoord.lng);
 
-    // 🟡 3. 지도 초기화
+    // 지도 초기화
     mapInstance.value = kakaoMapService.initMap(mapContainer.value, {
       center: initialCenter,
       level: props.defaultZoom
@@ -163,14 +187,18 @@ const initializeMap = async () => {
 
     kakaoMapService.addMapControls(true, true);
 
+    // 마커 및 경로 업데이트
     await updateMapMarkers();
+    if (props.showRoutes) {
+      updateMapRoutes();
+    }
 
     emit('map-ready', mapInstance.value);
   } catch (error) {
     console.error('지도 초기화 오류:', error);
     hasError.value = true;
-    errorMessage.value = '지도를 불러오는데 실패했습니다. 다시 시도해주세요.';
-    notificationStore.showError('지도를 불러오는데 실패했습니다.');
+    errorMessage.value = '지도를 불러오는데 실패했습니다.';
+    notificationStore.showError('지도 로드 실패');
   } finally {
     isLoading.value = false;
   }
@@ -180,36 +208,100 @@ const initializeMap = async () => {
 const updateMapMarkers = async () => {
   if (!mapInstance.value) return;
   
-  if (props.usePlacesFromStore) {
-    if (props.showAllDays) {
-      // 모든 일차 표시 모드
-      const placesWithCoords = await addCoordsToPlaces(allDaysPlaces.value);
-      if (placesWithCoords.length > 0) {
-        kakaoMapService.addMarkers(placesWithCoords); // 이미 각 장소에 day 속성이 있음
+  try {
+    if (props.usePlacesFromStore) {
+      if (props.showAllDays) {
+        const placesWithCoords = await addCoordsToPlaces(allDaysPlaces.value);
+        if (placesWithCoords.length > 0) {
+          kakaoMapService.addMarkers(placesWithCoords);
+        }
+      } else {
+        const placesWithCoords = await addCoordsToPlaces(displayPlaces.value);
+        kakaoMapService.addMarkers(placesWithCoords, currentDay.value + 1);
       }
     } else {
-      // 현재 일차만 표시 모드
-      const placesWithCoords = await addCoordsToPlaces(displayPlaces.value);
-      kakaoMapService.addMarkers(placesWithCoords, currentDay.value + 1); // +1 해서 1일차부터 시작하도록
+      const placesWithCoords = await addCoordsToPlaces(props.places);
+      kakaoMapService.addMarkers(placesWithCoords);
     }
-  } else {
-    // props로 전달된 장소 표시
-    const placesWithCoords = await addCoordsToPlaces(props.places);
-    kakaoMapService.addMarkers(placesWithCoords);
+  } catch (error) {
+    console.error('마커 업데이트 오류:', error);
   }
+};
+
+// 지도 경로 업데이트
+const updateMapRoutes = () => {
+  if (!mapInstance.value || !hasRoutePaths.value || !props.showRoutes) return;
+
+  try {
+    kakaoMapService.clearAllRoutes();
+
+    if (showAllRoutes.value) {
+      kakaoMapService.drawAllRoutes(optimizedPaths.value, {
+        strokeWeight: 4,
+        strokeOpacity: 0.7
+      });
+    } else {
+      visibleDays.value.forEach(dayIndex => {
+        if (optimizedPaths.value[dayIndex]) {
+          kakaoMapService.drawDayRoute(dayIndex, optimizedPaths.value[dayIndex], {
+            strokeColor: getDayColor(dayIndex),
+            strokeWeight: 5,
+            strokeOpacity: 0.8
+          });
+        }
+      });
+    }
+
+    emit('routes-updated', {
+      showAllRoutes: showAllRoutes.value,
+      visibleDays: Array.from(visibleDays.value)
+    });
+  } catch (error) {
+    console.error('경로 업데이트 오류:', error);
+  }
+};
+
+// 모든 경로 표시 토글
+const toggleAllRoutes = () => {
+  showAllRoutes.value = !showAllRoutes.value;
+  if (showAllRoutes.value) {
+    visibleDays.value.clear();
+  }
+  updateMapRoutes();
+};
+
+// 특정 일차 경로 토글
+const toggleDayRoute = (dayIndex) => {
+  if (showAllRoutes.value) {
+    showAllRoutes.value = false;
+    visibleDays.value.clear();
+  }
+  
+  if (visibleDays.value.has(dayIndex)) {
+    visibleDays.value.delete(dayIndex);
+  } else {
+    visibleDays.value.add(dayIndex);
+  }
+  
+  updateMapRoutes();
+};
+
+// 모든 경로 숨기기
+const clearAllRoutes = () => {
+  showAllRoutes.value = false;
+  visibleDays.value.clear();
+  kakaoMapService.clearAllRoutes();
 };
 
 // 장소 데이터에 좌표 추가
 const addCoordsToPlaces = async (places) => {
-  return Promise.all(
+  const results = await Promise.allSettled(
     places.map(async (place) => {
-      // 이미 좌표가 있는 경우 그대로 사용
       if (place.latitude && place.longitude) {
         return place;
       }
       
       try {
-        // 주소를 좌표로 변환
         if (place.roadAddressName || place.addressName) {
           const address = place.roadAddressName || place.addressName;
           const coord = await kakaoMapService.convertAddressToCoord(address);
@@ -222,11 +314,15 @@ const addCoordsToPlaces = async (places) => {
         }
         return place;
       } catch (error) {
-        console.error('좌표 변환 오류:', error);
+        console.error('좌표 변환 오류:', place.placeName);
         return place;
       }
     })
   );
+
+  return results
+    .filter(result => result.status === 'fulfilled')
+    .map(result => result.value);
 };
 
 // 특정 장소로 포커스
@@ -243,7 +339,9 @@ const retryLoadMap = () => {
 
 // 지도 리사이즈 핸들러
 const handleResize = () => {
-  kakaoMapService.resizeMap();
+  if (mapInstance.value) {
+    kakaoMapService.resizeMap();
+  }
 };
 
 // 마운트 시 초기화
@@ -252,36 +350,52 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
 
-// 언마운트 시 이벤트 리스너 제거
+// 언마운트 시 정리
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
+  if (mapInstance.value) {
+    kakaoMapService.clearAll();
+  }
 });
 
-// 장소 데이터 변경 감지
+// 감시자들
 watch([displayPlaces, allDaysPlaces], () => {
   if (mapInstance.value) {
     updateMapMarkers();
   }
 }, { deep: true });
 
-// 일정 변경 감지
 watch(() => itinerary.value, () => {
   if (props.usePlacesFromStore && mapInstance.value) {
     updateMapMarkers();
   }
 }, { deep: true });
 
-// 현재 선택된 일차 변경 감지
 watch(() => currentDay.value, () => {
   if (props.usePlacesFromStore && !props.showAllDays && mapInstance.value) {
     updateMapMarkers();
   }
 });
 
-// 표시 모드 변경 감지
 watch(() => props.showAllDays, () => {
   if (mapInstance.value) {
     updateMapMarkers();
+  }
+});
+
+watch(() => optimizedPaths.value, () => {
+  if (mapInstance.value && props.showRoutes) {
+    updateMapRoutes();
+  }
+}, { deep: true });
+
+watch(() => props.showRoutes, () => {
+  if (mapInstance.value) {
+    if (props.showRoutes) {
+      updateMapRoutes();
+    } else {
+      kakaoMapService.clearAllRoutes();
+    }
   }
 });
 
@@ -289,12 +403,15 @@ watch(() => props.showAllDays, () => {
 defineExpose({
   focusPlace,
   updateMapMarkers,
+  updateMapRoutes,
+  toggleAllRoutes,
+  toggleDayRoute,
+  clearAllRoutes,
   retryLoadMap
 });
 </script>
 
 <style lang="scss" scoped>
-@use 'sass:color';
 @use '@/assets/styles' as *;
 
 .kakao-map-container {
@@ -324,7 +441,6 @@ defineExpose({
   width: 100%;
   height: 400px;
   border-radius: 16px;
-  @include glassmorphism(0.5, 5px);
 }
 
 .map-loading {
@@ -342,6 +458,12 @@ defineExpose({
   z-index: 1;
   
   .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba($accent-color, 0.1);
+    border-top-color: $accent-color;
+    animation: spinner 0.8s linear infinite;
     margin-bottom: $spacing-sm;
   }
   
@@ -388,11 +510,6 @@ defineExpose({
   
   &::-webkit-scrollbar-thumb {
     background: rgba($dark-gray, 0.3);
-    border-radius: 3px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: rgba($light-gray, 0.5);
     border-radius: 3px;
   }
 }
@@ -458,22 +575,13 @@ defineExpose({
   text-overflow: ellipsis;
 }
 
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 3px solid rgba($accent-color, 0.1);
-  border-top-color: $accent-color;
-  animation: spinner 0.8s linear infinite;
-}
-
 @keyframes spinner {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* 카카오맵 인포윈도우 커스텀 스타일 - 전역으로 적용됨 */
+/* 인포윈도우 스타일 */
 :global(.map-infowindow) {
   padding: 10px;
   min-width: 150px;
@@ -495,12 +603,6 @@ defineExpose({
 }
 
 :global(.infowindow-address) {
-  font-size: 12px;
-  margin-bottom: 5px;
-  color: $dark-gray;
-}
-
-:global(.infowindow-phone) {
   font-size: 12px;
   margin-bottom: 5px;
   color: $dark-gray;

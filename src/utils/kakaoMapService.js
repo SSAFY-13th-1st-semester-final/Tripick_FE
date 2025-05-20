@@ -11,6 +11,10 @@ class KakaoMapService {
     this.bounds = null;
     this.openedInfowindow = null;
     this.isMouseOnInfowindow = false;
+
+    // 경로 관련 저장소
+    this.routes = new Map();
+    this.routeOverlays = new Map();
     
     this.dayColors = [
         '#0064FF', // 1일차: 파란색 (Toss Blue)
@@ -29,7 +33,6 @@ class KakaoMapService {
         '#00C7BE', // 14일차: 민트
         '#BF5AF2'  // 15일차: 연보라
     ];
-
     
     // 마커 이미지 캐시
     this.markerImageCache = {};
@@ -111,7 +114,6 @@ class KakaoMapService {
    * @returns {string} 색상 코드
    */
   getDayColor(day) {
-    // 일차에 해당하는 색상 반환, 7일 이상인 경우 반복 사용
     return this.dayColors[(day - 1) % this.dayColors.length];
   }
   
@@ -121,31 +123,24 @@ class KakaoMapService {
    * @returns {Object} 마커 이미지 객체
    */
   createMarkerImage(color) {
-    // 캐시에 있는 경우 반환
     if (this.markerImageCache[color]) {
       return this.markerImageCache[color];
     }
     
-    // SVG 마커 생성
     const svgMarker = `
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">
         <path fill="${color}" d="M12 0C5.4 0 0 5.4 0 12c0 2.2.6 4.2 1.6 6l10.4 18 10.4-18c1-1.8 1.6-3.8 1.6-6 0-6.6-5.4-12-12-12zm0 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
       </svg>
     `;
     
-    // SVG를 Data URL로 변환
     const svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgMarker);
-    
-    // 마커 이미지 생성
     const markerImage = new window.kakao.maps.MarkerImage(
       svgDataUrl,
       new window.kakao.maps.Size(24, 36),
       { offset: new window.kakao.maps.Point(12, 36) }
     );
     
-    // 캐시에 저장
     this.markerImageCache[color] = markerImage;
-    
     return markerImage;
   }
 
@@ -155,16 +150,13 @@ class KakaoMapService {
    * @param {number|null} day 일차 (설정 시 해당 색상 적용)
    */
   addMarkers(places, day = null) {
-    // 기존 마커 제거
     this.clearMarkers();
     
-    // 새 마커 및 인포윈도우 추가
     places.forEach((place, index) => {
       if (!place.latitude || !place.longitude) return;
       
       const position = new window.kakao.maps.LatLng(place.latitude, place.longitude);
       
-      // 마커 옵션
       const markerOptions = {
         map: this.map,
         position: position,
@@ -172,22 +164,15 @@ class KakaoMapService {
         zIndex: index
       };
       
-      // 일차 정보가 있으면 해당 색상의 마커 사용
-      // 장소에 day 속성이 있거나, 파라미터로 전달된 경우
       const placeDay = place.day || day;
       if (placeDay) {
         markerOptions.image = this.createMarkerImage(this.getDayColor(placeDay));
       }
       
-      // 마커 생성
       const marker = new window.kakao.maps.Marker(markerOptions);
       
-      // 인포윈도우 내용
-      let content = `
-        <div class="map-infowindow" data-marker-index="${index}">
-      `;
+      let content = `<div class="map-infowindow" data-marker-index="${index}">`;
       
-      // 일차 정보가 있으면 표시
       if (placeDay) {
         content += `<div class="infowindow-day" style="color: ${this.getDayColor(placeDay)};">${placeDay}일차</div>`;
       }
@@ -200,35 +185,27 @@ class KakaoMapService {
         </div>
       `;
       
-      // 인포윈도우 생성
       const infowindow = new window.kakao.maps.InfoWindow({
         content: content,
-        removable: false,  // 닫기 버튼 제거 (호버로 제어)
+        removable: false,
         zIndex: 100
       });
       
-      // 호버 이벤트 (mouseover, mouseout) 추가
       this.addMarkerHoverEvents(marker, infowindow, index);
       
-      // 마커와 인포윈도우 저장
       this.markers.push(marker);
       this.infowindows.push(infowindow);
-      
-      // 지도 범위 확장
       this.bounds.extend(position);
     });
     
-    // 모든 마커가 보이도록 지도 범위 조정
     if (this.markers.length > 0) {
       this.map.setBounds(this.bounds);
       
-      // 마커가 하나만 있는 경우 확대 수준 조정
       if (this.markers.length === 1) {
         this.map.setLevel(3);
       }
     }
     
-    // 인포윈도우 호버 이벤트 처리를 위한 글로벌 이벤트 리스너 등록
     this.setupInfowindowHoverEvents();
   }
   
@@ -239,14 +216,11 @@ class KakaoMapService {
    * @param {number} index 마커 인덱스
    */
   addMarkerHoverEvents(marker, infowindow, index) {
-    // 마커에 마우스 올렸을 때 인포윈도우 표시
     window.kakao.maps.event.addListener(marker, 'mouseover', () => {
       this.openInfowindow(infowindow, marker);
     });
     
-    // 마커에서 마우스가 나갔을 때 타이머 설정 (인포윈도우 영역 확인 후 닫기)
     window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-      // 약간의 딜레이를 두고 인포윈도우 영역 확인 후 닫기
       setTimeout(() => {
         if (!this.isMouseOnInfowindow) {
           infowindow.close();
@@ -254,9 +228,7 @@ class KakaoMapService {
       }, 100);
     });
     
-    // 마커 클릭 이벤트 - 인포윈도우 토글
     window.kakao.maps.event.addListener(marker, 'click', () => {
-      // 이미 열려있으면 닫고, 닫혀있으면 열기
       if (this.openedInfowindow === infowindow) {
         infowindow.close();
         this.openedInfowindow = null;
@@ -273,16 +245,13 @@ class KakaoMapService {
    * @param {Object} marker 마커 객체
    */
   openInfowindow(infowindow, marker) {
-    // 이미 열린 다른 인포윈도우 닫기
     if (this.openedInfowindow && this.openedInfowindow !== infowindow) {
       this.openedInfowindow.close();
     }
     
-    // 인포윈도우 열기
     infowindow.open(this.map, marker);
     this.openedInfowindow = infowindow;
     
-    // 인포윈도우가 열린 후 이벤트 리스너 등록을 위한 약간의 딜레이
     setTimeout(() => {
       this.setupInfowindowHoverEvents();
     }, 100);
@@ -292,24 +261,18 @@ class KakaoMapService {
    * 인포윈도우 호버 이벤트 설정
    */
   setupInfowindowHoverEvents() {
-    // 모든 인포윈도우 요소 찾기
     const infowindowElements = document.querySelectorAll('.map-infowindow');
     
-    // 각 인포윈도우에 마우스 이벤트 추가
     infowindowElements.forEach(element => {
-      // 이미 이벤트가 등록되어 있으면 중복 등록 방지
       if (element.getAttribute('data-hover-events-added')) return;
       
-      // 마우스가 인포윈도우 위에 있을 때
       element.addEventListener('mouseenter', () => {
         this.isMouseOnInfowindow = true;
       });
       
-      // 마우스가 인포윈도우를 벗어났을 때
       element.addEventListener('mouseleave', () => {
         this.isMouseOnInfowindow = false;
         
-        // 인포윈도우 닫기
         setTimeout(() => {
           if (!this.isMouseOnInfowindow) {
             const index = element.getAttribute('data-marker-index');
@@ -323,7 +286,6 @@ class KakaoMapService {
         }, 100);
       });
       
-      // 이벤트 등록 표시
       element.setAttribute('data-hover-events-added', 'true');
     });
   }
@@ -333,17 +295,13 @@ class KakaoMapService {
    * @param {Object} itinerary 여행 일정 객체
    */
   addAllDaysMarkers(itinerary) {
-    // 기존 마커 제거
     this.clearMarkers();
     
-    // 각 일차별로 장소 수집
     const allPlaces = [];
     
-    // itinerary가 배열인 경우 (travel.js의 구조)
     if (Array.isArray(itinerary)) {
       itinerary.forEach((dayPlaces, index) => {
         if (dayPlaces && dayPlaces.length > 0) {
-          // 각 장소에 일차 정보 추가 (index + 1 = 일차)
           const placesWithDay = dayPlaces.map(place => ({
             ...place,
             day: index + 1
@@ -352,14 +310,11 @@ class KakaoMapService {
           allPlaces.push(...placesWithDay);
         }
       });
-    } 
-    // itinerary가 객체인 경우 (예: {day1: [...], day2: [...]} 구조)
-    else {
+    } else {
       Object.keys(itinerary).forEach(dayKey => {
         const day = parseInt(dayKey.replace('day', ''));
         const placesForDay = itinerary[dayKey];
         
-        // 각 장소에 일차 정보 추가
         const placesWithDay = placesForDay.map(place => ({
           ...place,
           day: day
@@ -369,7 +324,6 @@ class KakaoMapService {
       });
     }
     
-    // 통합된 마커 표시
     this.addMarkers(allPlaces);
   }
   
@@ -398,7 +352,6 @@ class KakaoMapService {
       this.map.setCenter(marker.getPosition());
       this.map.setLevel(3);
       
-      // 기존 인포윈도우 닫고 선택된 마커 인포윈도우 열기
       this.closeAllInfowindows();
       this.infowindows[index].open(this.map, marker);
       this.openedInfowindow = this.infowindows[index];
@@ -450,13 +403,11 @@ class KakaoMapService {
   addMapControls(useZoomControl = true, useTypeControl = true) {
     if (!this.map) return;
     
-    // 줌 컨트롤 추가
     if (useZoomControl) {
       const zoomControl = new window.kakao.maps.ZoomControl();
       this.map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
     }
     
-    // 지도 타입 컨트롤 추가
     if (useTypeControl) {
       const typeControl = new window.kakao.maps.MapTypeControl();
       this.map.addControl(typeControl, window.kakao.maps.ControlPosition.TOPRIGHT);
@@ -482,7 +433,7 @@ class KakaoMapService {
     
     const defaultOptions = {
       strokeWeight: 4,
-      strokeColor: '#0064FF', // 기본 파란색
+      strokeColor: '#0064FF',
       strokeOpacity: 0.7,
       strokeStyle: 'solid'
     };
@@ -490,14 +441,12 @@ class KakaoMapService {
     const polylineOptions = { ...defaultOptions, ...options };
     const path = [];
     
-    // 유효한 좌표를 가진 장소들만 경로에 추가
     places.forEach(place => {
       if (place.latitude && place.longitude) {
         path.push(new window.kakao.maps.LatLng(place.latitude, place.longitude));
       }
     });
     
-    // 경로가 2개 이상의 포인트를 가질 때만 그리기
     if (path.length >= 2) {
       const polyline = new window.kakao.maps.Polyline({
         map: this.map,
@@ -508,7 +457,6 @@ class KakaoMapService {
         strokeStyle: polylineOptions.strokeStyle
       });
       
-      // 경로까지 모두 포함하는 범위로 지도 조정
       const bounds = new window.kakao.maps.LatLngBounds();
       path.forEach(point => {
         bounds.extend(point);
@@ -565,6 +513,479 @@ class KakaoMapService {
         this.map.addOverlayMapTypeId(mapTypeIds[type]);
       }
     });
+  }
+
+  // ===== 경로 관련 메서드들 =====
+  
+  /**
+   * 특정 일차의 경로를 지도에 표시
+   * @param {number} day - 일차 (0부터 시작)
+   * @param {Object} pathData - optimizedPaths[day] 데이터
+   * @param {Object} options - 경로 스타일 옵션
+   */
+  drawDayRoute(day, pathData, options = {}) {
+    if (!this.map || !pathData) return;
+
+    // 기존 경로 제거
+    this.clearDayRoute(day);
+
+    const {
+      strokeColor = this.dayColors[day % this.dayColors.length],
+      strokeWeight = 4,
+      strokeOpacity = 0.8,
+      strokeStyle = 'solid'
+    } = options;
+
+    try {
+      const routeCoordinates = [];
+      
+      // 호텔(출발지) 추가
+      if (pathData.hotel) {
+        routeCoordinates.push(new window.kakao.maps.LatLng(pathData.hotel.y, pathData.hotel.x));
+      }
+      
+      // 방문 장소들 순서대로 추가
+      if (pathData.places && pathData.places.length > 0) {
+        pathData.places.forEach(place => {
+          routeCoordinates.push(new window.kakao.maps.LatLng(place.y, place.x));
+        });
+      }
+      
+      // 마지막에 호텔로 돌아가기 (원형 경로)
+      if (pathData.hotel && routeCoordinates.length > 1) {
+        routeCoordinates.push(new window.kakao.maps.LatLng(pathData.hotel.y, pathData.hotel.x));
+      }
+
+      // 폴리라인 생성
+      const polyline = new window.kakao.maps.Polyline({
+        path: routeCoordinates,
+        strokeWeight: strokeWeight,
+        strokeColor: strokeColor,
+        strokeOpacity: strokeOpacity,
+        strokeStyle: strokeStyle
+      });
+
+      // 지도에 표시
+      polyline.setMap(this.map);
+
+      // 저장소에 저장
+      if (!this.routeOverlays.has(day)) {
+        this.routeOverlays.set(day, []);
+      }
+      this.routeOverlays.get(day).push(polyline);
+
+      // 방향 화살표 추가 (선택사항)
+      if (options.showArrows) {
+        this.addRouteArrows(day, routeCoordinates, options);
+      }
+
+      // 거리/시간 정보 표시 (선택사항)
+      if (options.showInfo) {
+        this.addRouteInfo(day, pathData, routeCoordinates);
+      }
+
+      console.log(`${day + 1}일차 경로가 지도에 표시되었습니다.`);
+      
+    } catch (error) {
+      console.error(`${day + 1}일차 경로 표시 중 오류:`, error);
+    }
+  }
+
+  /**
+   * 전체 여행 경로를 지도에 표시
+   * @param {Array} optimizedPaths - 전체 optimizedPaths 데이터
+   * @param {Object} options - 스타일 옵션
+   */
+  drawAllRoutes(optimizedPaths, options = {}) {
+    if (!optimizedPaths || optimizedPaths.length === 0) return;
+
+    optimizedPaths.forEach((dayPath, index) => {
+      const dayOptions = {
+        strokeColor: this.dayColors[index % this.dayColors.length],
+        strokeWeight: 4,
+        strokeOpacity: 0.7,
+        ...options
+      };
+      
+      this.drawDayRoute(index, dayPath, dayOptions);
+    });
+
+    // 전체 경로가 보이도록 지도 범위 조정
+    this.fitMapToBounds(optimizedPaths);
+  }
+
+  /**
+   * 특정 일차의 경로 제거
+   * @param {number} day - 일차 (0부터 시작)
+   */
+  clearDayRoute(day) {
+    if (this.routeOverlays.has(day)) {
+      this.routeOverlays.get(day).forEach(overlay => {
+        overlay.setMap(null);
+      });
+      this.routeOverlays.set(day, []);
+    }
+  }
+
+  /**
+   * 모든 경로 제거
+   */
+  clearAllRoutes() {
+    this.routeOverlays.forEach((overlays, day) => {
+      overlays.forEach(overlay => {
+        overlay.setMap(null);
+      });
+    });
+    this.routeOverlays.clear();
+    this.routes.clear();
+  }
+
+  /**
+   * 경로에 방향 화살표 추가
+   * @param {number} day - 일차
+   * @param {Array} coordinates - 좌표 배열
+   * @param {Object} options - 스타일 옵션
+   */
+  addRouteArrows(day, coordinates, options = {}) {
+    if (coordinates.length < 2) return;
+
+    const arrowSize = options.arrowSize || 15;
+    const arrowColor = options.strokeColor || this.dayColors[day % this.dayColors.length];
+
+    for (let i = 0; i < coordinates.length - 1; i++) {
+      const start = coordinates[i];
+      const end = coordinates[i + 1];
+      
+      const midLat = (start.getLat() + end.getLat()) / 2;
+      const midLng = (start.getLng() + end.getLng()) / 2;
+      
+      const angle = Math.atan2(
+        end.getLng() - start.getLng(),
+        end.getLat() - start.getLat()
+      ) * 180 / Math.PI;
+
+      const arrowContent = `
+        <div style="
+          width: ${arrowSize}px; 
+          height: ${arrowSize}px; 
+          transform: rotate(${angle}deg);
+          color: ${arrowColor};
+          font-size: ${arrowSize}px;
+          line-height: 1;
+        ">▲</div>
+      `;
+
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(midLat, midLng),
+        content: arrowContent,
+        xAnchor: 0.5,
+        yAnchor: 0.5
+      });
+
+      customOverlay.setMap(this.map);
+
+      if (!this.routeOverlays.has(day)) {
+        this.routeOverlays.set(day, []);
+      }
+      this.routeOverlays.get(day).push(customOverlay);
+    }
+  }
+
+  /**
+   * 경로에 거리/시간 정보 표시
+   * @param {number} day - 일차
+   * @param {Object} pathData - 경로 데이터
+   * @param {Array} coordinates - 좌표 배열
+   */
+  addRouteInfo(day, pathData, coordinates) {
+    if (!pathData.places || pathData.places.length === 0) return;
+
+    pathData.places.forEach((place, index) => {
+      if (place.fromHotel && coordinates[index + 1]) {
+        const distance = (place.fromHotel.distance / 1000).toFixed(1);
+        const duration = Math.round(place.fromHotel.duration / 60);
+        
+        const infoContent = `
+          <div style="
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          ">
+            ${distance}km · ${duration}분
+          </div>
+        `;
+
+        const infoOverlay = new window.kakao.maps.CustomOverlay({
+          position: coordinates[index + 1],
+          content: infoContent,
+          xAnchor: 0.5,
+          yAnchor: -0.1
+        });
+
+        infoOverlay.setMap(this.map);
+
+        if (!this.routeOverlays.has(day)) {
+          this.routeOverlays.set(day, []);
+        }
+        this.routeOverlays.get(day).push(infoOverlay);
+      }
+    });
+  }
+
+  /**
+   * 전체 경로가 보이도록 지도 범위 조정
+   * @param {Array} optimizedPaths - 전체 경로 데이터
+   */
+  fitMapToBounds(optimizedPaths) {
+    if (!optimizedPaths || optimizedPaths.length === 0) return;
+
+    const bounds = new window.kakao.maps.LatLngBounds();
+
+    optimizedPaths.forEach(dayPath => {
+      // 호텔 좌표 추가
+      if (dayPath.hotel) {
+        bounds.extend(new window.kakao.maps.LatLng(dayPath.hotel.y, dayPath.hotel.x));
+      }
+      
+      // 방문 장소 좌표들 추가
+      if (dayPath.places) {
+        dayPath.places.forEach(place => {
+          bounds.extend(new window.kakao.maps.LatLng(place.y, place.x));
+        });
+      }
+    });
+
+    // 지도 범위 설정
+    this.map.setBounds(bounds);
+  }
+
+  /**
+   * 특정 일차 경로의 가시성 토글
+   * @param {number} day - 일차
+   * @param {boolean} visible - 표시 여부
+   */
+  toggleDayRouteVisibility(day, visible) {
+    if (this.routeOverlays.has(day)) {
+      this.routeOverlays.get(day).forEach(overlay => {
+        overlay.setMap(visible ? this.map : null);
+      });
+    }
+  }
+
+  /**
+   * 경로 스타일 업데이트
+   * @param {number} day - 일차
+   * @param {Object} newOptions - 새로운 스타일 옵션
+   */
+  updateRouteStyle(day, newOptions) {
+    if (!this.routeOverlays.has(day)) return;
+
+    this.routeOverlays.get(day).forEach(overlay => {
+      if (overlay instanceof window.kakao.maps.Polyline) {
+        if (newOptions.strokeColor) overlay.setOptions({ strokeColor: newOptions.strokeColor });
+        if (newOptions.strokeWeight) overlay.setOptions({ strokeWeight: newOptions.strokeWeight });
+        if (newOptions.strokeOpacity) overlay.setOptions({ strokeOpacity: newOptions.strokeOpacity });
+      }
+    });
+  }
+
+  /**
+   * 경로 위의 특정 지점으로 지도 이동
+   * @param {number} day - 일차
+   * @param {number} placeIndex - 장소 인덱스 (호텔은 -1)
+   * @param {Object} pathData - 경로 데이터 (선택사항)
+   */
+  panToRoutePoint(day, placeIndex = -1, pathData = null) {
+    if (!pathData) return;
+
+    let targetCoords;
+    
+    if (placeIndex === -1 && pathData.hotel) {
+      // 호텔로 이동
+      targetCoords = new window.kakao.maps.LatLng(pathData.hotel.y, pathData.hotel.x);
+    } else if (pathData.places && pathData.places[placeIndex]) {
+      // 특정 장소로 이동
+      const place = pathData.places[placeIndex];
+      targetCoords = new window.kakao.maps.LatLng(place.y, place.x);
+    }
+
+    if (targetCoords) {
+      this.map.panTo(targetCoords);
+    }
+  }
+
+  /**
+   * 경로 거리 정보 계산
+   * @param {Object} pathData - 경로 데이터
+   * @returns {Object} 거리 및 소요시간 정보
+   */
+  calculateRouteInfo(pathData) {
+    if (!pathData || !pathData.places) return { totalDistance: 0, totalDuration: 0 };
+
+    let totalDistance = 0;
+    let totalDuration = 0;
+
+    pathData.places.forEach(place => {
+      if (place.fromHotel) {
+        totalDistance += place.fromHotel.distance || 0;
+        totalDuration += place.fromHotel.duration || 0;
+      }
+    });
+
+    return {
+      totalDistance: Math.round(totalDistance / 1000 * 10) / 10, // km, 소수점 1자리
+      totalDuration: Math.round(totalDuration / 60) // 분
+    };
+  }
+
+  /**
+   * 경로 상태 확인
+   * @param {number} day - 일차
+   * @returns {boolean} 경로 표시 여부
+   */
+  isRouteVisible(day) {
+    return this.routeOverlays.has(day) && this.routeOverlays.get(day).length > 0;
+  }
+
+  /**
+   * 모든 마커와 경로 제거
+   */
+  clearAll() {
+    this.clearMarkers();
+    this.clearAllRoutes();
+  }
+
+  /**
+   * 지도 정보 가져오기
+   * @returns {Object} 지도 정보
+   */
+  getMapInfo() {
+    if (!this.map) return null;
+    
+    return {
+      center: this.map.getCenter(),
+      level: this.map.getLevel(),
+      bounds: this.map.getBounds()
+    };
+  }
+
+  /**
+   * 현재 보이는 마커 개수 가져오기
+   * @returns {number} 마커 개수
+   */
+  getVisibleMarkersCount() {
+    return this.markers.length;
+  }
+
+  /**
+   * 현재 활성화된 경로 개수 가져오기
+   * @returns {number} 경로 개수
+   */
+  getActiveRoutesCount() {
+    let count = 0;
+    this.routeOverlays.forEach((overlays) => {
+      if (overlays.length > 0) count++;
+    });
+    return count;
+  }
+
+  /**
+   * 지도 범위 내 마커 필터링
+   * @returns {Array} 현재 보이는 영역 내의 마커들
+   */
+  getMarkersInBounds() {
+    if (!this.map || this.markers.length === 0) return [];
+    
+    const bounds = this.map.getBounds();
+    return this.markers.filter(marker => {
+      return bounds.contain(marker.getPosition());
+    });
+  }
+
+  /**
+   * 특정 좌표가 지도 영역 내에 있는지 확인
+   * @param {number} lat - 위도
+   * @param {number} lng - 경도
+   * @returns {boolean} 영역 내 포함 여부
+   */
+  isLocationInBounds(lat, lng) {
+    if (!this.map) return false;
+    
+    const position = new window.kakao.maps.LatLng(lat, lng);
+    const bounds = this.map.getBounds();
+    return bounds.contain(position);
+  }
+
+  /**
+   * 두 지점 간 거리 계산 (미터 단위)
+   * @param {number} lat1 - 첫 번째 지점 위도
+   * @param {number} lng1 - 첫 번째 지점 경도
+   * @param {number} lat2 - 두 번째 지점 위도
+   * @param {number} lng2 - 두 번째 지점 경도
+   * @returns {number} 거리 (미터)
+   */
+  calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371000; // 지구 반지름 (미터)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  /**
+   * 마커 클러스터링 설정
+   * @param {boolean} enable - 클러스터링 활성화 여부
+   * @param {Object} options - 클러스터 옵션
+   */
+  setMarkerClustering(enable = true, options = {}) {
+    if (!this.map || !window.kakao.maps.MarkerClusterer) return;
+
+    if (this.clusterer) {
+      this.clusterer.clear();
+      this.clusterer = null;
+    }
+
+    if (enable && this.markers.length > 0) {
+      const defaultOptions = {
+        map: this.map,
+        averageCenter: true,
+        minLevel: 6,
+        disableClickZoom: false,
+        ...options
+      };
+
+      this.clusterer = new window.kakao.maps.MarkerClusterer(defaultOptions);
+      this.clusterer.addMarkers(this.markers);
+    }
+  }
+
+  /**
+   * 서비스 정리 (메모리 정리용)
+   */
+  destroy() {
+    this.clearAll();
+    
+    if (this.clusterer) {
+      this.clusterer.clear();
+      this.clusterer = null;
+    }
+    
+    this.map = null;
+    this.markers = [];
+    this.infowindows = [];
+    this.bounds = null;
+    this.openedInfowindow = null;
+    this.routes.clear();
+    this.routeOverlays.clear();
+    this.markerImageCache = {};
   }
 }
 

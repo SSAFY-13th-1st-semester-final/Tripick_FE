@@ -179,6 +179,8 @@ export const useTravelResultStore = defineStore('travelResult', {
           totalDuration += segment.leg.duration;
         });
         
+
+        console.log("travle.result.js???");
         return {
           day,
           hotel,

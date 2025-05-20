@@ -213,7 +213,7 @@ const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 
 // 스토어에서 상태 가져오기
-const { tripInfo, currentDay, currentDayPlaces } = storeToRefs(travelStore);
+const { tripInfo, currentDay, currentDayPlaces, saveAllTripData } = storeToRefs(travelStore);
 
 // 탭 상태 (모바일)
 const activeMobileTab = ref("search");
@@ -299,19 +299,20 @@ const handleGetOptimalPaths = async () => {
 };
 
 const saveTrip = () => {
+  travelStore.saveAllTripData();
   // 여행 저장 로직 (로컬 스토리지 등에 저장)
-  try {
-    const tripData = {
-      tripInfo: tripInfo.value,
-      itinerary: travelStore.itinerary,
-    };
+  // try {
+  //   const tripData = {
+  //     tripInfo: tripInfo.value,
+  //     itinerary: travelStore.itinerary,
+  //   };
 
-    localStorage.setItem("savedTrip", JSON.stringify(tripData));
-    notificationStore.showSuccess("여행 계획이 저장되었습니다.");
-  } catch (error) {
-    console.error("여행 저장 오류:", error);
-    notificationStore.showError("여행 저장에 실패했습니다.");
-  }
+  //   localStorage.setItem("savedTrip", JSON.stringify(tripData));
+  //   notificationStore.showSuccess("여행 계획이 저장되었습니다.");
+  // } catch (error) {
+  //   console.error("여행 저장 오류:", error);
+  //   notificationStore.showError("여행 저장에 실패했습니다.");
+  // }
 };
 
 // 지도에서 장소 선택 시 처리

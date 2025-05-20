@@ -188,6 +188,18 @@ export const useTravelStore = defineStore('travel', {
   },
   
   actions: {
+    saveAllTripData() {
+      const tripData = {
+        tripInfo: this.tripInfo,
+        itinerary: this.itinerary,
+        hotels: this.hotels,
+        currentDay: this.currentDay,
+        selectedPlace: this.selectedPlace,
+      };
+      console.log(tripData);
+      localStorage.setItem("savedTrip", JSON.stringify(tripData));
+    },
+
     /**
      * 여행 기본 정보 설정
      */
