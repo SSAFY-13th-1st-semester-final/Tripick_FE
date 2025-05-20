@@ -24,6 +24,17 @@
         autocomplete="current-password"
       />
 
+      <div class="login-form__remember-me">
+        <label class="remember-me-label">
+          <input
+            type="checkbox"
+            v-model="rememberMe"
+            class="remember-me-checkbox"
+          />
+          <span class="remember-me-text">로그인 상태 유지</span>
+        </label>
+      </div>
+
       <div class="login-form__help-links">
         <router-link to="/auth/forgot-username" class="login-form__help-link"
           >아이디를 잊으셨나요?</router-link
@@ -73,6 +84,9 @@ const formData = reactive({
   username: "",
   password: "",
 });
+
+// 로그인 상태 유지 체크박스
+const rememberMe = ref(authStore.isRememberMeChecked || false);
 
 // 추가 상태 변수
 const errors = reactive({});
@@ -130,8 +144,9 @@ const submitForm = async () => {
   isLoading.value = true;
 
   try {
-    // Pinia 스토어를 통한 로그인 요청
-    await authStore.login({ ...formData });
+    console.log(rememberMe);
+    // Pinia 스토어를 통한 로그인 요청 (Remember Me 상태 포함)
+    await authStore.login({ ...formData }, rememberMe);
 
     // 로그인 성공 알림 표시
     notificationStore.showSuccess("로그인에 성공했습니다. 환영합니다!", {
@@ -170,6 +185,11 @@ onMounted(() => {
       // 직접 오류 상태 초기화
       authStore.authError = null;
       authStore.registerError = null;
+    }
+
+    // Remember Me 상태 초기화
+    if (typeof authStore.isRememberMeChecked !== "undefined") {
+      rememberMe.value = authStore.isRememberMeChecked;
     }
 
     // 쿼리 파라미터 확인
@@ -213,6 +233,66 @@ onMounted(() => {
 
   &__form {
     width: 100%;
+  }
+
+  &__remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-md;
+
+    .remember-me-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.875rem;
+      user-select: none;
+      color: $primary-color;
+    }
+
+    .remember-me-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid $dark-gray;
+      border-radius: 4px;
+      margin-right: $spacing-xs;
+      position: relative;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      transition: all $transition-fast;
+
+      &:checked {
+        background-color: $accent-color;
+        border-color: $accent-color;
+
+        &::after {
+          content: "";
+          position: absolute;
+          top: 2px;
+          left: 6px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+      }
+
+      &:hover {
+        border-color: $accent-color;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba($accent-color, 0.3);
+      }
+    }
+
+    .remember-me-text {
+      margin-left: $spacing-xs;
+    }
   }
 
   &__help-links {

@@ -246,7 +246,6 @@ const saveChanges = async () => {
     // 수정할 데이터 객체 생성 - 변경된 필드만 포함, 나머지는 null
     const updateData = {
       profileImageUrl: editData.shouldUpdateProfileImage ? imageUrl : null,
-      password: null, // 비밀번호는 별도 페이지에서 변경
       nickname:
         editData.nickname !== userData.value.nickname
           ? editData.nickname

@@ -87,16 +87,6 @@
               </p>
             </div>
           </div>
-
-          <div class="user-profile__form-item" v-if="userData.username">
-            <label>아이디</label>
-            <p class="user-profile__info-value">{{ userData.username }}</p>
-          </div>
-
-          <div class="user-profile__form-item" v-if="userData.createdAt">
-            <label>가입일</label>
-            <p class="user-profile__info-value">{{ formattedCreatedAt }}</p>
-          </div>
         </div>
       </template>
     </div>
@@ -151,22 +141,6 @@ const profileImageUrl = computed(() => {
     return editData.profileImageUrl;
   }
   return props.userData.profileImageUrl || null;
-});
-
-// 가입일 포맷 적용
-const formattedCreatedAt = computed(() => {
-  if (!props.userData.createdAt) return "-";
-
-  try {
-    const date = new Date(props.userData.createdAt);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (error) {
-    return "-";
-  }
 });
 
 // 이미지 업로드 입력란 선택

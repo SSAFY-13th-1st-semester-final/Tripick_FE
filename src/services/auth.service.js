@@ -3,7 +3,7 @@ import TokenService from "./token.service";
 
 class AuthService {
   // 로그인 처리 메서드
-  async login(credentials) {
+  async login(credentials, rememberMe) {
     try {
       // 로그인 요청
       const response = await apiClient.post("/auth/login", credentials);
@@ -16,6 +16,16 @@ class AuthService {
       const refreshToken = response.headers["refresh-token"];
 
       if (!accessToken) throw new Error("Access token이 응답 헤더에 없습니다.");
+
+      TokenService.useRememberMe(rememberMe);
+
+      console.log(">>>>>>>>", rememberMe.value);
+
+      if (rememberMe.value) {
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
 
       // 토큰 저장
       TokenService.setToken(accessToken);
@@ -32,16 +42,11 @@ class AuthService {
         role: userRole,
         tokenExpires: decoded?.exp ? new Date(decoded.exp * 1000) : null,
       };
-      localStorage.setItem("user", JSON.stringify(basicUserInfo));
 
-      // 서버에서 최신 사용자 정보 조회
-      try {
-        const userResponse = await this.getCurrentUser();
-        if (userResponse.data?.data) {
-          localStorage.setItem("user", JSON.stringify(userResponse.data.data));
-        }
-      } catch (userErr) {
-        console.warn("사용자 정보 조회 실패:", userErr);
+      if (rememberMe.value) {
+        localStorage.setItem("user", JSON.stringify(basicUserInfo));
+      } else {
+        sessionStorage.setItem("user", JSON.stringify(basicUserInfo));
       }
 
       return response;
@@ -76,7 +81,18 @@ class AuthService {
   // 저장된 인증 관련 정보 모두 제거
   clearAuthData() {
     TokenService.clearAll();
+    this.clearUserDate();
+    this.clearRememberMe();
+  }
+
+  clearUserDate() {
     localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+  }
+
+  clearRememberMe() {
+    localStorage.removeItem("rememberMe");
+    sessionStorage.removeItem("rememberMe");
   }
 
   // 아이디 중복 확인 요청
