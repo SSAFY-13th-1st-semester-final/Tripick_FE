@@ -4,7 +4,7 @@
     <div class="user-profile__image-section">
       <div class="user-profile__image-wrapper">
         <img
-          :src="profileImageUrl || 'https://picsum.photos/200'"
+          :src="profileImagePreviewUrl || 'https://picsum.photos/200'"
           alt="프로필 이미지"
           class="user-profile__image"
           @error="handleImageError"
@@ -127,20 +127,14 @@ const emit = defineEmits(["update:userData", "imageSelected", "validateField"]);
 
 // 내부 상태
 const imageUploadInput = ref(null);
+const profileImageFile = ref(null); // 새로 업로드된 파일 객체 저장
+const profileImagePreviewUrl = ref(props.userData.profileImageUrl || null); // 미리보기 URL
+
 const editData = reactive({
   nickname: props.userData.nickname || "",
   email: props.userData.email || "",
   phoneNumber: props.userData.phoneNumber || "",
-  profileImageUrl: props.userData.profileImageUrl || null,
-});
-
-// 프로필 이미지 URL 계산
-const profileImageUrl = computed(() => {
-  // 편집 모드일 때는 편집 중인 이미지 우선
-  if (props.editMode && editData.profileImageUrl) {
-    return editData.profileImageUrl;
-  }
-  return props.userData.profileImageUrl || null;
+  // 파일은 별도로 관리하고, profileImageUrl은 참조만 함
 });
 
 // 이미지 업로드 입력란 선택
@@ -180,12 +174,28 @@ const handleImageUpload = (event) => {
     return;
   }
 
-  // 임시 URL 생성 (미리보기용)
-  const tempURL = URL.createObjectURL(file);
-  editData.profileImageUrl = tempURL;
+  // 파일 객체 저장
+  profileImageFile.value = file;
 
-  // 이미지 선택 이벤트 발생
-  emit("imageSelected", { file, previewUrl: tempURL });
+  // 미리보기 URL 생성
+  if (profileImagePreviewUrl.value) {
+    URL.revokeObjectURL(profileImagePreviewUrl.value); // 이전 URL 해제
+  }
+  profileImagePreviewUrl.value = URL.createObjectURL(file);
+
+  // 파일 객체와 미리보기 URL을 부모 컴포넌트로 전달
+  emit("imageSelected", {
+    file: profileImageFile.value,
+    previewUrl: profileImagePreviewUrl.value,
+  });
+
+  // userData 업데이트 (파일 객체는 포함하지 않음 - 별도 이벤트로 전달)
+  const updatedUserData = {
+    ...editData,
+    // profileImageUrl은 서버에서 업데이트된 후 설정될 것이므로 포함하지 않음
+  };
+
+  emit("update:userData", updatedUserData);
 };
 
 // 프로필 이미지 로딩 오류 처리
@@ -201,15 +211,17 @@ watch(
       editData.nickname = newValue.nickname || "";
       editData.email = newValue.email || "";
       editData.phoneNumber = newValue.phoneNumber || "";
-      if (!editData.profileImageUrl || !props.editMode) {
-        editData.profileImageUrl = newValue.profileImageUrl || null;
+
+      // 서버에서 받은 프로필 이미지 URL 업데이트 (편집 모드가 아닐 때만)
+      if (!props.editMode || !profileImageFile.value) {
+        profileImagePreviewUrl.value = newValue.profileImageUrl || null;
       }
     }
   },
   { deep: true }
 );
 
-// userData를 부모 컴포넌트에 업데이트
+// editData의 변경사항을 부모 컴포넌트에 전달
 watch(
   editData,
   (newValue) => {
@@ -219,6 +231,18 @@ watch(
   },
   { deep: true }
 );
+
+// 컴포넌트가 언마운트될 때 메모리 누수 방지
+const cleanup = () => {
+  if (
+    profileImagePreviewUrl.value &&
+    profileImagePreviewUrl.value.startsWith("blob:")
+  ) {
+    URL.revokeObjectURL(profileImagePreviewUrl.value);
+  }
+};
+
+// onBeforeUnmount(cleanup); // Vue 3에서는 이 부분 추가
 </script>
 
 <style lang="scss" scoped>
