@@ -53,6 +53,57 @@ class TravelService {
       throw error;
     }
   }
+
+
+
+  /**
+   * 전체 여행 일정의 최단 경로 조회 (파라미터 없이 스토어에서 자동으로 데이터 가져옴)
+   * @returns {Promise<Object>} 최단 경로 결과
+   */
+  async getOptimalPaths() {
+    try {
+
+      const { useTravelResultStore } = await import('@/stores/travel.result');
+      const resultStore = useTravelResultStore();
+      
+      // 로딩 시작
+      resultStore.setLoading(true);
+
+      // Pinia 스토어에서 데이터 직접 가져오기
+      const { useTravelStore } = await import('@/stores/travel');
+      const travelStore = useTravelStore();
+      
+      // travel.js의 apiFormat getter를 사용하여 데이터 변환
+      const apiFormatData = travelStore.apiFormat;
+      
+
+      // 경로 조회할 일차가 있는지 확인
+      const validRequests = apiFormatData.filter(dayItinerary => {
+        return dayItinerary.startPlaceId && 
+              dayItinerary.placeIds && 
+              dayItinerary.placeIds.length > 0;
+      });
+
+      if (validRequests.length === 0) {
+        throw new Error("경로 조회할 수 있는 일차가 없습니다. (출발지와 방문지가 모두 필요합니다)");
+      }
+
+      // API 요청
+      const response = await apiClient.post("/place/path", {
+        requests: validRequests
+      });
+      
+      // 결과를 result 스토어에 저장
+      resultStore.setOptimalResult(response.data);
+      
+      return response.data;
+
+    } catch (error) {
+      console.error("Error fetching optimal paths:", error);
+      throw error;
+    }
+  }
+  
 }
 
 const travelService = new TravelService();

@@ -180,7 +180,16 @@ const notificationStore = useNotificationStore();
 
 // 여행 스토어
 const travelStore = useTravelStore();
-const { currentDay, tripInfo, currentDayPlaces, tripDuration, getDayDate, formatDate } = storeToRefs(travelStore);
+const { 
+  currentDay, 
+  tripInfo, 
+  currentDayPlaces, 
+  currentDayHotel,
+  searchMode,
+  tripDuration, 
+  getDayDate, 
+  formatDate 
+} = storeToRefs(travelStore);
 
 // 계산된 속성
 const noMoreResults = computed(() => {
@@ -191,6 +200,11 @@ const noMoreResults = computed(() => {
 const addedPlaceIds = computed(() => {
   if (!currentDayPlaces.value) return [];
   return currentDayPlaces.value.map(place => place.id);
+});
+
+// 현재 일차의 숙소 ID
+const currentHotelId = computed(() => {
+  return currentDayHotel.value ? currentDayHotel.value.id : null;
 });
 
 // 여행 계획 여부 확인
@@ -278,7 +292,7 @@ const searchPlaces = async (isNewSearch = false) => {
         pageableCount: 0
       };
     }
-    
+    //AD5
     isLoading.value = true;
     hasSearched.value = true;
     
@@ -325,34 +339,53 @@ const loadMorePlaces = () => {
 
 // 장소 선택
 const selectPlace = (place) => {
-  // 이미 추가된 장소인지 확인
-  if (isPlaceAdded(place.id)) {
-    notificationStore.showWarning('이미 추가된 장소입니다.');
-    return;
-  }
-  
   // 여행 계획이 없는 경우 경고
   if (!hasTripPlan.value) {
     notificationStore.showWarning('먼저 여행 날짜를 설정해주세요.');
     return;
   }
   
-  // 선택한 장소를 스토어에 저장하고 추가
-  travelStore.selectPlace(place);
+  // 이미 추가된 장소인지 확인
+  if (isPlaceAdded(place.id)) {
+    const typeText = searchMode.value === 'hotel' ? '숙소' : '장소';
+    notificationStore.showWarning(`이미 추가된 ${typeText}입니다.`);
+    return;
+  }
   
-  // 일정에 장소 추가
-  const added = travelStore.addPlace();
-  
-  if (added) {
-    notificationStore.showSuccess(`${currentDay.value + 1}일차에 장소가 추가되었습니다.`);
+  // 검색 모드에 따라 다른 처리
+  if (searchMode.value === 'hotel') {
+    // 숙소 추가
+    const success = travelStore.addCurrentDayHotel(place);
+    
+    if (success) {
+      notificationStore.showSuccess(`${currentDay.value + 1}일차에 숙소가 등록되었습니다.`);
+      // 숙소 등록 후 장소 검색 모드로 자동 전환
+      travelStore.setPlaceSearchMode();
+    } else {
+      notificationStore.showError('숙소 등록에 실패했습니다.');
+    }
   } else {
-    notificationStore.showError('장소 추가에 실패했습니다.');
+    // 일반 장소 추가
+    travelStore.selectPlace(place);
+    const success = travelStore.addPlace();
+    
+    if (success) {
+      notificationStore.showSuccess(`${currentDay.value + 1}일차에 장소가 추가되었습니다.`);
+    } else {
+      notificationStore.showError('장소 추가에 실패했습니다.');
+    }
   }
 };
 
 // 장소가 이미 추가되었는지 확인
 const isPlaceAdded = (placeId) => {
-  return addedPlaceIds.value.includes(placeId);
+  if (searchMode.value === 'hotel') {
+    // 숙소 모드일 때는 현재 일차의 숙소 ID와 비교
+    return currentHotelId.value === placeId;
+  } else {
+    // 장소 모드일 때는 현재 일차의 장소 목록에서 확인
+    return addedPlaceIds.value.includes(placeId);
+  }
 };
 
 // 컴포넌트 마운트 시 카테고리 로딩 및 IntersectionObserver 설정
@@ -389,22 +422,6 @@ watch([observerTarget], () => {
   }
 });
 
-// 검색 결과 변경 시 스크롤 위치 기억 위한 로직
-const saveScrollPosition = () => {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem('placeSearchScrollPosition', window.scrollY.toString());
-  }
-};
-
-const restoreScrollPosition = () => {
-  if (typeof sessionStorage !== 'undefined') {
-    const savedPosition = sessionStorage.getItem('placeSearchScrollPosition');
-    if (savedPosition) {
-      window.scrollTo(0, parseInt(savedPosition, 10));
-      sessionStorage.removeItem('placeSearchScrollPosition');
-    }
-  }
-};
 </script>
 
 <style lang="scss" scoped>

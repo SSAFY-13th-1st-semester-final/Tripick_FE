@@ -108,8 +108,8 @@ class TokenMonitorService {
     const remainingTime = TokenService.getTokenRemainingTime();
 
     // 콘솔에 토큰 정보 출력
-    console.log(`토큰 만료 시간: ${expiration}`);
-    console.log(`토큰 남은 시간: ${remainingTime}초`);
+    //console.log(`토큰 만료 시간: ${expiration}`);
+    //console.log(`토큰 남은 시간: ${remainingTime}초`);
   }
 
   /**
