@@ -17,12 +17,13 @@
               >
             </li>
             <li class="navbar-menu-item">
-              <router-link
-                :to="{ name: 'travel-create' }"
-                active-class="router-link-active"
+              <a
+                @click.prevent="openTripPlanner"
                 class="navbar-menu-link"
-                >여행 계획</router-link
+                href="#"
               >
+                여행 계획
+              </a>
             </li>
             <li class="navbar-menu-item">
               <router-link
@@ -88,6 +89,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import AuthService from "@/services/auth.service";
+import TripPlanner from "@/components/travel/TripPlanner.vue";
 
 // Pinia 스토어 사용
 const authStore = useAuthStore();
@@ -105,6 +107,14 @@ const toggleMenu = () => {
     document.body.style.overflow = "";
   }
 };
+
+// emit 정의
+const emit = defineEmits(['open-trip-modal'])
+
+// 여행 계획 모달 열기 함수
+const openTripPlanner = () => {
+  emit('open-trip-modal')
+}
 
 // 로그아웃 함수
 const logout = async () => {
