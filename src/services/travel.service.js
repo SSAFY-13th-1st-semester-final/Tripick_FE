@@ -87,7 +87,6 @@ class TravelService {
         requests: validRequests
       });
       travelStore.incrementRouteApiCall();
-      console.log("api 요청 응답 후 스토어 로직 호출 전");
 
       // 결과를 result 스토어에 저장
       travelStore.reorderPlacesByOptimizedRoutes(response.data.data);

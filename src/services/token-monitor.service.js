@@ -131,8 +131,6 @@ class TokenMonitorService {
 
       console.log("백그라운드 토큰 리프레시 시도 중...");
 
-      // 리프레시 토큰으로 새 액세스 토큰 요청
-      // 기존의 api.service.js의 refreshAccessToken 함수와 유사하게 구현
       const response = await apiClient.post(
         "/auth/token/refresh",
         {},
@@ -140,7 +138,7 @@ class TokenMonitorService {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },
-          _isRefreshRequest: true, // 인터셉터에서 이 요청을 특별히 처리하도록 플래그 설정
+          _isRefreshRequest: true, 
         }
       );
 

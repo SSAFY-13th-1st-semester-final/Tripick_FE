@@ -19,8 +19,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
-
 // 이벤트 정의
 const emit = defineEmits(['click'])
 

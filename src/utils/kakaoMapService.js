@@ -470,7 +470,6 @@ drawRoute(places, options = {}, day = 1) {
     }
     this.routes.get(day).push(places);
     
-    console.log(`${day}일차 경로 추가됨. 현재 총 오버레이: ${this.routeOverlays.get(day).length}`);
     
     const bounds = new window.kakao.maps.LatLngBounds();
     path.forEach(point => {
@@ -601,7 +600,6 @@ drawRoute(places, options = {}, day = 1) {
         this.addRouteInfo(day, pathData, routeCoordinates);
       }
 
-      console.log(`${day + 1}일차 경로가 지도에 표시되었습니다.`);
       
     } catch (error) {
       console.error(`${day + 1}일차 경로 표시 중 오류:`, error);
@@ -648,9 +646,6 @@ drawRoute(places, options = {}, day = 1) {
    * 모든 경로 제거
    */
   clearAllRoutes() {
-    console.log('routeOverlays 크기:', this.routeOverlays?.size || 0);
-console.log('routes 크기:', this.routes?.size || 0);
-console.log('routeOverlays 내용:', this.routeOverlays);
 
     this.routeOverlays.forEach((overlays, day) => {
       overlays.forEach(overlay => {

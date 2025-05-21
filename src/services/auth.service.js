@@ -19,8 +19,6 @@ class AuthService {
 
       TokenService.useRememberMe(rememberMe);
 
-      console.log(">>>>>>>>", rememberMe.value);
-
       if (rememberMe.value) {
         localStorage.setItem("rememberMe", "true");
       } else {
@@ -81,13 +79,14 @@ class AuthService {
   // 저장된 인증 관련 정보 모두 제거
   clearAuthData() {
     TokenService.clearAll();
-    this.clearUserDate();
+    this.clearUserData();
     this.clearRememberMe();
   }
 
-  clearUserDate() {
+  clearUserData() {
     localStorage.removeItem("user");
     sessionStorage.removeItem("user");
+    localStorage.removeItem("savedTrip");
   }
 
   clearRememberMe() {

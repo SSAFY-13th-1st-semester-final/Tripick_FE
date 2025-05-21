@@ -144,7 +144,6 @@ const submitForm = async () => {
   isLoading.value = true;
 
   try {
-    console.log(rememberMe);
     // Pinia 스토어를 통한 로그인 요청 (Remember Me 상태 포함)
     await authStore.login({ ...formData }, rememberMe);
 

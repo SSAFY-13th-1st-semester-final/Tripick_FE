@@ -215,10 +215,9 @@ export const useTravelStore = defineStore('travel', {
         hotels: this.hotels,
         currentDay: this.currentDay,
         selectedPlace: this.selectedPlace,
-        routeApiCallCount: this.routeApiCallCount, // API 호출 상태도 저장
+        routeApiCallCount: this.routeApiCallCount, 
         hasRouteOptimization: this.hasRouteOptimization,
       };
-      console.log(tripData);
       localStorage.setItem("savedTrip", JSON.stringify(tripData));
     },
 
@@ -536,7 +535,6 @@ export const useTravelStore = defineStore('travel', {
      */
     setHotelSearchMode() {
       this.searchMode = 'hotel';
-      console.log(">>>>>", this.searchMode);
     },
 
     /**
@@ -546,9 +544,7 @@ export const useTravelStore = defineStore('travel', {
      */
     reorderPlacesByOptimizedRoutes(routeResponse) {
       try {
-        console.log('=== 경로 최적화 시작 ===');
-        console.log('routeResponse 존재 여부:', !!routeResponse);
-        console.log('routeResponse 타입:', typeof routeResponse);
+
         
         if (!routeResponse) {
           console.log('❌ routeResponse가 null/undefined');
@@ -609,10 +605,6 @@ export const useTravelStore = defineStore('travel', {
           const currentDayPlaces = this.itinerary[dayIndex] || [];
           console.log(`📍 ${dayPath.day}일차 현재 장소 수:`, currentDayPlaces.length);
           
-          if (currentDayPlaces.length > 0) {
-            console.log('현재 장소들:', currentDayPlaces.map(p => ({ id: p.id, name: p.placeName })));
-          }
-          
           if (currentDayPlaces.length === 0) {
             console.log(`ℹ️ ${dayPath.day}일차에 장소가 없음`);
             results.push({
@@ -640,12 +632,10 @@ export const useTravelStore = defineStore('travel', {
           const optimizedOrder = [];
           
           if (dayPath.path.length > 0) {
-            console.log('=== 경로 세그먼트 분석 ===');
             
             // 첫 번째 세그먼트의 destinationId (첫 번째 방문지)
             if (dayPath.path[0] && dayPath.path[0].destinationId) {
               const firstDestinationId = dayPath.path[0].destinationId;
-              console.log('첫 번째 목적지 ID:', firstDestinationId);
               
               const firstDestination = currentDayPlaces.find(place => place.id === firstDestinationId);
               if (firstDestination) {
@@ -661,10 +651,6 @@ export const useTravelStore = defineStore('travel', {
             
             // 두 번째 세그먼트부터의 origin들 처리
             dayPath.path.forEach((pathSegment, segmentIndex) => {
-              console.log(`세그먼트 ${segmentIndex}:`, {
-                origin: pathSegment.origin ? { id: pathSegment.origin.id, name: pathSegment.origin.placeName } : null,
-                destinationId: pathSegment.destinationId
-              });
 
               if (segmentIndex > 0 && pathSegment.origin) {
                 const placeId = pathSegment.origin.id;
@@ -691,8 +677,6 @@ export const useTravelStore = defineStore('travel', {
               }
             });
           }
-
-          console.log('최적화된 순서:', optimizedOrder.map(p => p.placeName));
 
           if (optimizedOrder.length === 0) {
             console.log(`❌ ${dayPath.day}일차 최적화 순서 없음`);
@@ -729,15 +713,10 @@ export const useTravelStore = defineStore('travel', {
             }
           });
 
-          console.log('기존 순서:', currentDayPlaces.map(p => p.placeName));
-          console.log('재정렬 순서:', reorderedPlaces.map(p => p.placeName));
-
           // 순서가 실제로 변경되었는지 확인
           const hasChanged = !currentDayPlaces.every((place, index) => 
             reorderedPlaces[index] && place.id === reorderedPlaces[index].id
           );
-
-          console.log('순서 변경됨:', hasChanged);
 
           if (hasChanged) {
             // 일차별 장소 순서 업데이트
@@ -782,9 +761,6 @@ export const useTravelStore = defineStore('travel', {
           details: results
         };
 
-        console.log('=== 경로 최적화 완료 ===');
-        console.log('최종 결과:', finalResult);
-
         return finalResult;
 
       } catch (error) {
@@ -806,8 +782,6 @@ export const useTravelStore = defineStore('travel', {
      * @returns {boolean} 성공 여부
      */
     reorderPlacesInDay(day, newOrder) {
-      console.log(`수동 재정렬 시도: ${day + 1}일차`, newOrder);
-      
       if (day < 0 || day >= this.itinerary.length || !this.itinerary[day]) {
         console.error('유효하지 않은 일차 또는 장소 데이터');
         return false;
@@ -833,8 +807,6 @@ export const useTravelStore = defineStore('travel', {
 
       this.itinerary[day] = reorderedPlaces;
       this.saveAllTripData();
-      
-      console.log(`${day + 1}일차 수동 재정렬 완료:`, reorderedPlaces.map(p => p.placeName));
       
       return true;
     },
@@ -885,8 +857,6 @@ export const useTravelStore = defineStore('travel', {
       this.currentDay = 0;
       
       console.log('✅ 여행 데이터 로드 완료');
-      console.log('- API 호출 횟수:', this.routeApiCallCount);
-      console.log('- 경로 최적화:', this.hasRouteOptimization);
     },
     
     /**

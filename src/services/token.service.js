@@ -18,7 +18,6 @@ const TokenService = {
    * 저장소를 설정 (rememberMe: true → localStorage, false → sessionStorage)
    */
   useRememberMe(rememberMe) {
-    console.log(">>> rememberMe 설정:", rememberMe);
     this._rememberMe = rememberMe.value;
   },
 

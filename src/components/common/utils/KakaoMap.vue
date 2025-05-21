@@ -419,7 +419,6 @@ const createDayRoute = async (dayIndex) => {
 
   // 방문지들을 순서대로 추가
   for (const place of dayPlaces) {
-    console.log("!!!!!::::",place.placeName);
 
     let placeCoord = null;
     
@@ -615,9 +614,6 @@ watch(() => itinerary.value, () => {
 watch(() => hotels.value, () => {
   if (props.usePlacesFromStore && mapInstance.value) {
     updateMapMarkers();
-    // if (props.showRoutes && routeApiCallCount.value > 0) {
-    //   updateMapRoutes();
-    // }
   }
 }, { deep: true });
 
@@ -630,7 +626,6 @@ watch(() => routeApiCallCount.value, (newValue, oldValue) => {
   if (mapInstance.value && props.showRoutes) {
     // 이전 값보다 정확히 1 증가한 경우에만 경로 업데이트
     if (newValue !== oldValue) {
-      console.log(">>>>>>>>>>>:",newValue, oldValue);
       updateMapRoutes();
     } else if (newValue === 0) {
       kakaoMapService.clearAllRoutes();

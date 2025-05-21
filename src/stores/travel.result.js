@@ -180,7 +180,6 @@ export const useTravelResultStore = defineStore('travelResult', {
         });
         
 
-        console.log("travle.result.js???");
         return {
           day,
           hotel,

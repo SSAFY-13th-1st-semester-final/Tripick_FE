@@ -27,8 +27,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
-
 // Props 정의
 const props = defineProps({
   hover: {

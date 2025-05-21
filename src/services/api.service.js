@@ -47,7 +47,6 @@ const refreshAccessToken = async () => {
       throw new Error("Refresh token not found");
     }
 
-    console.log("리프레시 토큰으로 새 토큰 발급 요청 중");
 
     // 리프레시 토큰으로 새 액세스 토큰 요청
     const response = await axios.post(
@@ -73,16 +72,6 @@ const refreshAccessToken = async () => {
     const tokenValue = newAccessToken.startsWith("Bearer ")
       ? newAccessToken.slice(7)
       : newAccessToken;
-
-    // 디버깅 코드: 토큰 비교
-    const oldAccessToken = TokenService.getToken();
-    console.log("기존 토큰:", oldAccessToken);
-    console.log("새 토큰:", tokenValue);
-    console.log("토큰 동일 여부:", oldAccessToken === tokenValue);
-
-    // 토큰 길이 등 추가 정보 확인
-    console.log("기존 토큰 길이:", oldAccessToken ? oldAccessToken.length : 0);
-    console.log("새 토큰 길이:", tokenValue ? tokenValue.length : 0);
 
     // 토큰 저장 (자동으로 디코딩도 수행됨)
     TokenService.setToken(tokenValue);
@@ -120,16 +109,11 @@ apiClient.interceptors.request.use(
 
     // 액세스 토큰이 유효한지 확인
     if (!TokenService.isTokenValid() && !config._retry) {
-      console.log(
-        "토큰이 만료되었거나 없습니다. 요청 전 토큰 리프레시를 시도합니다."
-      );
 
       // 이미 리프레시 진행 중인 경우 대기 후 처리
       if (isRefreshing) {
-        console.log("다른 요청에서 이미 리프레시 진행 중. 대기 후 처리합니다.");
         return new Promise((resolve) => {
           subscribeTokenRefresh((token) => {
-            console.log("대기 중이던 요청에 새 토큰 적용:", config.url);
             config.headers["Authorization"] = `Bearer ${token}`;
             resolve(config);
           });
@@ -141,12 +125,8 @@ apiClient.interceptors.request.use(
       config._retry = true;
 
       try {
-        console.log(
-          "요청 인터셉터에서 리프레시 토큰으로 새 토큰 발급 요청 시작"
-        );
         // 리프레시 토큰으로 새 액세스 토큰 발급 요청
         const newAccessToken = await refreshAccessToken();
-        console.log("요청 인터셉터에서 새 토큰 발급 완료:", config.url);
 
         // 대기 중인 요청들에게 새 토큰 전달
         onRefreshed(newAccessToken);
@@ -227,11 +207,7 @@ apiClient.interceptors.response.use(
       config._retry = true;
 
       try {
-        console.log("응답 인터셉터: 리프레시 토큰으로 새 토큰 발급 요청 전");
-        // 리프레시 토큰으로 새 액세스 토큰 발급 요청
         const newAccessToken = await refreshAccessToken();
-        console.log("응답 인터셉터: 리프레시 토큰으로 새 토큰 발급 요청 후");
-        // 대기 중인 요청들에게 새 토큰 전달
         onRefreshed(newAccessToken);
 
         // 현재 요청 재시도
