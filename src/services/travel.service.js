@@ -1,9 +1,15 @@
+import { useTravelStore } from '@/stores/travel';
+
 import apiClient from "./api.service";
 
 /**
  * 여행 관련 API 요청을 처리하는 서비스 클래스
  */
 class TravelService {
+  constructor() {
+    this.travelStore = useTravelStore();
+  };
+
   /**
    * 장소 카테고리 목록을 가져오는 메서드
    *
@@ -98,8 +104,64 @@ class TravelService {
       throw error;
     }
   }
-  
+
+
+
+  /**
+   * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
+   */
+  buildTripRequestBody() {
+    const { tripInfo, itinerary, hotels, tripDates } = this.travelStore;
+
+    // tripPlaces 배열 생성
+    // itinerary는 2차원 배열: itinerary[0]은 1일차 장소 배열
+    // 각 장소는 { placeId, sequence, date } 형태로 변환
+
+    const tripPlaces = [];
+
+    itinerary.forEach((dayPlaces, dayIndex) => {
+      if (!dayPlaces) return;
+
+      const date = tripDates[dayIndex]
+        ? tripDates[dayIndex].toISOString().slice(0, 10) // "YYYY-MM-DD"
+        : null;
+
+      dayPlaces.forEach((place, seqIndex) => {
+        tripPlaces.push({
+          placeId: place.id,
+          placeName: place.placeName,
+          sequence: seqIndex + 1,
+          date: date
+        });
+      });
+    });
+
+    // 요청 바디 객체 생성
+    return {
+      title: tripInfo.title,
+      description: tripInfo.memo || '',
+      startDate: tripInfo.startDate,
+      endDate: tripInfo.endDate,
+      tripPlaces
+    };
+  }
+
+  /**
+   * 여행 일정 저장 API 호출
+   */
+  async saveTrip() {
+    const body = this.buildTripRequestBody();
+    console.log(JSON.stringify(body, null, 2));
+    try {
+      const response = await apiClient.post('/trip', body);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
+
+
 
 const travelService = new TravelService();
 export default travelService;

@@ -197,7 +197,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from 'vue';
+import { ref } from 'vue';
 import { useTravelStore } from '@/stores/travel';
 import { useNotificationStore } from '@/stores/notification';
 import { storeToRefs } from 'pinia';
