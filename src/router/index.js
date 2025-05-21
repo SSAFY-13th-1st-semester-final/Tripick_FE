@@ -1,16 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
 
-// 레이아웃
+/**
+ * 레이아웃 컴포넌트
+ */
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import AuthLayout from "@/layouts/AuthLayout.vue";
 
+/**
+ * 뷰 컴포넌트들 (Lazy Loading)
+ */
 const HomeView = () => import("@/views/HomeView.vue");
-
 const TripPlannerView = () => import("@/views/travels/TripPlannerView.vue");
-
 const ProfileView = () => import("@/views/users/ProfileView.vue");
 
+/**
+ * 인증 관련 뷰 컴포넌트들
+ */
 const LoginView = () => import("@/views/auth/LoginView.vue");
 const SignupView = () => import("@/views/auth/SignupView.vue");
 const ForgotPasswordView = () => import("@/views/auth/ForgotPasswordView.vue");
@@ -18,11 +23,16 @@ const ForgotUsernameView = () => import("@/views/auth/ForgotUsernameView.vue");
 const ResetPasswordView = () => import("@/views/auth/ResetPasswordView.vue");
 const ChangePasswordView = () => import("@/views/auth/ChangePasswordView.vue");
 
-// posts 관련 뷰 컴포넌트
+/**
+ * 게시글 관련 뷰 컴포넌트들
+ */
 const PostsListView = () => import("@/views/posts/PostsListView.vue");
 const PostDetailView = () => import("@/views/posts/PostDetailView.vue");
 const PostFormView = () => import("@/views/posts/PostFormView.vue");
 
+/**
+ * 라우트 설정
+ */
 const routes = [
   {
     path: "/",
@@ -62,13 +72,15 @@ const routes = [
             name: "travel-planner",
             component: TripPlannerView,
             meta: {
+              requiresAuth: true,
               title: "여행 일정 계획",
             },
           },
         ],
       },
-
-      // posts 라우트 추가
+      /**
+       * 게시글 관련 라우트
+       */
       {
         path: "posts",
         name: "posts-list",
@@ -159,7 +171,6 @@ const routes = [
           title: "비밀번호 재설정",
         },
       },
-      // 아이디 찾기 라우트 추가
       {
         path: "forgot-username",
         name: "forgot-username",
@@ -173,9 +184,15 @@ const routes = [
   },
 ];
 
+/**
+ * Vue Router 인스턴스 생성
+ */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+  /**
+   * 스크롤 동작 설정
+   */
   scrollBehavior(to, from, savedPosition) {
     // saveScrollPosition 메타 필드가 있는 경우 스크롤 위치 저장
     if (to.meta.saveScrollPosition && from.meta.saveScrollPosition) {
@@ -190,27 +207,82 @@ const router = createRouter({
   },
 });
 
-// 네비게이션 가드
-router.beforeEach((to, from, next) => {
+/**
+ * 네비게이션 가드
+ * 인증 및 권한 검사를 수행합니다.
+ */
+router.beforeEach(async (to, from, next) => {
+  // 디버깅 정보 출력
+  console.log('=== 라우팅 디버깅 ===');
+  console.log('이동할 경로:', to.path);
+  console.log('라우트 이름:', to.name);
+  console.log('매칭된 라우트들:', to.matched);
+  
   // 페이지 제목 설정
   document.title = to.meta.title || "Trap!ck";
 
+  // 인증이 필요한 라우트인지 확인
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  const authStore = useAuthStore();
+  
+  console.log('인증 필요 여부:', requiresAuth);
 
-  if (requiresAuth && !authStore.isAuthenticated) {
-    next({
-      name: "login",
-      query: { redirect: to.fullPath },
-    });
-  } else if (
-    to.matched.some((record) => record.meta.guest) &&
-    authStore.isAuthenticated
-  ) {
-    next({ name: "home" });
-  } else {
-    next();
+  /**
+   * 인증이 필요한 페이지 접근 시 검사
+   */
+  if (requiresAuth) {
+    try {
+      // 동적으로 스토어 import
+      const { useAuthStore } = await import("@/stores/auth");
+      const { useNotificationStore } = await import("@/stores/notification");
+      
+      const authStore = useAuthStore();
+      const notificationStore = useNotificationStore();
+      
+      console.log('현재 인증 상태:', authStore.isAuthenticated);
+
+      // 로그인되지 않은 경우
+      if (!authStore.isAuthenticated) {
+        console.log('인증 실패로 로그인 페이지로 리다이렉트');
+        notificationStore.showWarning('로그인 후 이용할 수 있는 페이지입니다.');
+        
+        next({
+          name: "login",
+          query: { redirect: to.fullPath },
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('인증 검사 중 오류 발생:', error);
+      next({ name: "home" });
+      return;
+    }
   }
+
+  /**
+   * 게스트 전용 페이지 접근 시 검사
+   * (이미 로그인한 사용자가 로그인/회원가입 페이지 접근 시)
+   */
+  if (to.matched.some((record) => record.meta.guest)) {
+    try {
+      // 동적으로 auth 스토어 import
+      const { useAuthStore } = await import("@/stores/auth");
+      const authStore = useAuthStore();
+      
+      // 이미 로그인된 사용자인 경우 홈으로 리다이렉트
+      if (authStore.isAuthenticated) {
+        console.log('이미 로그인된 사용자가 guest 페이지 접근, 홈으로 리다이렉트');
+        next({ name: "home" });
+        return;
+      }
+    } catch (error) {
+      console.error('게스트 페이지 검사 중 오류 발생:', error);
+      // 오류 발생 시 계속 진행
+    }
+  }
+
+  // 모든 검사 통과 시 정상 라우팅 진행
+  console.log('정상 라우팅 진행');
+  next();
 });
 
 export default router;

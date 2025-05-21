@@ -1,12 +1,12 @@
-import apiClient from "./api.service";
+import ApiService from "./api.service";
 import TokenService from "./token.service";
 
 class AuthService {
   // 로그인 처리 메서드
   async login(credentials, rememberMe) {
     try {
-      // 로그인 요청
-      const response = await apiClient.post("/auth/login", credentials);
+      // 로그인 요청 - 인증 불필요
+      const response = await ApiService.publicPost("/auth/login", credentials);
 
       // 응답 헤더에서 Access Token, Refresh Token 추출
       const accessToken = response.headers["authorization"]?.replace(
@@ -54,17 +54,17 @@ class AuthService {
     }
   }
 
-  // 회원가입 요청
+  // 회원가입 요청 - 인증 불필요
   register(userData) {
-    return apiClient.post("/member", userData);
+    return ApiService.publicPost("/member", userData);
   }
 
   // 로그아웃 처리
   async logout() {
     try {
-      // 서버 로그아웃 요청 (실패해도 진행)
+      // 서버 로그아웃 요청 (실패해도 진행) - 인증 필요
       try {
-        await apiClient.post("/auth/logout");
+        await ApiService.authPost("/auth/logout");
       } catch (err) {
         console.warn("로그아웃 API 실패:", err);
       }
@@ -94,24 +94,24 @@ class AuthService {
     sessionStorage.removeItem("rememberMe");
   }
 
-  // 아이디 중복 확인 요청
+  // 아이디 중복 확인 요청 - 인증 불필요
   checkUsername(username) {
-    return apiClient.get(`/member/check?username=${username}`);
+    return ApiService.publicGet(`/member/check?username=${username}`);
   }
 
-  // 현재 로그인된 사용자 정보 조회
+  // 현재 로그인된 사용자 정보 조회 - 인증 필요
   getCurrentUser() {
-    return apiClient.get("/member");
+    return ApiService.authGet("/member");
   }
 
-  // 사용자 정보 수정 요청
+  // 사용자 정보 수정 요청 - 인증 필요
   updateProfile(profileData) {
-    return apiClient.put("/member", profileData);
+    return ApiService.authPut("/member", profileData);
   }
 
-  // 회원 탈퇴 요청
+  // 회원 탈퇴 요청 - 인증 필요
   deleteMember() {
-    return apiClient.delete("/member");
+    return ApiService.authDelete("/member");
   }
 
   // 비밀번호 변경 (updateProfile을 재사용)
@@ -156,13 +156,13 @@ class AuthService {
   }
 
   /**
-   * 비밀번호 찾기 - 이메일로 인증코드 전송 요청
+   * 비밀번호 찾기 - 이메일로 인증코드 전송 요청 - 인증 불필요
    * @param {string} email - 사용자 이메일
    * @returns {Promise}
    */
   async sendVerificationCode(email) {
     try {
-      const response = await apiClient.post("/auth/code-send", { email });
+      const response = await ApiService.publicPost("/auth/code-send", { email });
 
       if (!response || response.status !== 200) {
         throw new Error("이메일 전송 실패");
@@ -176,13 +176,13 @@ class AuthService {
   }
 
   /**
-   * 비밀번호 찾기 - 인증코드 검증 요청
+   * 비밀번호 찾기 - 인증코드 검증 요청 - 인증 불필요
    * @param {object} verificationData - { email, code }
    * @returns {Promise}
    */
   async verifyCode(verificationData) {
     try {
-      const response = await apiClient.post(
+      const response = await ApiService.publicPost(
         "/auth/code-verify",
         verificationData
       );
@@ -199,22 +199,22 @@ class AuthService {
   }
 
   /**
-   * 비밀번호 재설정 요청
+   * 비밀번호 재설정 요청 - 인증 불필요
    * @param {object} resetData - { email, newPassword }
    * @returns {Promise}
    */
   resetPassword(resetData) {
-    return apiClient.post("/member/password", resetData);
+    return ApiService.publicPost("/member/password", resetData);
   }
 
   /**
-   * 아이디 찾기
+   * 아이디 찾기 - 인증 불필요
    * @param {object} verificationData - { phonenumber, email }
    * @returns {Promise}
    */
   async findUsername(verificationData) {
     try {
-      const response = await apiClient.post("/member/id", verificationData);
+      const response = await ApiService.publicPost("/member/id", verificationData);
 
       if (!response || response.status != 200) {
         throw new Error("확인 실패");

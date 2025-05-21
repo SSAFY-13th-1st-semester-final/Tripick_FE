@@ -1,7 +1,7 @@
 <template>
   <div class="post-card glass-card" @click="navigateToPost">
     <div class="post-card__thumbnail">
-      <img :src="'https://picsum.photos/200'" :alt="post.title" @error="handleImageError" />
+      <img :src="post.thumbnail || ''" :alt="post.title" @error="handleImageError" />
     </div>
     <div class="post-card__content">
       <h3 class="post-card__title">{{ post.title }}</h3>
@@ -98,14 +98,15 @@ const formatDate = (dateString) => {
   }
 }
 
-// 이미지 오류 처리
+// 썸네일 이미지 오류 처리
 const handleImageError = (event) => {
-  event.target.src = '/default-profile.jpg'
+  // 썸네일이 없거나 로드 실패 시 기본 이미지로 대체
+  event.target.src = 'https://picsum.photos/200'
 }
 
 // 프로필 이미지 오류 처리
 const handleProfileError = (event) => {
-  event.target.src = '/default-profile.jpg'
+  event.target.src = 'https://picsum.photos/200'
 }
 </script>
 
