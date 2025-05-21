@@ -359,12 +359,14 @@ const formatCount = (count) => {
   return count.toString();
 };
 
-// 날짜 포맷팅
 const formatDate = (dateString) => {
   if (!dateString) return "";
 
+  // UTC 기준 날짜 → 한국 시간으로 변환
   const date = new Date(dateString);
-  return date.toLocaleDateString("ko-KR", {
+  const utcToKst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+
+  return utcToKst.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -372,6 +374,7 @@ const formatDate = (dateString) => {
     minute: "2-digit",
   });
 };
+
 
 // 이미지 오류 처리
 const handleImageError = (event) => {

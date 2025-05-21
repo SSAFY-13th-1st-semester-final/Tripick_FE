@@ -1,6 +1,6 @@
 import { useTravelStore } from '@/stores/travel';
 
-import apiClient from "./api.service";
+import ApiService from "./api.service";
 
 /**
  * 여행 관련 API 요청을 처리하는 서비스 클래스
@@ -11,13 +11,13 @@ class TravelService {
   };
 
   /**
-   * 장소 카테고리 목록을 가져오는 메서드
+   * 장소 카테고리 목록을 가져오는 메서드 - 인증 필요
    *
    * @returns {Promise<Array>} 카테고리 목록 배열
    */
   async getPlaceCategories() {
     try {
-      const response = await apiClient.get("/place/category");
+      const response = await ApiService.authGet("/place/category");
       return response.data;
     } catch (error) {
       console.error("Error fetching place categories:", error);
@@ -26,7 +26,7 @@ class TravelService {
   }
 
   /**
-   * 장소 검색 메서드
+   * 장소 검색 메서드 - 인증 필요
    *
    * @param {Object} params 검색 파라미터
    * @param {string} params.query 검색어
@@ -44,7 +44,7 @@ class TravelService {
         throw new Error("검색어(query)는 필수 파라미터입니다.");
       }
 
-      const response = await apiClient.get("/place", {
+      const response = await ApiService.authGet("/place", {
         params: {
           query,
           categoryGroupCode,
@@ -63,7 +63,7 @@ class TravelService {
 
 
   /**
-   * 전체 여행 일정의 최단 경로 조회 (파라미터 없이 스토어에서 자동으로 데이터 가져옴)
+   * 전체 여행 일정의 최단 경로 조회 (파라미터 없이 스토어에서 자동으로 데이터 가져옴) - 인증 필요
    * @returns {Promise<Object>} 최단 경로 결과
    */
   async getOptimalPaths() {
@@ -89,7 +89,7 @@ class TravelService {
       }
 
       // API 요청
-      const response = await apiClient.post("/place/path", {
+      const response = await ApiService.authPost("/place/path", {
         requests: validRequests
       });
       travelStore.incrementRouteApiCall();
@@ -147,13 +147,13 @@ class TravelService {
   }
 
   /**
-   * 여행 일정 저장 API 호출
+   * 여행 일정 저장 API 호출 - 인증 필요
    */
   async saveTrip() {
     const body = this.buildTripRequestBody();
     console.log(JSON.stringify(body, null, 2));
     try {
-      const response = await apiClient.post('/trip', body);
+      const response = await ApiService.authPost('/trip', body);
       return response.data;
     } catch (error) {
       throw error;

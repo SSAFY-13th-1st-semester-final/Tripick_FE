@@ -1,54 +1,54 @@
-import apiClient from './api.service'
+import ApiService from './api.service'
 
 export class PostService {
   /**
-   * 게시글 목록 조회
+   * 게시글 목록 조회 - 인증 불필요
    * @param {Number} page - 페이지 번호
    * @param {Number} size - 페이지 크기
    * @returns {Promise} - 게시글 목록 응답
    */
   getPosts(page = 1, size = 10) {
-    return apiClient.get('/posts', { params: { page, size } })
+    return ApiService.publicGet('/posts', { params: { page, size } })
   }
   
   /**
-   * 게시글 상세 조회
+   * 게시글 상세 조회 - 인증 불필요
    * @param {Number} postId - 게시글 ID
    * @returns {Promise} - 게시글 상세 응답
    */
   getPostById(postId) {
-    return apiClient.get(`/posts/${postId}`)
+    return ApiService.publicGet(`/posts/${postId}`)
   }
   
   /**
-   * 게시글 작성
+   * 게시글 작성 - 인증 필요
    * @param {Object} postData - 게시글 데이터
    * @returns {Promise} - 게시글 작성 응답
    */
   createPost(postData) {
-    return apiClient.post('/posts', postData)
+    return ApiService.authPost('/posts', postData)
   }
   
   /**
-   * 게시글 수정
+   * 게시글 수정 - 인증 필요
    * @param {Object} postData - 수정할 게시글 데이터
    * @returns {Promise} - 게시글 수정 응답
    */
   updatePost(postData) {
-    return apiClient.put('/posts', postData)
+    return ApiService.authPut(`/posts/${postData.postId}`, postData)
   }
   
   /**
-   * 게시글 삭제
+   * 게시글 삭제 - 인증 필요
    * @param {Number} postId - 삭제할 게시글 ID
    * @returns {Promise} - 게시글 삭제 응답
    */
   deletePost(postId) {
-    return apiClient.delete(`/posts/${postId}`)
+    return ApiService.authDelete(`/posts/${postId}`)
   }
 
   /**
-   * 이미지 파일 DB 업로드
+   * 이미지 파일 DB 업로드 - 인증 필요
    * @param {File} imageFile - 업로드할 이미지 파일
    * @returns {Promise<string>} - 업로드된 이미지 파일의 URL
    */
@@ -58,12 +58,8 @@ export class PostService {
       const formData = new FormData()
       formData.append('image', imageFile)
       
-      // API 호출
-      const response = await apiClient.post('/image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      // API 호출 - 파일 업로드용 메서드 사용
+      const response = await ApiService.uploadFile('/image', formData)
       
       // 응답에서 이미지 URL 반환
       return response.data.data.url
