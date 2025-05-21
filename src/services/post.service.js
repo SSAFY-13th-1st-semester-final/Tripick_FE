@@ -66,7 +66,6 @@ export class PostService {
       })
       
       // 응답에서 이미지 URL 반환
-      console.log("이미지 응답 >>> ", response.data.data.url);
       return response.data.data.url
     } catch (error) {
       console.error('이미지 업로드 실패:', error)

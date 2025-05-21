@@ -115,7 +115,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import AppInput from "@/components/common/AppInput.vue";
 import AppButton from "@/components/common/AppButton.vue";
-import PasswordInput from "@/components/common/PasswordInput.vue";
+import PasswordInput from "@/components/common/shared/PasswordInput.vue";
 import {
   isUsernameAvailable,
   isValidEmail,

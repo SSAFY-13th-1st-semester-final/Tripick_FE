@@ -190,15 +190,24 @@ const router = createRouter({
   },
 });
 
-// 네비게이션 가드
+// router/index.js의 beforeEach 수정
 router.beforeEach((to, from, next) => {
+  console.log('=== 라우팅 디버깅 ===')
+  console.log('이동할 경로:', to.path)
+  console.log('라우트 이름:', to.name)
+  console.log('매칭된 라우트들:', to.matched)
+  
   // 페이지 제목 설정
   document.title = to.meta.title || "Trap!ck";
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const authStore = useAuthStore();
+  
+  console.log('인증 필요 여부:', requiresAuth)
+  console.log('현재 인증 상태:', authStore.isAuthenticated)
 
   if (requiresAuth && !authStore.isAuthenticated) {
+    console.log('인증 실패로 로그인 페이지로 리다이렉트')
     next({
       name: "login",
       query: { redirect: to.fullPath },
@@ -207,8 +216,10 @@ router.beforeEach((to, from, next) => {
     to.matched.some((record) => record.meta.guest) &&
     authStore.isAuthenticated
   ) {
+    console.log('이미 로그인된 사용자가 guest 페이지 접근, 홈으로 리다이렉트')
     next({ name: "home" });
   } else {
+    console.log('정상 라우팅 진행')
     next();
   }
 });
