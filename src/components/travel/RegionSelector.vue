@@ -240,8 +240,11 @@ const selectRegion = (region) => {
   emit("update:modelValue", region);
   emit("region-selected", region);
 
-  // 지역 선택 후에도 드롭다운은 유지
-  // showDropdown.value = false; // 이 줄 제거
+  // 구/군까지 선택되었으면 선택 완료로 간주하여 드롭다운 닫기
+  if (region.districtId && region.districtName) {
+    showDropdown.value = false;
+  }
+  // 도/시만 선택된 경우는 드롭다운 유지하여 추가 선택 가능
 };
 
 const clearSelection = () => {
