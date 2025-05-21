@@ -6,7 +6,6 @@
         :usePlacesFromStore="true"
         :showAllDays="true"
         height="100vh"
-        @place-focused="handlePlaceFocus"
       />
     </div>
 
@@ -290,9 +289,7 @@ const editTripInfo = () => {
 // 컴포넌트에서 간단하게 호출
 const handleGetOptimalPaths = async () => {
   try {
-    console.log("???????????????????");
     const result = await useTravelService.getOptimalPaths();
-    console.log('최적 경로:', result);
   } catch (error) {
     notificationStore.showError('경로 조회에 실패했습니다.');
   }
@@ -300,26 +297,8 @@ const handleGetOptimalPaths = async () => {
 
 const saveTrip = () => {
   travelStore.saveAllTripData();
-  // 여행 저장 로직 (로컬 스토리지 등에 저장)
-  // try {
-  //   const tripData = {
-  //     tripInfo: tripInfo.value,
-  //     itinerary: travelStore.itinerary,
-  //   };
-
-  //   localStorage.setItem("savedTrip", JSON.stringify(tripData));
-  //   notificationStore.showSuccess("여행 계획이 저장되었습니다.");
-  // } catch (error) {
-  //   console.error("여행 저장 오류:", error);
-  //   notificationStore.showError("여행 저장에 실패했습니다.");
-  // }
 };
 
-// 지도에서 장소 선택 시 처리
-const handlePlaceFocus = (place) => {
-  // 필요한 경우 특정 액션 수행
-  console.log("선택된 장소:", place);
-};
 
 // 패널 접기/펴기
 const toggleSearchPanel = () => {

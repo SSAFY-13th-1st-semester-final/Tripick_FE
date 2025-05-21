@@ -590,11 +590,23 @@ onUnmounted(() => {
 /**
  * 장소 데이터 변경 시 마커 업데이트
  */
-watch([displayPlaces, allDaysPlaces], () => {
-  if (mapInstance.value) {
+watch([displayPlaces, allDaysPlaces, () => routeApiCallCount.value], (newValues, oldValues) => {
+  if (!mapInstance.value) return;
+
+  // 장소 데이터 변경 여부 확인 (newValues[0], newValues[1])
+  const placesChanged = newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1];
+  // routeApiCallCount 변경 여부 확인 (newValues[2])
+  const routeCountChanged = newValues[2] !== oldValues[2];
+
+  if (placesChanged) {
     updateMapMarkers();
   }
+
+  if (routeCountChanged) {
+    updateMapRoutes();
+  }
 }, { deep: true });
+
 
 /**
  * 여행 일정 변경 시 마커 및 경로 업데이트

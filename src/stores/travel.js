@@ -870,6 +870,30 @@ export const useTravelStore = defineStore('travel', {
         routeApiCallCount: this.routeApiCallCount,
         hasRouteOptimization: this.hasRouteOptimization
       };
-    }
+    },
+
+
+    /**
+     * 장소 순서 변경 (같은 일차 내에서)
+     */
+    movePlaceInDay(day, fromIndex, toIndex) {
+      if (!this.itinerary[day]) return;
+      
+      // 범위 체크
+      if (
+        fromIndex < 0 || 
+        fromIndex >= this.itinerary[day].length || 
+        toIndex < 0 || 
+        toIndex >= this.itinerary[day].length
+      ) {
+        return;
+      }
+      
+      // 장소 순서 변경
+      const place = this.itinerary[day][fromIndex];
+      this.itinerary[day].splice(fromIndex, 1);
+      this.itinerary[day].splice(toIndex, 0, place);
+    },
+
   }
 });

@@ -276,10 +276,6 @@ const saveChanges = async () => {
       formData.append("profileImage", profileImageFile.value);
     }
 
-    // 디버깅용 로그
-    console.log("Request 객체:", requestData);
-    console.log("프로필 이미지 파일:", profileImageFile.value);
-
     // multipart/form-data 요청 전송
     const response = await apiClient.put("/member", formData, {
       headers: {

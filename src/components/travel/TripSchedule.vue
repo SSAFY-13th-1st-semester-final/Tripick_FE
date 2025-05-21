@@ -149,7 +149,7 @@
             @dragenter.prevent
             @dragleave="dragLeave($event)"
             @drop="drop($event, index)"
-            @dragend="dragEnd()"
+            @dragend="dragEnd"
           >
             <div class="place-order">{{ index + 1 }}</div>
             
@@ -300,6 +300,7 @@ const removePlace = (index) => {
 
 // 드래그 앤 드롭 관련 함수
 const dragStart = (event, index) => {
+
   isDragging.value = true;
   draggedItemIndex.value = index;
   event.dataTransfer.effectAllowed = 'move';
