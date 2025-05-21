@@ -1,6 +1,6 @@
 import apiClient from './api.service'
 
-class PostService {
+export class PostService {
   /**
    * 게시글 목록 조회
    * @param {Number} page - 페이지 번호
@@ -45,6 +45,33 @@ class PostService {
    */
   deletePost(postId) {
     return apiClient.delete(`/posts/${postId}`)
+  }
+
+  /**
+   * 이미지 파일 DB 업로드
+   * @param {File} imageFile - 업로드할 이미지 파일
+   * @returns {Promise<string>} - 업로드된 이미지 파일의 URL
+   */
+  static async uploadImage(imageFile) {
+    try {
+      // FormData 생성
+      const formData = new FormData()
+      formData.append('image', imageFile)
+      
+      // API 호출
+      const response = await apiClient.post('/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      
+      // 응답에서 이미지 URL 반환
+      console.log("이미지 응답 >>> ", response.data.data.url);
+      return response.data.data.url
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error)
+      throw new Error('이미지 업로드에 실패했습니다.')
+    }
   }
 }
 
