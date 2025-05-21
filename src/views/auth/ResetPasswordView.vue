@@ -81,7 +81,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useNotificationStore } from "@/stores/notification";
 import AuthService from "@/services/auth.service";
-import PasswordInput from "@/components/common/PasswordInput.vue";
+import PasswordInput from "@/components/common/PassWordInput.vue";
 
 export default {
   components: {
