@@ -5,10 +5,11 @@ export class PostService {
    * 게시글 목록 조회 - 인증 불필요
    * @param {Number} page - 페이지 번호
    * @param {Number} size - 페이지 크기
+   * @param {String} boardType - 게시판 타입
    * @returns {Promise} - 게시글 목록 응답
    */
-  getPosts(page = 1, size = 10) {
-    return ApiService.publicGet('/posts', { params: { page, size } })
+  getPosts(page = 1, size = 10, boardType = 'GENERAL_FORUM') {
+    return ApiService.publicGet('/posts', { params: { page, size, boardType } })
   }
   
   /**
