@@ -1,173 +1,34 @@
 <template>
   <div class="trip-planner-view">
-    <!-- 전체 화면 차지하는 카카오맵 -->
-    <div class="map-container">
-      <KakaoMap
-        :usePlacesFromStore="true"
-        :showAllDays="true"
-        height="100vh"
-      />
-    </div>
-
-    <!-- 액션 버튼 (플로팅) -->
-    <div class="trip-actions-floating" v-if="hasTripInfo">
-      <button class="glass-btn" @click="editTripInfo">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-          ></path>
-          <path
-            d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-          ></path>
-        </svg>
-        <span class="btn-text">여행 정보 수정</span>
-      </button>
-      <button class="glass-btn primary" @click="saveTrip">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-          ></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-        <span class="btn-text">임시저장</span>
-      </button>
-      <button class="glass-btn primary" @click="handleGetOptimalPaths">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-          ></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-        <span class="btn-text">여행생성</span>
-      </button>
-      <button class="glass-btn primary" @click="handleSaveUserTrip">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-          ></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-        <span class="btn-text">저장하기</span>
-      </button>
-    </div>
-
-    <!-- 두 개의 패널 (검색 / 일정) -->
-    <div class="panels-container">
-      <!-- 장소 검색 패널 -->
-      <div
-        class="panel search-panel glass-card"
-        :class="{ collapsed: isSearchPanelCollapsed }"
-      >
-        <div class="panel-header">
-          <h3>장소 검색</h3>
-          <button class="panel-toggle glass-btn" @click="toggleSearchPanel">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              :class="{ 'rotate-180': isSearchPanelCollapsed }"
-            >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-        </div>
-        <div class="panel-content">
-          <PlaceSearch />
-        </div>
-      </div>
-
-      <!-- 일정 관리 패널 -->
-      <div
-        class="panel schedule-panel glass-card"
-        :class="{ collapsed: isSchedulePanelCollapsed }"
-      >
-        <div class="panel-header">
-          <h3>일정 관리</h3>
-          <button class="panel-toggle glass-btn" @click="toggleSchedulePanel">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              :class="{ 'rotate-180': !isSchedulePanelCollapsed }"
-            >
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        </div>
-        <div class="panel-content">
-          <TripSchedule @edit-trip-info="editTripInfo" />
-        </div>
+    <!-- 로딩 상태 표시 -->
+    <div v-if="isLoading" class="loading-overlay glass-card">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>여행 데이터를 불러오는 중...</p>
       </div>
     </div>
 
-    <!-- 모바일용 바텀 시트 -->
-    <div v-if="hasTripInfo" class="mobile-bottom-sheet glass-card">
-      <div class="sheet-handle"></div>
-      <div class="trip-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: activeMobileTab === 'search' }"
-          @click="activeMobileTab = 'search'"
-        >
+    <!-- 메인 컨텐츠 - 데이터 로딩 완료 후 렌더링 -->
+    <template v-else>
+      <!-- 전체 화면 차지하는 카카오맵 -->
+      <div class="map-container">
+        <KakaoMap
+          v-if="isMapReady"
+          :key="mapKey"
+          :usePlacesFromStore="true"
+          :showAllDays="true"
+          height="100vh"
+          @map-ready="onMapReady"
+        />
+      </div>
+
+      <!-- 액션 버튼 (플로팅) -->
+      <div class="trip-actions-floating" v-if="hasTripInfo">
+        <button class="glass-btn" @click="editTripInfo">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -175,20 +36,20 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <path
+              d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+            ></path>
+            <path
+              d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+            ></path>
           </svg>
-          장소 검색
+          <span class="btn-text">여행 정보 수정</span>
         </button>
-        <button
-          class="tab-btn"
-          :class="{ active: activeMobileTab === 'schedule' }"
-          @click="activeMobileTab = 'schedule'"
-        >
+        <button class="glass-btn primary" @click="saveTrip">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -196,29 +57,185 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <path
+              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+            ></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
           </svg>
-          일정 관리
+          <span class="btn-text">임시저장</span>
+        </button>
+        <button class="glass-btn primary" @click="handleGetOptimalPaths">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+            ></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span class="btn-text">여행생성</span>
+        </button>
+        <button class="glass-btn primary" @click="handleSaveUserTrip">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+            ></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span class="btn-text">저장하기</span>
         </button>
       </div>
 
-      <div class="tab-content">
-        <div v-if="activeMobileTab === 'search'" class="tab-pane">
-          <PlaceSearch />
+      <!-- 두 개의 패널 (검색 / 일정) -->
+      <div class="panels-container">
+        <!-- 장소 검색 패널 -->
+        <div
+          class="panel search-panel glass-card"
+          :class="{ collapsed: isSearchPanelCollapsed }"
+        >
+          <div class="panel-header">
+            <h3>장소 검색</h3>
+            <button class="panel-toggle glass-btn" @click="toggleSearchPanel">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :class="{ 'rotate-180': isSearchPanelCollapsed }"
+              >
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-content">
+            <PlaceSearch v-if="isComponentsReady" />
+          </div>
         </div>
-        <div v-if="activeMobileTab === 'schedule'" class="tab-pane">
-          <TripSchedule @edit-trip-info="editTripInfo" />
+
+        <!-- 일정 관리 패널 -->
+        <div
+          class="panel schedule-panel glass-card"
+          :class="{ collapsed: isSchedulePanelCollapsed }"
+        >
+          <div class="panel-header">
+            <h3>일정 관리</h3>
+            <button class="panel-toggle glass-btn" @click="toggleSchedulePanel">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :class="{ 'rotate-180': !isSchedulePanelCollapsed }"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-content">
+            <TripSchedule 
+              v-if="isComponentsReady" 
+              @edit-trip-info="editTripInfo" 
+            />
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- 모바일용 바텀 시트 -->
+      <div v-if="hasTripInfo && isComponentsReady" class="mobile-bottom-sheet glass-card">
+        <div class="sheet-handle"></div>
+        <div class="trip-tabs">
+          <button
+            class="tab-btn"
+            :class="{ active: activeMobileTab === 'search' }"
+            @click="activeMobileTab = 'search'"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            장소 검색
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: activeMobileTab === 'schedule' }"
+            @click="activeMobileTab = 'schedule'"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            일정 관리
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <div v-if="activeMobileTab === 'search'" class="tab-pane">
+            <PlaceSearch />
+          </div>
+          <div v-if="activeMobileTab === 'schedule'" class="tab-pane">
+            <TripSchedule @edit-trip-info="editTripInfo" />
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useTravelStore } from "@/stores/travel";
 import useTravelService from "@/services/travel.service.js";
 import { useNotificationStore } from "@/stores/notification";
@@ -234,6 +251,12 @@ const notificationStore = useNotificationStore();
 
 // 스토어에서 상태 가져오기
 const { tripInfo, currentDay, currentDayPlaces, saveAllTripData } = storeToRefs(travelStore);
+
+// 로딩 및 준비 상태
+const isLoading = ref(true);
+const isMapReady = ref(false);
+const isComponentsReady = ref(false);
+const mapKey = ref(0); // 맵 컴포넌트 강제 리렌더링용
 
 // 탭 상태 (모바일)
 const activeMobileTab = ref("search");
@@ -268,6 +291,76 @@ const isTripFormValid = computed(() => {
     tripForm.value.dateRange.endDate
   );
 });
+
+// 데이터 로딩 함수
+const loadSavedTrip = async () => {
+  try {
+    const savedTrip = localStorage.getItem("savedTrip");
+    
+    if (savedTrip) {
+      const tripData = JSON.parse(savedTrip);
+      
+      if (tripData && tripData.tripInfo && tripData.itinerary) {
+        // 사용자 확인 없이 자동으로 로드하거나, 확인 후 로드
+        const shouldLoad = confirm("저장된 여행 계획을 불러오시겠습니까?");
+        
+        if (shouldLoad) {
+          // 저장된 여행 불러오기
+          await travelStore.loadTrip(tripData);
+          notificationStore.showSuccess("저장된 여행 계획을 불러왔습니다.");
+          
+          // 맵 리렌더링을 위해 키 업데이트
+          mapKey.value += 1;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("여행 불러오기 오류:", error);
+    notificationStore.showError("여행 계획을 불러오는 중 오류가 발생했습니다.");
+  }
+};
+
+// 초기화 함수
+const initializeComponent = async () => {
+  isLoading.value = true;
+  
+  try {
+    // 1단계: 저장된 여행 데이터 로드
+    await loadSavedTrip();
+    
+    // 2단계: nextTick으로 DOM 업데이트 대기
+    await nextTick();
+    
+    // 3단계: 맵 준비 상태 활성화
+    isMapReady.value = true;
+    
+    // 4단계: 다른 컴포넌트들 준비 완료
+    await nextTick();
+    isComponentsReady.value = true;
+    
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 맵 준비 완료 이벤트 핸들러
+const onMapReady = () => {
+  console.log("카카오맵이 준비되었습니다.");
+  // 맵이 준비된 후 추가 작업이 필요하면 여기서 수행
+};
+
+// 여행 정보 변경 감지
+watch(
+  () => tripInfo.value,
+  async (newTripInfo, oldTripInfo) => {
+    // 여행 정보가 변경되면 맵을 리렌더링
+    if (newTripInfo && newTripInfo !== oldTripInfo) {
+      await nextTick();
+      mapKey.value += 1;
+    }
+  },
+  { deep: true }
+);
 
 // 메서드
 const createTrip = () => {
@@ -324,7 +417,6 @@ const handleSaveUserTrip = () => {
   travelService.saveTrip();
 };
 
-
 // 패널 접기/펴기
 const toggleSearchPanel = () => {
   isSearchPanelCollapsed.value = !isSearchPanelCollapsed.value;
@@ -334,27 +426,9 @@ const toggleSchedulePanel = () => {
   isSchedulePanelCollapsed.value = !isSchedulePanelCollapsed.value;
 };
 
-// 컴포넌트 마운트 시 저장된 여행 데이터 불러오기
+// 컴포넌트 마운트 시 초기화
 onMounted(() => {
-  // 로컬 스토리지에서 저장된 여행 불러오기 (필요한 경우)
-  const savedTrip = localStorage.getItem("savedTrip");
-
-  if (savedTrip) {
-    try {
-      const tripData = JSON.parse(savedTrip);
-
-      // 저장된 여행 정보가 있으면 사용자에게 물어보기
-      if (tripData && tripData.tripInfo && tripData.itinerary) {
-        if (confirm("저장된 여행 계획을 불러오시겠습니까?")) {
-          // 저장된 여행 불러오기
-          travelStore.loadTrip(tripData);
-          notificationStore.showSuccess("저장된 여행 계획을 불러왔습니다.");
-        }
-      }
-    } catch (error) {
-      console.error("여행 불러오기 오류:", error);
-    }
-  }
+  initializeComponent();
 });
 </script>
 
@@ -368,6 +442,47 @@ onMounted(() => {
   height: 100vh;
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* 로딩 오버레이 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.loading-content {
+  text-align: center;
+  padding: $spacing-xl;
+  
+  p {
+    margin-top: $spacing-md;
+    color: $primary-color;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba($accent-color, 0.3);
+  border-top: 3px solid $accent-color;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* 지도 컨테이너 (전체 화면) */

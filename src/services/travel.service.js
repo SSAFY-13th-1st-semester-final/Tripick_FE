@@ -106,7 +106,6 @@ class TravelService {
   }
 
 
-
   /**
    * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
    */
@@ -136,12 +135,15 @@ class TravelService {
       });
     });
 
+    console.log(tripInfo.startDate);
+
     // 요청 바디 객체 생성
     return {
       title: tripInfo.title,
       description: tripInfo.memo || '',
-      startDate: tripInfo.startDate,
-      endDate: tripInfo.endDate,
+      startDate: toKSTDateString(tripInfo.startDate), // ✅ 적용
+      endDate: toKSTDateString(tripInfo.endDate),     // ✅ 적용
+      region: `${tripInfo.region?.provinceName ?? ''} ${tripInfo.region?.districtName ?? ''}`.trim(),
       tripPlaces
     };
   }
@@ -151,6 +153,7 @@ class TravelService {
    */
   async saveTrip() {
     const body = this.buildTripRequestBody();
+    console.log(body);
     console.log(JSON.stringify(body, null, 2));
     try {
       const response = await ApiService.authPost('/trip', body);
@@ -161,6 +164,11 @@ class TravelService {
   }
 }
 
+function toKSTDateString(date) {
+  const offset = date.getTimezoneOffset() * 60000;
+  const kstDate = new Date(date.getTime() - offset);
+  return kstDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+}
 
 
 const travelService = new TravelService();

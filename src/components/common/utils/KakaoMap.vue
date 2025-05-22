@@ -191,6 +191,7 @@ const initializeMap = async () => {
 
         const coord = await kakaoMapService.convertAddressToCoord(regionName);
         initialCoord = { lat: coord.lat, lng: coord.lng };
+        console.log(initialCoord);
       } catch (error) {
         console.warn('지역 좌표 변환 실패, 기본 좌표 사용');
       }

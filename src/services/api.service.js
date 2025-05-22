@@ -3,6 +3,7 @@ import axios from "axios";
 import router from "@/router";
 import TokenService from "@/services/token.service";
 
+
 const API_URL = "/api/v1";
 
 // 토큰 리프레시 관련 변수들
@@ -40,6 +41,7 @@ const refreshAccessToken = async () => {
           Accept: "application/json",
           Authorization: `Bearer ${refreshToken}`,
         },
+        timeout: 10000,
       }
     );
 
@@ -53,9 +55,9 @@ const refreshAccessToken = async () => {
       : newAccessToken;
 
     TokenService.setToken(tokenValue);
+    
     return tokenValue;
   } catch (error) {
-    console.error("Token refresh failed:", error);
     TokenService.clearAll();
     router.push({
       name: "login",
@@ -81,6 +83,11 @@ const createAuthenticatedClient = () => {
     async (config) => {
       // skipAuth 옵션이 있으면 토큰 처리 건너뛰기
       if (config.skipAuth) {
+        return config;
+      }
+
+      // 토큰 리프레시 요청인 경우 특별 처리
+      if (config._isRefreshRequest) {
         return config;
       }
 
@@ -123,7 +130,10 @@ const createAuthenticatedClient = () => {
 
   // 응답 인터셉터
   client.interceptors.response.use(
-    (response) => response,
+    (response) => {
+
+      return response;
+    },
     async (error) => {
       if (!error.response) {
         return Promise.reject(error);
@@ -136,8 +146,9 @@ const createAuthenticatedClient = () => {
       }
 
       if (status === 401) {
+
         if (isRefreshing) {
-          return new Promise((resolve) => {
+          return new Promise((resolve, reject) => {
             subscribeTokenRefresh((token) => {
               config.headers["Authorization"] = `Bearer ${token}`;
               resolve(client(config));
@@ -162,6 +173,7 @@ const createAuthenticatedClient = () => {
       }
 
       if (status === 403) {
+        console.warn("❌ 403 Forbidden: 권한 없음");
         router.push({ name: "home" });
       }
 
@@ -314,6 +326,14 @@ class ApiService {
     }
   }
 
+  // === 토큰 관련 메서드 (token-monitor와 연동) ===
+  
+
+  static async refreshToken() {
+    return await refreshAccessToken();
+  }
+
+
   // === 에러 처리 ===
   
   static handleError(error) {
@@ -352,6 +372,28 @@ class ApiService {
 
   static get publicClient() {
     return publicClient;
+  }
+
+  // === 디버깅 및 모니터링 ===
+  
+  /**
+   * 현재 API 서비스 상태 정보
+   */
+  static getStatus() {
+    return {
+      isRefreshing,
+      subscribersCount: refreshSubscribers.length,
+      baseURL: API_URL,
+      hasValidToken: TokenService.isTokenValid(),
+      tokenExpiration: TokenService.getTokenExpiration()
+    };
+  }
+
+  /**
+   * 대기 중인 요청 수 확인
+   */
+  static getPendingRequestsCount() {
+    return refreshSubscribers.length;
   }
 }
 

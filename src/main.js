@@ -11,3 +11,7 @@ const app = createApp(App)
 app.use(router)
    .use(pinia)
    .mount('#app')
+
+if (import.meta.env.DEV) {
+  window.__VUE_APP__ = app;
+}
