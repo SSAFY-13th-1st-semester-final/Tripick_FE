@@ -142,3 +142,12 @@ export const formatFileSize = (bytes, decimals = 2) => {
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
+
+/**
+ * 한국 날짜로 변환합니다.
+ * 
+ */
+export const toKSTDateString = date =>
+  new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
