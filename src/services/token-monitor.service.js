@@ -2,22 +2,27 @@
 
 import TokenService from "@/services/token.service";
 import AuthService from "@/services/auth.service";
-import apiClient from "@/services/api.service";
+import ApiService from "@/services/api.service";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 
 /**
  * 토큰 모니터링 서비스
- * - 백그라운드에서 토큰 상태를 모니터링하고 자동으로 갱신합니다.
+ * - 백그라운드에서 토큰 상태를 모니터링합니다.
+ * - api.service.js의 자동 토큰 리프레시 기능을 활용합니다.
  * - App.vue에서 초기화하여 앱 전체에서 토큰 상태를 관리합니다.
  */
 class TokenMonitorService {
   constructor() {
-    this.refreshTimerId = null;
-    this.checkInterval = 1000;
-    this.refreshThreshold = 3;
+    this.monitorTimerId = null;
+    this.checkInterval = 30000; // 30초마다 체크
+    this.refreshThreshold = 120; // 14분 전 리프레시 (테스트용)
+    this.warningThreshold = 300; // 5분 전 경고
+    this.criticalThreshold = 60; // 1분 전 긴급 알림
     this.isInitialized = false;
-    this._isRefreshing = false;
+    this.hasShownWarning = false;
+    this.hasShownCritical = false;
+    this.hasTriggeredRefresh = false;
   }
 
   /**
@@ -27,152 +32,246 @@ class TokenMonitorService {
     if (this.isInitialized) return;
 
     this.isInitialized = true;
-
-    // 첫 실행 - 현재 토큰 상태 확인
     this.checkTokenStatus();
 
-    // 정기적으로 토큰 상태 확인 설정
-    this.refreshTimerId = setInterval(() => {
+    this.monitorTimerId = setInterval(() => {
       this.checkTokenStatus();
-
-      // 토큰 정보 콘솔에 출력
-      this.logTokenInfo();
     }, this.checkInterval);
 
-    // 앱이 포커스를 받을 때(탭 전환 등) 토큰 상태 확인
-    window.addEventListener("focus", this.checkTokenStatus.bind(this));
+    this.bindWindowEvents();
 
-    console.log("토큰 모니터링 서비스 시작됨");
+    const notificationStore = useNotificationStore();
+    notificationStore.showInfo("🔍 토큰 모니터링 서비스 시작");
   }
 
   /**
    * 토큰 모니터링 중지
    */
   stopMonitoring() {
-    if (this.refreshTimerId) {
-      clearInterval(this.refreshTimerId);
-      this.refreshTimerId = null;
+    if (this.monitorTimerId) {
+      clearInterval(this.monitorTimerId);
+      this.monitorTimerId = null;
     }
 
-    window.removeEventListener("focus", this.checkTokenStatus.bind(this));
+    this.unbindWindowEvents();
     this.isInitialized = false;
+    this.resetWarningFlags();
 
-    console.log("토큰 모니터링 서비스 중지됨");
+    const notificationStore = useNotificationStore();
+    notificationStore.showInfo("🛑 토큰 모니터링 서비스 중지");
   }
 
   /**
-   * 토큰 상태 확인 및 필요시 갱신
+   * 토큰 상태 확인 및 사용자 알림
    */
   async checkTokenStatus() {
-    // 로그인 상태가 아니면 모니터링 불필요
-    if (!AuthService.isLoggedIn()) return;
-
-    const remainingTime = AuthService.getTokenRemainingTime();
-
-    // 토큰이 아직 유효하고 만료 임계값보다 많이 남았으면 아무것도 하지 않음
-    if (remainingTime && remainingTime > this.refreshThreshold) {
-      return;
-    }
-
     try {
-      // 토큰 갱신 시도
-      await this.refreshToken();
-    } catch (error) {
-      console.error("자동 토큰 갱신 실패:", error);
+      if (!AuthService.isLoggedIn()) {
+        this.resetWarningFlags();
+        return;
+      }
 
-      // 리프레시에 실패하면 사용자 로그아웃 처리
+      const remainingTime = this.getTokenRemainingTime();
+
       if (remainingTime <= 0) {
-        const authStore = useAuthStore();
-        const notificationStore = useNotificationStore();
-
-        // 세션 만료 알림
-        notificationStore.showWarning(
-          "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
-        );
-
-        // 로그아웃 처리
-        authStore.logout();
-      }
-    }
-  }
-
-  /**
-   * 토큰 정보를 콘솔에 출력하는 메서드
-   */
-  logTokenInfo() {
-    // 로그인 상태가 아니면 출력하지 않음
-    if (!AuthService.isLoggedIn()) return;
-
-    // TokenService의 메서드를 사용하여 토큰 정보 가져오기
-    const expiration = TokenService.getTokenExpiration();
-    const remainingTime = TokenService.getTokenRemainingTime();
-
-    // 콘솔에 토큰 정보 출력
-    //console.log(`토큰 만료 시간: ${expiration}`);
-    //console.log(`토큰 남은 시간: ${remainingTime}초`);
-  }
-
-  /**
-   * 토큰 리프레시 수행
-   * 리프레시 토큰을 이용해 새 액세스 토큰 발급
-   */
-  async refreshToken() {
-    // 중복 요청 방지
-    if (this._isRefreshing) return;
-
-    this._isRefreshing = true;
-
-    try {
-      const refreshToken = TokenService.getRefreshToken();
-
-      if (!refreshToken) {
-        throw new Error("리프레시 토큰이 없습니다.");
+        await this.handleTokenExpired();
+        return;
       }
 
-      console.log("백그라운드 토큰 리프레시 시도 중...");
+      this.handleUserNotifications(remainingTime);
 
-      const response = await apiClient.post(
-        "/auth/token/refresh",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${refreshToken}`,
-          },
-          _isRefreshRequest: true, 
-        }
-      );
-
-      // 응답 헤더에서 새 액세스 토큰 추출
-      const newAccessToken = response.headers["authorization"];
-
-      if (!newAccessToken) {
-        throw new Error("응답에 새 액세스 토큰이 없습니다.");
+      // 14분 전 리프레시 트리거
+      if (remainingTime <= this.refreshThreshold && remainingTime > 0 && !this.hasTriggeredRefresh) {
+        await this.triggerTokenRefresh();
+        this.hasTriggeredRefresh = true;
       }
 
-      // Bearer 접두사 제거
-      const tokenValue = newAccessToken.startsWith("Bearer ")
-        ? newAccessToken.slice(7)
-        : newAccessToken;
-
-      // 새 액세스 토큰 저장
-      TokenService.setToken(tokenValue);
-
-      console.log("백그라운드 토큰 리프레시 성공");
-
-      // 새 리프레시 토큰이 있다면 갱신
-      const newRefreshToken = response.headers["refresh-token"];
-      if (newRefreshToken) {
-        TokenService.setRefreshToken(newRefreshToken);
+      // 1분 전 긴급 리프레시
+      if (remainingTime <= this.criticalThreshold && remainingTime > 0 && !this.hasTriggeredRefresh) {
+        await this.triggerTokenRefresh();
+        this.hasTriggeredRefresh = true;
       }
 
-      return tokenValue;
     } catch (error) {
-      console.error("백그라운드 토큰 리프레시 실패:", error);
-      throw error;
-    } finally {
-      this._isRefreshing = false;
+      // 에러 발생 시 조용히 처리
     }
+  }
+
+  /**
+   * 토큰 만료 처리
+   */
+  async handleTokenExpired() {
+    try {
+      await this.triggerTokenRefresh();
+    } catch (error) {
+      const authStore = useAuthStore();
+      const notificationStore = useNotificationStore();
+
+      // 재로그인 요청 알림
+      notificationStore.showError("❌ 로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+
+      authStore.logout();
+    }
+  }
+
+  /**
+   * 사용자 알림 처리 (중요한 알림만)
+   */
+  handleUserNotifications(remainingTime) {
+    const notificationStore = useNotificationStore();
+
+    // 1분 전 긴급 알림만
+    if (remainingTime <= this.criticalThreshold && !this.hasShownCritical) {
+      notificationStore.showWarning(
+        `⚠️ 로그인이 ${Math.ceil(remainingTime / 60)}분 후 만료됩니다. 작업을 저장해주세요.`);
+      this.hasShownCritical = true;
+    }
+
+    // 알림 플래그 리셋 (토큰이 새로고침되어 시간이 늘어난 경우)
+    if (remainingTime > this.refreshThreshold) {
+      this.resetWarningFlags();
+    }
+  }
+
+  /**
+   * 토큰 리프레시 직접 호출
+   */
+  async triggerTokenRefresh() {
+    try {
+      const newToken = await ApiService.refreshToken();
+      
+      // 갱신 성공 알림만
+      const notificationStore = useNotificationStore();
+      notificationStore.showSuccess("✅ 로그인이 자동으로 연장되었습니다.");
+      
+      // 플래그 리셋 (1분 후)
+      setTimeout(() => {
+        this.hasTriggeredRefresh = false;
+      }, 60000);
+      
+      return newToken;
+      
+    } catch (error) {
+      this.hasTriggeredRefresh = false;
+      throw error;
+    }
+  }
+
+  /**
+   * 토큰 남은 시간 계산 (초 단위)
+   */
+  getTokenRemainingTime() {
+    try {
+      const expiration = TokenService.getTokenExpiration();
+      if (!expiration) return 0;
+
+      const now = Math.floor(Date.now() / 1000);
+      const remainingTime = expiration - now;
+
+      return Math.max(0, remainingTime);
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * 경고 플래그 리셋
+   */
+  resetWarningFlags() {
+    this.hasShownWarning = false;
+    this.hasShownCritical = false;
+    this.hasTriggeredRefresh = false;
+  }
+
+  /**
+   * 윈도우 이벤트 바인딩
+   */
+  bindWindowEvents() {
+    this.handleWindowFocus = this.handleWindowFocus.bind(this);
+    this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
+    
+    window.addEventListener("focus", this.handleWindowFocus);
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
+  }
+
+  /**
+   * 윈도우 이벤트 언바인딩
+   */
+  unbindWindowEvents() {
+    window.removeEventListener("focus", this.handleWindowFocus);
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+  }
+
+  /**
+   * 윈도우 포커스 이벤트 핸들러
+   */
+  handleWindowFocus() {
+    this.checkTokenStatus();
+  }
+
+  /**
+   * 페이지 언로드 이벤트 핸들러
+   */
+  handleBeforeUnload() {
+    this.stopMonitoring();
+  }
+
+  /**
+   * 수동 토큰 상태 확인
+   */
+  async forceCheck() {
+    await this.checkTokenStatus();
+  }
+
+  /**
+   * 모니터링 간격 설정
+   */
+  setCheckInterval(interval) {
+    if (interval < 5000) {
+      interval = 5000;
+    }
+
+    this.checkInterval = interval;
+    
+    if (this.isInitialized) {
+      this.stopMonitoring();
+      this.startMonitoring();
+    }
+  }
+
+  /**
+   * 리프레시 임계값 설정 (테스트용)
+   */
+  setRefreshThreshold(seconds) {
+    this.refreshThreshold = seconds;
+    this.hasTriggeredRefresh = false;
+  }
+
+  /**
+   * 경고 임계값 설정
+   */
+  setWarningThreshold(warning, critical) {
+    this.warningThreshold = warning || this.warningThreshold;
+    this.criticalThreshold = critical || this.criticalThreshold;
+  }
+
+  /**
+   * 현재 모니터링 상태 정보
+   */
+  getStatus() {
+    return {
+      isInitialized: this.isInitialized,
+      checkInterval: this.checkInterval,
+      refreshThreshold: this.refreshThreshold,
+      warningThreshold: this.warningThreshold,
+      criticalThreshold: this.criticalThreshold,
+      hasShownWarning: this.hasShownWarning,
+      hasShownCritical: this.hasShownCritical,
+      hasTriggeredRefresh: this.hasTriggeredRefresh,
+      remainingTime: this.getTokenRemainingTime()
+    };
   }
 }
 
+// 싱글톤 인스턴스 export
 export default new TokenMonitorService();

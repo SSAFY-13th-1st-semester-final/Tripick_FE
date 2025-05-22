@@ -82,20 +82,31 @@ const TokenService = {
     }
   },
 
-  isTokenValid() {
-    const decoded = this.getDecodedToken();
-    return decoded?.exp && decoded.exp * 1000 > Date.now();
-  },
+// 수정된 코드
+getTokenExpiration() {
+  const decoded = this.getDecodedToken();
+  return decoded?.exp || null;  // Unix timestamp (초) 그대로 반환
+},
 
-  getTokenExpiration() {
-    const decoded = this.getDecodedToken();
-    return decoded?.exp ? new Date(decoded.exp * 1000) : null;
-  },
+// 초 단위로 통일해서 비교
+isTokenValid() {
+  const decoded = this.getDecodedToken();
+  if (!decoded?.exp) return false;
+  
+  const now = Math.floor(Date.now() / 1000);
+  return decoded.exp > now;
+},
 
-  getTokenRemainingTime() {
-    const exp = this.getTokenExpiration();
-    return exp ? Math.floor((exp.getTime() - Date.now()) / 1000) : null;
-  },
+  // 수정된 코드
+getTokenRemainingTime() {
+  const decoded = this.getDecodedToken();
+  if (!decoded?.exp) return 0;
+  
+  const now = Math.floor(Date.now() / 1000);  // 현재 시간 (초)
+  const remainingTime = decoded.exp - now;     // JWT exp는 이미 초 단위
+  
+  return Math.max(0, remainingTime);
+},
 
   clearAll() {
     [localStorage, sessionStorage].forEach((store) => {

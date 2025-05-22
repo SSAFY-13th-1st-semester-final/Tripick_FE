@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 
 /**
  * 여행 계획 관리를 위한 Pinia 스토어
+ * pinia-plugin-persistedstate를 사용하여 자동 저장/복원
  */
 export const useTravelStore = defineStore('travel', {
   state: () => ({
@@ -26,19 +27,108 @@ export const useTravelStore = defineStore('travel', {
     // 현재 선택 중인 일차
     currentDay: 0,
     
-    // 임시 저장된 선택 장소 (아직 추가되지 않은)
+    // 임시 저장된 선택 장소 (아직 추가되지 않은) - 저장하지 않음
     selectedPlace: null,
     
-    // 장소 검색 모드 ('place' | 'hotel')
+    // 장소 검색 모드 ('place' | 'hotel') - 저장하지 않음
     searchMode: 'place',
 
     // 경로 API 호출 관련 상태
     routeApiCallCount: 0, // API 호출 횟수
     hasRouteOptimization: false, // 경로 최적화 여부
     lastRouteApiCall: null, // 마지막 API 호출 시간
+
+    // 데이터 로드 상태 관리
+    isDataLoaded: false,
+    lastSavedAt: null, // 마지막 저장 시간
   }),
+
+  // pinia-plugin-persistedstate 설정
+  persist: {
+    key: 'savedTrip', // localStorage 키 (기존과 동일)
+    storage: localStorage,
+    
+    // 저장할 state 선택 (임시 데이터는 제외)
+    paths: [
+      'tripInfo',
+      'itinerary', 
+      'hotels',
+      'currentDay',
+      'routeApiCallCount',
+      'hasRouteOptimization',
+      'lastRouteApiCall',
+      'lastSavedAt'
+    ],
+    
+    // 커스텀 serializer (기존 데이터 구조와 호환성 유지)
+    serializer: {
+      serialize: (state) => {
+        const dataToSave = {
+          tripInfo: state.tripInfo,
+          itinerary: state.itinerary,
+          hotels: state.hotels,
+          currentDay: state.currentDay,
+          routeApiCallCount: state.routeApiCallCount,
+          hasRouteOptimization: state.hasRouteOptimization,
+          lastRouteApiCall: state.lastRouteApiCall,
+          lastSavedAt: new Date().toISOString(),
+          // 버전 정보 추가 (향후 마이그레이션용)
+          version: '2.0.0',
+          savedBy: 'pinia-plugin-persistedstate'
+        };
+        return JSON.stringify(dataToSave);
+      },
+      
+      deserialize: (data) => {
+        try {
+          const parsed = JSON.parse(data);
+          
+          // 기존 데이터 구조 호환성 처리
+          if (!parsed.version) {
+            // 구버전 데이터인 경우 기본 구조로 변환
+            console.log('🔄 구버전 데이터 감지, 마이그레이션 수행');
+            return {
+              tripInfo: parsed.tripInfo || {},
+              itinerary: parsed.itinerary || [],
+              hotels: parsed.hotels || [],
+              currentDay: parsed.currentDay || 0,
+              routeApiCallCount: parsed.routeApiCallCount || 0,
+              hasRouteOptimization: parsed.hasRouteOptimization || false,
+              lastRouteApiCall: parsed.lastRouteApiCall || null,
+              lastSavedAt: new Date().toISOString()
+            };
+          }
+          
+          return parsed;
+        } catch (error) {
+          console.error('❌ 저장된 데이터 파싱 실패:', error);
+          return {};
+        }
+      }
+    },
+
+    // 저장 전 후 훅
+    beforeRestore: (context) => {
+      console.log('🔄 여행 데이터 복원 시작...');
+    },
+    
+    afterRestore: (context) => {
+      console.log('✅ 여행 데이터 복원 완료');
+      context.store.isDataLoaded = true;
+      
+      // 데이터 정합성 검사 및 조정
+      context.store.validateAndAdjustData();
+    }
+  },
   
   getters: {
+    /**
+     * 데이터 로드 여부
+     */
+    isDataReady: (state) => {
+      return state.isDataLoaded;
+    },
+
     /**
      * 경로 표시 여부 결정
      */
@@ -207,18 +297,58 @@ export const useTravelStore = defineStore('travel', {
   },
   
   actions: {
+    /**
+     * 데이터 정합성 검사 및 조정
+     */
+    validateAndAdjustData() {
+      console.log('🔍 데이터 정합성 검사 시작...');
+      
+      // 여행 기간에 맞게 배열 조정
+      this.adjustItinerary();
+      this.adjustHotels();
+      
+      // 현재 일차 범위 검증
+      if (this.currentDay >= this.tripDuration || this.currentDay < 0) {
+        this.currentDay = 0;
+        console.log('🔧 현재 일차 범위 조정됨');
+      }
+      
+      console.log('✅ 데이터 정합성 검사 완료');
+    },
     
+    /**
+     * 여행 데이터 저장 (기존 메서드명 유지)
+     * pinia-plugin-persistedstate가 자동으로 처리하지만, 
+     * 호환성을 위해 메서드 유지
+     */
     saveAllTripData() {
-      const tripData = {
-        tripInfo: this.tripInfo,
-        itinerary: this.itinerary,
-        hotels: this.hotels,
-        currentDay: this.currentDay,
-        selectedPlace: this.selectedPlace,
-        routeApiCallCount: this.routeApiCallCount, 
-        hasRouteOptimization: this.hasRouteOptimization,
-      };
-      localStorage.setItem("savedTrip", JSON.stringify(tripData));
+      try {
+        // 마지막 저장 시간 업데이트 (plugin이 자동으로 저장함)
+        this.lastSavedAt = new Date().toISOString();
+        
+        console.log('💾 여행 데이터 저장 완료 (자동 저장)');
+        
+        // 성공 결과 반환 (기존 호환성)
+        return {
+          success: true,
+          message: '여행 데이터가 저장되었습니다.',
+          timestamp: this.lastSavedAt
+        };
+      } catch (error) {
+        console.error('❌ 여행 데이터 저장 실패:', error);
+        return {
+          success: false,
+          message: '저장 중 오류가 발생했습니다.',
+          error: error.message
+        };
+      }
+    },
+
+    /**
+     * 수동 저장 트리거 (즉시 저장이 필요한 경우)
+     */
+    forceSave() {
+      this.saveAllTripData();
     },
 
     /**
@@ -229,6 +359,8 @@ export const useTravelStore = defineStore('travel', {
       this.lastRouteApiCall = new Date().toISOString();
       console.log(`🚀 경로 API 호출 횟수: ${this.routeApiCallCount}`);
       console.log(`🕐 마지막 호출 시간: ${this.lastRouteApiCall}`);
+      
+      // 자동 저장됨
     },
     
     /**
@@ -237,6 +369,8 @@ export const useTravelStore = defineStore('travel', {
     setRouteOptimization(hasOptimization) {
       this.hasRouteOptimization = hasOptimization;
       console.log(`✅ 경로 최적화 상태: ${hasOptimization}`);
+      
+      // 자동 저장됨
     },
     
     /**
@@ -247,6 +381,8 @@ export const useTravelStore = defineStore('travel', {
       this.hasRouteOptimization = false;
       this.lastRouteApiCall = null;
       console.log('🔄 경로 상태 초기화');
+      
+      // 자동 저장됨
     },
 
     /**
@@ -267,6 +403,8 @@ export const useTravelStore = defineStore('travel', {
         this.adjustItinerary();
         this.adjustHotels();
       }
+      
+      // 자동 저장됨
     },
     
     /**
@@ -323,11 +461,12 @@ export const useTravelStore = defineStore('travel', {
     setCurrentDay(day) {
       if (day >= 0 && day < this.tripDuration) {
         this.currentDay = day;
+        // 자동 저장됨
       }
     },
     
     /**
-     * 선택한 장소 저장 (임시)
+     * 선택한 장소 저장 (임시) - 저장되지 않음
      */
     selectPlace(place) {
       this.selectedPlace = place;
@@ -361,6 +500,7 @@ export const useTravelStore = defineStore('travel', {
       // 선택된 장소 초기화
       this.selectedPlace = null;
       
+      // 자동 저장됨
       return true;
     },
     
@@ -390,6 +530,7 @@ export const useTravelStore = defineStore('travel', {
       // 선택된 장소 초기화
       this.selectedPlace = null;
       
+      // 자동 저장됨
       return true;
     },
     
@@ -406,6 +547,7 @@ export const useTravelStore = defineStore('travel', {
     removePlace(day, index) {
       if (this.itinerary[day] && this.itinerary[day][index]) {
         this.itinerary[day].splice(index, 1);
+        // 자동 저장됨
       }
     },
     
@@ -415,6 +557,7 @@ export const useTravelStore = defineStore('travel', {
     removeHotel(day) {
       if (day >= 0 && day < this.hotels.length) {
         this.hotels[day] = null;
+        // 자동 저장됨
       }
     },
     
@@ -455,6 +598,8 @@ export const useTravelStore = defineStore('travel', {
       const place = this.itinerary[fromDay][fromIndex];
       this.itinerary[fromDay].splice(fromIndex, 1);
       this.itinerary[toDay].push(place);
+      
+      // 자동 저장됨
     },
     
     /**
@@ -476,6 +621,7 @@ export const useTravelStore = defineStore('travel', {
       this.hotels[fromDay] = null;
       this.hotels[toDay] = hotel;
       
+      // 자동 저장됨
       return true;
     },
     
@@ -488,6 +634,7 @@ export const useTravelStore = defineStore('travel', {
           ...this.hotels[day],
           ...hotelData
         };
+        // 자동 저장됨
         return true;
       }
       return false;
@@ -515,7 +662,7 @@ export const useTravelStore = defineStore('travel', {
     },
     
     /**
-     * 검색 모드 설정 (장소 또는 숙소)
+     * 검색 모드 설정 (장소 또는 숙소) - 저장되지 않음
      */
     setSearchMode(mode) {
       if (mode === 'place' || mode === 'hotel') {
@@ -544,8 +691,6 @@ export const useTravelStore = defineStore('travel', {
      */
     reorderPlacesByOptimizedRoutes(routeResponse) {
       try {
-
-        
         if (!routeResponse) {
           console.log('❌ routeResponse가 null/undefined');
           return { success: false, message: 'API 응답이 없습니다.' };
@@ -747,11 +892,7 @@ export const useTravelStore = defineStore('travel', {
         // 경로 최적화 완료 상태 설정
         this.setRouteOptimization(true);
 
-        // 재정렬 완료 후 로컬 스토리지 업데이트
-        if (reorderedCount > 0) {
-          this.saveAllTripData();
-          console.log('💾 로컬 스토리지 업데이트 완료');
-        }
+        // 자동 저장됨 (plugin에 의해)
 
         const finalResult = {
           success: true,
@@ -806,7 +947,7 @@ export const useTravelStore = defineStore('travel', {
       });
 
       this.itinerary[day] = reorderedPlaces;
-      this.saveAllTripData();
+      // 자동 저장됨
       
       return true;
     },
@@ -828,10 +969,14 @@ export const useTravelStore = defineStore('travel', {
       this.selectedPlace = null;
       this.searchMode = 'place';
       this.resetRouteState(); // 경로 상태도 초기화
+      this.lastSavedAt = null;
+      
+      // 자동 저장됨 (빈 데이터로)
     },
     
     /**
-     * 여행 계획 데이터 불러오기
+     * 여행 계획 데이터 불러오기 (기존 메서드명 유지)
+     * plugin이 자동으로 복원하지만, 수동 로드가 필요한 경우 사용
      */
     loadTrip(tripData) {
       if (!tripData) return;
@@ -856,11 +1001,16 @@ export const useTravelStore = defineStore('travel', {
       // 현재 일차 초기화
       this.currentDay = 0;
       
-      console.log('✅ 여행 데이터 로드 완료');
+      // 데이터 로드 상태 설정
+      this.isDataLoaded = true;
+      
+      console.log('✅ 여행 데이터 수동 로드 완료');
+      
+      // 자동 저장됨
     },
     
     /**
-     * 여행 계획 저장용 데이터 생성
+     * 여행 계획 저장용 데이터 생성 (기존 메서드명 유지)
      */
     getSaveData() {
       return {
@@ -868,10 +1018,11 @@ export const useTravelStore = defineStore('travel', {
         itinerary: this.itinerary,
         hotels: this.hotels,
         routeApiCallCount: this.routeApiCallCount,
-        hasRouteOptimization: this.hasRouteOptimization
+        hasRouteOptimization: this.hasRouteOptimization,
+        lastSavedAt: this.lastSavedAt,
+        version: '2.0.0'
       };
     },
-
 
     /**
      * 장소 순서 변경 (같은 일차 내에서)
@@ -893,7 +1044,36 @@ export const useTravelStore = defineStore('travel', {
       const place = this.itinerary[day][fromIndex];
       this.itinerary[day].splice(fromIndex, 1);
       this.itinerary[day].splice(toIndex, 0, place);
+      
+      // 자동 저장됨
     },
 
+    /**
+     * 저장된 데이터 존재 여부 확인
+     */
+    hasSavedData() {
+      try {
+        const saved = localStorage.getItem('savedTrip');
+        return !!saved;
+      } catch (error) {
+        console.error('❌ 저장된 데이터 확인 실패:', error);
+        return false;
+      }
+    },
+
+    /**
+     * 저장된 데이터 삭제
+     */
+    clearSavedData() {
+      try {
+        localStorage.removeItem('savedTrip');
+        this.resetTrip();
+        console.log('🗑️ 저장된 데이터 삭제 완료');
+        return true;
+      } catch (error) {
+        console.error('❌ 저장된 데이터 삭제 실패:', error);
+        return false;
+      }
+    }
   }
 });

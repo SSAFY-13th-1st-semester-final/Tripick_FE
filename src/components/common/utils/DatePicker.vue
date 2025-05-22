@@ -178,6 +178,8 @@ const resetDates = () => {
 };
 
 const emitSelectedDates = () => {
+  console.log("startDate: ", selectedStartDate.value)
+  console.log("endDate: ", selectedEndDate.value)
   emit("update:modelValue", {
     startDate: selectedStartDate.value,
     endDate: selectedEndDate.value,
