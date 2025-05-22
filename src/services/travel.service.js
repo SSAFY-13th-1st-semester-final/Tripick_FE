@@ -2,6 +2,8 @@ import { useTravelStore } from '@/stores/travel';
 
 import ApiService from "./api.service";
 
+import { toKSTDateString  } from '@/utils/formatters.js';
+
 /**
  * 여행 관련 API 요청을 처리하는 서비스 클래스
  */
@@ -106,47 +108,48 @@ class TravelService {
   }
 
 
-  /**
-   * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
-   */
-  buildTripRequestBody() {
-    const { tripInfo, itinerary, hotels, tripDates } = this.travelStore;
+/**
+ * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
+ */
+buildTripRequestBody() {
+  const { tripInfo, itinerary, hotels, tripDates } = this.travelStore;
 
-    // tripPlaces 배열 생성
-    // itinerary는 2차원 배열: itinerary[0]은 1일차 장소 배열
-    // 각 장소는 { placeId, sequence, date } 형태로 변환
+  // tripPlaces 배열 생성
+  // itinerary는 2차원 배열: itinerary[0]은 1일차 장소 배열
+  // 각 장소는 { placeId, sequence, date } 형태로 변환
 
-    const tripPlaces = [];
+  const tripPlaces = [];
 
-    itinerary.forEach((dayPlaces, dayIndex) => {
-      if (!dayPlaces) return;
+  itinerary.forEach((dayPlaces, dayIndex) => {
+    if (!dayPlaces) return;
 
-      const date = tripDates[dayIndex]
-        ? tripDates[dayIndex].toISOString().slice(0, 10) // "YYYY-MM-DD"
-        : null;
+    // 해당 일차의 날짜를 toKSTDateString으로 변환
+    const date = tripDates[dayIndex]
+      ? toKSTDateString(tripDates[dayIndex])
+      : null;
 
-      dayPlaces.forEach((place, seqIndex) => {
-        tripPlaces.push({
-          placeId: place.id,
-          placeName: place.placeName,
-          sequence: seqIndex + 1,
-          date: date
-        });
+    dayPlaces.forEach((place, seqIndex) => {
+      tripPlaces.push({
+        placeId: place.id,
+        placeName: place.placeName,
+        sequence: seqIndex + 1,
+        date: date // 변환된 날짜 적용
       });
     });
+  });
 
-    console.log(tripInfo.startDate);
+  console.log(tripInfo.startDate);
 
-    // 요청 바디 객체 생성
-    return {
-      title: tripInfo.title,
-      description: tripInfo.memo || '',
-      startDate: toKSTDateString(tripInfo.startDate), // ✅ 적용
-      endDate: toKSTDateString(tripInfo.endDate),     // ✅ 적용
-      region: `${tripInfo.region?.provinceName ?? ''} ${tripInfo.region?.districtName ?? ''}`.trim(),
-      tripPlaces
-    };
-  }
+  // 요청 바디 객체 생성
+  return {
+    title: tripInfo.title,
+    description: tripInfo.memo || '',
+    startDate: toKSTDateString(tripInfo.startDate), // ✅ 적용
+    endDate: toKSTDateString(tripInfo.endDate),     // ✅ 적용
+    region: `${tripInfo.region?.provinceName ?? ''} ${tripInfo.region?.districtName ?? ''}`.trim(),
+    tripPlaces
+  };
+}
 
   /**
    * 여행 일정 저장 API 호출 - 인증 필요
@@ -163,13 +166,6 @@ class TravelService {
     }
   }
 }
-
-function toKSTDateString(date) {
-  const offset = date.getTimezoneOffset() * 60000;
-  const kstDate = new Date(date.getTime() - offset);
-  return kstDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
-}
-
 
 const travelService = new TravelService();
 export default travelService;

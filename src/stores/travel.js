@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-
 /**
  * 여행 계획 관리를 위한 Pinia 스토어
  * pinia-plugin-persistedstate를 사용하여 자동 저장/복원
