@@ -42,7 +42,7 @@
         </div>
 
         <!-- 폼 영역 -->
-        <form @submit.prevent="submitForm" class="post-form__form glass-card">
+        <form @submit.prevent="handleFormSubmit" class="post-form__form glass-card">
           <!-- 게시판 유형 -->
           <div class="post-form__group">
             <label for="boardType" class="form-label">게시판 유형</label>
@@ -127,8 +127,10 @@
               {{ errors.thumbnail }}
             </div>
           </div>
+        </form>
 
-          <!-- 본문 에디터 -->
+        <!-- 본문 에디터 - 폼 외부로 이동 -->
+        <div class="post-form__editor-container glass-card">
           <div class="post-form__group">
             <label class="form-label">본문</label>
             <div class="post-form__editor-wrapper">
@@ -144,21 +146,21 @@
               {{ errors.content }}
             </div>
           </div>
+        </div>
 
-          <!-- 제출 버튼 -->
-          <div class="post-form__submit">
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="lg"
-              :loading="isSubmitting"
-              :disabled="isSubmitting || !isFormValid || isThumbnailUploading"
-              class="submit-btn"
-            >
-              {{ isEditing ? "수정하기" : "작성하기" }}
-            </AppButton>
-          </div>
-        </form>
+        <!-- 제출 버튼 -->
+        <div class="post-form__submit glass-card">
+          <AppButton
+            @click="submitForm"
+            variant="primary"
+            size="lg"
+            :loading="isSubmitting"
+            :disabled="isSubmitting || !isFormValid || isThumbnailUploading"
+            class="submit-btn"
+          >
+            {{ isEditing ? "수정하기" : "작성하기" }}
+          </AppButton>
+        </div>
       </div>
     </div>
   </div>
@@ -295,6 +297,13 @@ const handleEditorSave = (editorData) => {
   notificationStore.showInfo("내용이 저장되었습니다.");
 };
 
+// 폼 제출 핸들러 (실제 버튼 클릭이 아닌 경우 무시)
+const handleFormSubmit = (event) => {
+  event.preventDefault();
+  // 폼 내부의 의도하지 않은 submit 이벤트는 무시
+  console.log('Form submit event captured and prevented');
+};
+
 // 유효성 검사
 const validateForm = () => {
   const newErrors = {};
@@ -342,7 +351,7 @@ const validateForm = () => {
   return Object.keys(newErrors).length === 0;
 };
 
-// 폼 제출
+// 실제 폼 제출 (버튼 클릭 시만 실행)
 const submitForm = async () => {
   if (!validateForm()) return;
 
@@ -418,6 +427,9 @@ onMounted(loadPost);
 
   .container {
     max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
   }
 
   &__header {
@@ -425,7 +437,6 @@ onMounted(loadPost);
     justify-content: space-between;
     align-items: center;
     padding: $spacing-xl;
-    margin-bottom: $spacing-lg;
 
     @media (max-width: $breakpoint-md) {
       padding: $spacing-lg;
@@ -451,6 +462,14 @@ onMounted(loadPost);
   }
 
   &__form {
+    padding: $spacing-xl;
+
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-lg;
+    }
+  }
+
+  &__editor-container {
     padding: $spacing-xl;
 
     @media (max-width: $breakpoint-md) {
@@ -505,7 +524,7 @@ onMounted(loadPost);
   }
 
   &__submit {
-    margin-top: $spacing-2xl;
+    padding: $spacing-xl;
     display: flex;
     justify-content: center;
 

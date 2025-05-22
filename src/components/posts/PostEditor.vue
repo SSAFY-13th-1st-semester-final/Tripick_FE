@@ -137,6 +137,7 @@
           accept="image/*"
           multiple
           @change="handleImageUpload"
+          @click.stop
           class="hidden-input"
         />
       </div>
@@ -189,71 +190,91 @@
       class="bubble-menu glass-card"
     >
       <div class="bubble-menu__content">
-        <button
-          @click="editor.chain().focus().toggleBold().run()"
-          :class="{ 'is-active': editor.isActive('bold') }"
-          class="bubble-btn glass-btn"
-          title="굵게"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>
-          </svg>
-        </button>
+        <!-- 이미지가 선택된 경우 -->
+        <template v-if="isImageSelected">
+          <button
+            @click="deleteSelectedImage"
+            class="bubble-btn bubble-btn--danger glass-btn"
+            title="이미지 삭제"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+          </button>
+        </template>
         
-        <button
-          @click="editor.chain().focus().toggleItalic().run()"
-          :class="{ 'is-active': editor.isActive('italic') }"
-          class="bubble-btn glass-btn"
-          title="기울임"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="4" x2="10" y2="4"/>
-            <line x1="14" y1="20" x2="5" y2="20"/>
-            <line x1="15" y1="4" x2="9" y2="20"/>
-          </svg>
-        </button>
-        
-        <button
-          @click="editor.chain().focus().toggleStrike().run()"
-          :class="{ 'is-active': editor.isActive('strike') }"
-          class="bubble-btn glass-btn"
-          title="취소선"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 4H9a3 3 0 0 0-2.83 4"/>
-            <path d="M14 12a4 4 0 0 1 0 8H6"/>
-            <line x1="4" y1="12" x2="20" y2="12"/>
-          </svg>
-        </button>
+        <!-- 텍스트가 선택된 경우 -->
+        <template v-else>
+          <button
+            @click="editor.chain().focus().toggleBold().run()"
+            :class="{ 'is-active': editor.isActive('bold') }"
+            class="bubble-btn glass-btn"
+            title="굵게"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>
+            </svg>
+          </button>
+          
+          <button
+            @click="editor.chain().focus().toggleItalic().run()"
+            :class="{ 'is-active': editor.isActive('italic') }"
+            class="bubble-btn glass-btn"
+            title="기울임"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="4" x2="10" y2="4"/>
+              <line x1="14" y1="20" x2="5" y2="20"/>
+              <line x1="15" y1="4" x2="9" y2="20"/>
+            </svg>
+          </button>
+          
+          <button
+            @click="editor.chain().focus().toggleStrike().run()"
+            :class="{ 'is-active': editor.isActive('strike') }"
+            class="bubble-btn glass-btn"
+            title="취소선"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4H9a3 3 0 0 0-2.83 4"/>
+              <path d="M14 12a4 4 0 0 1 0 8H6"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+            </svg>
+          </button>
 
-        <div class="bubble-divider"></div>
+          <div class="bubble-divider"></div>
 
-        <button
-          @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
-          :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
-          class="bubble-btn bubble-btn--text glass-btn"
-          title="제목 1"
-        >
-          <span class="btn-text">H1</span>
-        </button>
-        
-        <button
-          @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
-          :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
-          class="bubble-btn bubble-btn--text glass-btn"
-          title="제목 2"
-        >
-          <span class="btn-text">H2</span>
-        </button>
-        
-        <button
-          @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
-          :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
-          class="bubble-btn bubble-btn--text glass-btn"
-          title="제목 3"
-        >
-          <span class="btn-text">H3</span>
-        </button>
+          <button
+            @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
+            :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
+            class="bubble-btn bubble-btn--text glass-btn"
+            title="제목 1"
+          >
+            <span class="btn-text">H1</span>
+          </button>
+          
+          <button
+            @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
+            :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
+            class="bubble-btn bubble-btn--text glass-btn"
+            title="제목 2"
+          >
+            <span class="btn-text">H2</span>
+          </button>
+          
+          <button
+            @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
+            :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
+            class="bubble-btn bubble-btn--text glass-btn"
+            title="제목 3"
+          >
+            <span class="btn-text">H3</span>
+          </button>
+        </template>
       </div>
     </BubbleMenu>
 
@@ -269,7 +290,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue'
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
@@ -300,6 +321,12 @@ const imageInput = ref(null)
 const isUploading = ref(false)
 const notificationStore = useNotificationStore()
 
+// 이미지 선택 상태 확인
+const isImageSelected = computed(() => {
+  if (!editor.value) return false
+  return editor.value.isActive('image')
+})
+
 // TipTap Editor 설정
 const editor = useEditor({
   content: props.initialContent,
@@ -322,10 +349,35 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4'
+    },
+    // 키보드 이벤트 처리
+    handleKeyDown: (view, event) => {
+      // Delete 또는 Backspace 키로 이미지 삭제
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        const { selection } = view.state
+        const node = view.state.doc.nodeAt(selection.from)
+        
+        if (node && node.type.name === 'image') {
+          event.preventDefault()
+          deleteImageByUrl(node.attrs.src)
+          return true
+        }
+      }
+      return false
     }
   },
   onUpdate: ({ editor }) => {
     emit('update:content', editor.getHTML())
+    // 이미지에 호버 이벤트 및 삭제 버튼 추가
+    nextTick(() => {
+      addImageDeleteButtons()
+    })
+  },
+  onCreate: ({ editor }) => {
+    // 에디터 생성 시 이미지 삭제 버튼 추가
+    nextTick(() => {
+      addImageDeleteButtons()
+    })
   }
 })
 
@@ -334,11 +386,97 @@ const focusEditor = () => {
   editor.value?.commands.focus()
 }
 
-const triggerImageUpload = () => {
+const triggerImageUpload = (event) => {
+  event.preventDefault()
+  event.stopPropagation()
   imageInput.value?.click()
 }
 
+// 선택된 이미지 삭제 (BubbleMenu에서)
+const deleteSelectedImage = async () => {
+  
+  if (!editor.value || !isImageSelected.value) return
+  
+  const { selection } = editor.value.state
+  const node = editor.value.state.doc.nodeAt(selection.from)
+  
+  if (node && node.type.name === 'image') {
+    await deleteImageByUrl(node.attrs.src)
+  }
+}
+
+// URL로 이미지 삭제
+const deleteImageByUrl = async (imageUrl) => {
+  if (!imageUrl) return
+  
+  try {
+    // 서버에서 이미지 삭제
+    await PostService.deleteImage(imageUrl)
+    
+    // 에디터에서 이미지 제거
+    const { state } = editor.value
+    const { doc } = state
+    
+    // 해당 이미지 노드를 찾아서 삭제
+    doc.descendants((node, pos) => {
+      if (node.type.name === 'image' && node.attrs.src === imageUrl) {
+        const transaction = state.tr.delete(pos, pos + node.nodeSize)
+        editor.value.view.dispatch(transaction)
+        return false // 첫 번째 매칭 노드만 삭제
+      }
+    })
+    
+    notificationStore.showSuccess('이미지가 삭제되었습니다.')
+  } catch (error) {
+    console.error('이미지 삭제 실패:', error)
+    notificationStore.showError('이미지 삭제에 실패했습니다.')
+  }
+}
+
+// 이미지에 삭제 버튼 추가
+const addImageDeleteButtons = () => {
+  const editorElement = document.querySelector('.editor-content .ProseMirror')
+  if (!editorElement) return
+  
+  // 기존 삭제 버튼 제거
+  editorElement.querySelectorAll('.image-delete-btn').forEach(btn => btn.remove())
+  
+  // 모든 에디터 이미지에 삭제 버튼 추가
+  const images = editorElement.querySelectorAll('.editor-image')
+  
+  images.forEach(img => {
+    // 이미지 컨테이너 생성
+    if (!img.parentElement.classList.contains('image-container')) {
+      const container = document.createElement('div')
+      container.className = 'image-container'
+      img.parentNode.insertBefore(container, img)
+      container.appendChild(img)
+      
+      // 삭제 버튼 생성
+      const deleteBtn = document.createElement('button')
+      deleteBtn.className = 'image-delete-btn'
+      deleteBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      `
+      deleteBtn.title = '이미지 삭제'
+      
+      // 삭제 버튼 클릭 이벤트
+      deleteBtn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        deleteImageByUrl(img.src)
+      })
+      
+      container.appendChild(deleteBtn)
+    }
+  })
+}
+
 const handleImageUpload = async (event) => {
+  event.stopPropagation()
   const files = Array.from(event.target.files || [])
   if (!files.length) return
 
@@ -480,6 +618,10 @@ watch(
     // 에디터가 존재하고, 현재 내용과 다를 때만 업데이트
     if (editor.value && newContent !== editor.value.getHTML()) {
       editor.value.commands.setContent(newContent, false)
+      // 내용 변경 후 이미지 삭제 버튼 다시 추가
+      nextTick(() => {
+        addImageDeleteButtons()
+      })
     }
   },
   { immediate: true }
@@ -651,6 +793,15 @@ watch(
     }
   }
   
+  &--danger {
+    color: $error-color;
+    
+    &:hover {
+      background: rgba($error-color, 0.1);
+      color: $error-color;
+    }
+  }
+  
   svg {
     width: 14px;
     height: 14px;
@@ -758,15 +909,27 @@ watch(
       list-style-type: decimal;
     }
     
+    // 이미지 컨테이너 스타일
+    .image-container {
+      position: relative;
+      display: inline-block;
+      margin: $spacing-md 0;
+      width: 100%;
+      
+      &:hover .image-delete-btn {
+        opacity: 1;
+      }
+    }
+    
     // 이미지 스타일
     .editor-image {
       max-width: 100%;
       height: auto;
       border-radius: 8px;
-      margin: $spacing-md 0;
       box-shadow: $shadow-md;
       cursor: pointer;
       transition: all $transition-normal;
+      display: block;
       
       &:hover {
         transform: scale(1.02);
@@ -851,6 +1014,49 @@ watch(
       h3 {
         font-size: 1.25rem;
       }
+    }
+  }
+}
+
+// 이미지 삭제 버튼 스타일 (전역 스타일로 적용)
+:deep(.image-delete-btn) {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba($error-color, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all $transition-fast;
+  z-index: 10;
+  box-shadow: $shadow-md;
+  
+  &:hover {
+    background: $error-color;
+    transform: scale(1.1);
+    box-shadow: $shadow-lg;
+  }
+  
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    opacity: 1; // 모바일에서는 항상 표시
+    width: 28px;
+    height: 28px;
+    
+    svg {
+      width: 14px;
+      height: 14px;
     }
   }
 }
