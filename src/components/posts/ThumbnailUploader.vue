@@ -7,12 +7,13 @@
         :class="{ 
           'has-image': imageUrl, 
           'is-uploading': isUploading,
-          'is-disabled': disabled 
+          'is-disabled': disabled,
+          'is-deleting': isDeleting
         }"
         @click="handlePreviewClick"
       >
         <img
-          v-if="imageUrl && !isUploading"
+          v-if="imageUrl && !isUploading && !isDeleting"
           :src="imageUrl"
           alt="썸네일 미리보기"
           class="thumbnail-uploader__image"
@@ -37,6 +38,23 @@
           <div class="upload-progress" v-if="uploadProgress > 0">
             <div class="upload-progress__bar" :style="{ width: `${uploadProgress}%` }"></div>
           </div>
+        </div>
+        <div v-else-if="isDeleting" class="thumbnail-uploader__deleting">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="animate-spin"
+          >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          <span>삭제 중...</span>
         </div>
         <div v-else class="thumbnail-uploader__placeholder">
           <svg
@@ -65,19 +83,23 @@
         ref="fileInput"
         class="hidden-input"
         accept="image/*"
-        :disabled="disabled || isUploading"
+        :disabled="disabled || isUploading || isDeleting"
         @change="handleFileChange"
+        @click.stop
       />
       
-      <div v-if="imageUrl && !isUploading && !disabled" class="thumbnail-actions">
+      <div v-if="imageUrl && !isUploading && !isDeleting && !disabled" class="thumbnail-actions">
         <AppButton
           type="button"
           variant="outline"
           size="sm"
           @click.stop="changeImage"
           class="action-btn"
+          :disabled="isChanging"
+          :loading="isChanging"
         >
           <svg
+            v-if="!isChanging"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
@@ -90,7 +112,7 @@
           >
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
           </svg>
-          변경
+          {{ isChanging ? '변경 중...' : '변경' }}
         </AppButton>
         <AppButton
           type="button"
@@ -98,8 +120,11 @@
           size="sm"
           @click.stop="removeImage"
           class="action-btn remove-btn"
+          :disabled="isRemoving"
+          :loading="isRemoving"
         >
           <svg
+            v-if="!isRemoving"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
@@ -113,7 +138,7 @@
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="m19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
-          제거
+          {{ isRemoving ? '제거 중...' : '제거' }}
         </AppButton>
       </div>
     </div>
@@ -152,7 +177,7 @@ const props = defineProps({
   },
   acceptedTypes: {
     type: Array,
-    default: () => ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    default: () => ['image/jpeg', 'image/png', 'image/jpg']
   }
 })
 
@@ -163,8 +188,12 @@ const emit = defineEmits(['update:imageUrl', 'upload-start', 'upload-end', 'uplo
 const fileInput = ref(null)
 const imageUrl = ref(props.initialImage)
 const isUploading = ref(false)
+const isDeleting = ref(false)
+const isChanging = ref(false)
+const isRemoving = ref(false)
 const uploadProgress = ref(0)
 const errorMessage = ref('')
+const pendingChangeFile = ref(null)
 
 // 스토어
 const notificationStore = useNotificationStore()
@@ -207,36 +236,68 @@ const validateFile = (file) => {
 
 // 프리뷰 클릭 핸들러
 const handlePreviewClick = () => {
-  if (props.disabled || isUploading.value) return
-  triggerFileInput()
+  if (props.disabled || isUploading.value || isDeleting.value || isRemoving.value) return
+  // 변경 중이 아닌 경우에만 파일 선택기 열기
+  if (!isChanging.value) {
+    triggerFileInput()
+  }
 }
 
 // 파일 입력 트리거
 const triggerFileInput = () => {
-  if (props.disabled || isUploading.value) return
+  if (props.disabled || isUploading.value || isDeleting.value || isRemoving.value) return
+  // 변경 중일 때는 파일 선택기를 열 수 있어야 함
   fileInput.value?.click()
 }
 
 // 파일 변경 핸들러
 const handleFileChange = async (event) => {
-    
+  event.stopPropagation()
   const file = event.target.files[0]
 
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!");
+  console.log("파일 선택됨:", file?.name)
 
-  if (!file || !validateFile(file)) return
+  if (!file || !validateFile(file)) {
+    // 변경 중이었다면 상태 초기화
+    if (isChanging.value) {
+      isChanging.value = false
+    }
+    return
+  }
 
+  // 새로운 업로드 (변경 중이거나 새 업로드)
   await upload(file)
   
   // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
   event.target.value = ''
 }
 
+// 기존 이미지 삭제
+const deleteCurrentImage = async () => {
+  if (!imageUrl.value) return true
+
+  try {
+    isDeleting.value = true
+    console.log('기존 이미지 삭제 시작:', imageUrl.value)
+    
+    await PostService.deleteImage(imageUrl.value)
+    console.log('기존 이미지 삭제 완료')
+    
+    return true
+  } catch (error) {
+    console.error('기존 이미지 삭제 실패:', error)
+    notificationStore.showError('기존 이미지 삭제에 실패했습니다.')
+    return false
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 // 이미지 업로드
 const upload = async (file) => {
-    console.log("1");
+  console.log("업로드 시작")
   if (props.disabled || isUploading.value) return
-    console.log("2");
+  
   isUploading.value = true
   uploadProgress.value = 0
   emit('upload-start')
@@ -252,7 +313,7 @@ const upload = async (file) => {
     // PostService를 통한 이미지 업로드
     const uploadedImageUrl = await PostService.uploadImage(file)
     
-    console.log(">>>?>????:", uploadedImageUrl);
+    console.log("업로드된 이미지 URL:", uploadedImageUrl)
 
     clearInterval(progressInterval)
     uploadProgress.value = 100
@@ -262,8 +323,16 @@ const upload = async (file) => {
       imageUrl.value = uploadedImageUrl
       emit('update:imageUrl', uploadedImageUrl)
       emit('upload-end', uploadedImageUrl)
-      notificationStore.showSuccess('이미지 업로드가 완료되었습니다.')
+      
+      if (isChanging.value) {
+        notificationStore.showSuccess('이미지가 성공적으로 변경되었습니다.')
+        isChanging.value = false
+      } else {
+        notificationStore.showSuccess('이미지 업로드가 완료되었습니다.')
+      }
+      
       clearError()
+      pendingChangeFile.value = null
     }, 300)
 
   } catch (error) {
@@ -273,6 +342,12 @@ const upload = async (file) => {
     errorMessage.value = errorMsg
     emit('upload-error', error)
     notificationStore.showError(errorMsg)
+    
+    // 변경 중이었다면 상태 초기화
+    if (isChanging.value) {
+      isChanging.value = false
+      pendingChangeFile.value = null
+    }
   } finally {
     setTimeout(() => {
       isUploading.value = false
@@ -282,21 +357,68 @@ const upload = async (file) => {
 }
 
 // 이미지 변경
-const changeImage = () => {
-  triggerFileInput()
+const changeImage = async () => {
+  if (props.disabled || isUploading.value || isDeleting.value || isChanging.value || isRemoving.value) return
+  
+  isChanging.value = true
+  
+  try {
+    // 기존 이미지가 있는 경우 먼저 삭제
+    if (imageUrl.value) {
+      const deleteSuccess = await deleteCurrentImage()
+      if (!deleteSuccess) {
+        isChanging.value = false
+        return
+      }
+      
+      // 이미지 상태 임시 초기화
+      imageUrl.value = ''
+      emit('update:imageUrl', '')
+    }
+    
+    // 파일 선택 대화상자 열기 (삭제 완료 후)
+    setTimeout(() => {
+      triggerFileInput()
+    }, 100)
+    
+  } catch (error) {
+    console.error('이미지 변경 중 오류:', error)
+    notificationStore.showError('이미지 변경에 실패했습니다.')
+    isChanging.value = false
+  }
 }
 
 // 이미지 제거
-const removeImage = () => {
-  imageUrl.value = ''
-  emit('update:imageUrl', '')
-  clearError()
+const removeImage = async () => {
+  if (props.disabled || isUploading.value || isDeleting.value || isChanging.value || isRemoving.value) return
   
-  if (fileInput.value) {
-    fileInput.value.value = ''
+  isRemoving.value = true
+  
+  try {
+    // 서버에서 이미지 삭제
+    if (imageUrl.value) {
+      console.log('이미지 제거 시작:', imageUrl.value)
+      await PostService.deleteImage(imageUrl.value)
+      console.log('이미지 제거 완료')
+    }
+    
+    // 로컬 상태 초기화
+    imageUrl.value = ''
+    emit('update:imageUrl', '')
+    clearError()
+    
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+    
+    notificationStore.showSuccess('이미지가 제거되었습니다.')
+    
+  } catch (error) {
+    console.error('이미지 제거 실패:', error)
+    notificationStore.showError('이미지 제거에 실패했습니다.')
+  } finally {
+    isRemoving.value = false
   }
-  
-  notificationStore.showInfo('이미지가 제거되었습니다.')
 }
 
 // 이미지 로드 에러 핸들러
@@ -306,6 +428,8 @@ const handleImageError = () => {
   emit('update:imageUrl', '')
   notificationStore.showError('이미지 로드 중 문제가 발생했습니다.')
 }
+
+// 변경 작업 감시 - 더 이상 필요하지 않음 (삭제)
 </script>
 
 <style lang="scss" scoped>
@@ -332,7 +456,7 @@ const handleImageError = () => {
     transition: all $transition-normal;
     position: relative;
 
-    &:hover:not(.is-disabled):not(.is-uploading) {
+    &:hover:not(.is-disabled):not(.is-uploading):not(.is-deleting) {
       border-color: $accent-color;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba($accent-color, 0.15);
@@ -343,7 +467,8 @@ const handleImageError = () => {
       border-color: $accent-color;
     }
 
-    &.is-uploading {
+    &.is-uploading,
+    &.is-deleting {
       cursor: not-allowed;
       opacity: 0.8;
       border-color: $accent-color;
@@ -372,7 +497,8 @@ const handleImageError = () => {
     }
   }
 
-  &__uploading {
+  &__uploading,
+  &__deleting {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -389,6 +515,10 @@ const handleImageError = () => {
       font-weight: $font-weight-medium;
       margin-bottom: $spacing-sm;
     }
+  }
+
+  &__deleting {
+    color: $error-color;
   }
 
   &__placeholder {
@@ -432,7 +562,7 @@ const handleImageError = () => {
       color: $error-color;
       border-color: rgba($error-color, 0.3);
       
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: rgba($error-color, 0.1);
         border-color: $error-color;
       }

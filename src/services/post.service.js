@@ -69,6 +69,26 @@ export class PostService {
       throw new Error('이미지 업로드에 실패했습니다.')
     }
   }
+
+
+  /**
+   * DB에 업로드되어 있었던 사진을 삭제 처리합니다.
+   * 
+   * @param {File} imageUrl - 삭제할 이미지의 Url
+   * @returns {Promise} - 삭제 응답
+   */
+  static async deleteImage(imageUrl) {
+    console.log(">>>>>>>>>>>>>>>>>>>>>> ", imageUrl);
+
+    try {
+      const response = await ApiService.authDelete(`/image?imageUrl=${imageUrl}`)
+
+      return response
+    } catch (error) {
+      console.error('이미지 삭제 실패:', error)
+      throw new Error('이미지 삭제에 실패했습니다.')
+    }
+  }
 }
 
 export default new PostService()
