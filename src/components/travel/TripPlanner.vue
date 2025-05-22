@@ -133,6 +133,9 @@ const tripDuration = computed(() => {
   const diffTime = Math.abs(end - start);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+  console.log(start);
+  console.log(end);
+
   return Math.max(1, diffDays + 1); // 최소 1일 보장
 });
 

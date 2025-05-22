@@ -69,7 +69,6 @@
 <script setup>
 import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
 
 // Pinia 스토어에서 상태 및 메서드 가져오기
 const notificationStore = useNotificationStore()

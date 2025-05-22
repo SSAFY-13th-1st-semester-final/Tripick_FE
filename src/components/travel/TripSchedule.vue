@@ -292,10 +292,8 @@ const editPlace = (place, index) => {
 };
 
 const removePlace = (index) => {
-  if (confirm('정말 이 장소를 삭제하시겠습니까?')) {
-    travelStore.removeCurrentDayPlace(index);
-    notificationStore.showSuccess('장소가 삭제되었습니다.');
-  }
+  travelStore.removeCurrentDayPlace(index);
+  notificationStore.showSuccess('장소가 삭제되었습니다.');
 };
 
 // 드래그 앤 드롭 관련 함수
