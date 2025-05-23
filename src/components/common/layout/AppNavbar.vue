@@ -88,8 +88,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import AuthService from "@/services/auth.service";
-import TripPlanner from "@/components/travel/TripPlanner.vue";
 
 // Pinia 스토어 사용
 const authStore = useAuthStore();
@@ -109,17 +107,16 @@ const toggleMenu = () => {
 };
 
 // emit 정의
-const emit = defineEmits(['open-trip-modal'])
+const emit = defineEmits(["open-trip-modal"]);
 
 // 여행 계획 모달 열기 함수
 const openTripPlanner = () => {
-  emit('open-trip-modal')
-}
+  emit("open-trip-modal");
+};
 
 // 로그아웃 함수
 const logout = async () => {
   try {
-
     authStore.logout();
 
     if (isMenuOpen.value) {

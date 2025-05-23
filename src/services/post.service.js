@@ -3,21 +3,64 @@ import ApiService from "./api.service";
 export class PostService {
   /**
    * 게시글 목록 조회 - 인증 불필요
-   * @param {Number} page - 페이지 번호
-   * @param {Number} size - 페이지 크기
-   * @param {String} boardType - 게시판 타입
+   * @param {Object} options - 조회 옵션
+   * @param {Number} [options.page] - 페이지 번호 (기본값: 0, API는 0부터 시작)
+   * @param {Number} [options.size] - 페이지 크기 (기본값: 10)
+   * @param {Array<String>} [options.sort] - 정렬 기준 배열 (예: ["createdAt,desc"])
+   * @param {String} [options.boardType] - 게시판 타입 (기본값: "GENERAL_FORUM")
+   * @param {String} [options.searchType] - 검색 기준 (title, content, title_content, nickname)
+   * @param {String} [options.keyword] - 검색 키워드
    * @returns {Promise} - 게시글 목록 응답
    */
-  getPosts(page = 0, size = 10, boardType = "GENERAL_FORUM") {
-    return ApiService.publicGet("/posts", {
-      params: { page, size, boardType },
-    });
+  getPosts(options = {}) {
+    const { page, size, sort, boardType, searchType, keyword } = options;
+
+    // 파라미터 검증
+    if (
+      searchType &&
+      !["title", "content", "title_content", "nickname"].includes(searchType)
+    ) {
+      throw new Error(
+        "Invalid searchType. Must be one of: title, content, title_content, nickname"
+      );
+    }
+
+    // 기본값 설정 및 파라미터 구성
+    const params = {
+      page: page !== undefined ? page : 0,
+      size: size !== undefined ? size : 10,
+    };
+
+    // sort 배열이 있는 경우에만 추가
+    if (sort && sort.length > 0) {
+      params.sort = sort;
+    }
+
+    // 게시판 타입과 검색 파라미터 추가
+    if (boardType !== undefined) params.boardType = boardType;
+    if (searchType) params.searchType = searchType;
+    if (keyword) params.keyword = keyword;
+
+    return ApiService.publicGet("/posts", { params });
   }
 
-  // getPosts(boardType = "GENERAL_FORUM") {
-  //   return ApiService.publicGet("/posts", { params: { boardType } });
-  // }
+  /**
+   * 게시글 검색 - 검색 전용 메서드
+   * @param {String} keyword - 검색 키워드 (필수)
+   * @param {Object} options - 추가 옵션
+   * @returns {Promise} - 검색 결과
+   */
+  searchPosts(keyword, options = {}) {
+    if (!keyword || keyword.trim() === "") {
+      throw new Error("검색 키워드는 필수입니다.");
+    }
 
+    return this.getPosts({
+      keyword: keyword.trim(),
+      searchType: "title_content", // 기본값: 제목+내용 검색
+      ...options,
+    });
+  }
   /**
    * 게시글 상세 조회 - 인증 불필요
    * @param {Number} postId - 게시글 ID
