@@ -114,7 +114,6 @@ export class PostService {
       // 응답에서 이미지 URL 반환
       return response.data.data.url;
     } catch (error) {
-      console.error("이미지 업로드 실패:", error);
       throw new Error("이미지 업로드에 실패했습니다.");
     }
   }
@@ -126,8 +125,6 @@ export class PostService {
    * @returns {Promise} - 삭제 응답
    */
   static async deleteImage(imageUrl) {
-    console.log(">>>>>>>>>>>>>>>>>>>>>> ", imageUrl);
-
     try {
       const response = await ApiService.authDelete(
         `/image?imageUrl=${imageUrl}`
@@ -135,8 +132,30 @@ export class PostService {
 
       return response;
     } catch (error) {
-      console.error("이미지 삭제 실패:", error);
       throw new Error("이미지 삭제에 실패했습니다.");
+    }
+  }
+
+  /**
+   * 전체 사용자의 전체 여행 기록 조회
+   * @param {Number} page - 페이징 조회 시 페이지, 기본 0 시작
+   * @param {Number} size - 페이징 조회 시 페이지 당 게시글 수, 10 고정
+   * @param {string} region - 기록을 조회하고 싶은 여행지역 (서울, 강원도, ..)
+   * @return {Promise} - 해당 지역에 존재하는 여행 기록 조회 결과
+   */
+  async getAllTripHistoryByRegion(page = 0, size = 10, region = "") {
+    try {
+      const response = await ApiService.publicGet("/posts/trip", {
+        params: {
+          page,
+          size,
+          region,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      throw error;
     }
   }
 }

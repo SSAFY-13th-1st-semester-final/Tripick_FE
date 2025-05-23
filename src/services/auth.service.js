@@ -49,7 +49,6 @@ class AuthService {
 
       return response;
     } catch (err) {
-      console.error("로그인 오류:", err);
       throw err;
     }
   }
@@ -66,7 +65,7 @@ class AuthService {
       try {
         await ApiService.authPost("/auth/logout");
       } catch (err) {
-        console.warn("로그아웃 API 실패:", err);
+        return null;
       }
       // 토큰 및 사용자 정보 제거
       this.clearAuthData();
@@ -162,7 +161,9 @@ class AuthService {
    */
   async sendVerificationCode(email) {
     try {
-      const response = await ApiService.publicPost("/auth/code-send", { email });
+      const response = await ApiService.publicPost("/auth/code-send", {
+        email,
+      });
 
       if (!response || response.status !== 200) {
         throw new Error("이메일 전송 실패");
@@ -170,7 +171,6 @@ class AuthService {
 
       return response;
     } catch (error) {
-      console.error("이메일 전송 실패:", error);
       throw error;
     }
   }
@@ -193,7 +193,6 @@ class AuthService {
 
       return response;
     } catch (error) {
-      console.error("이메일 코드 인증 실패:", error);
       throw error;
     }
   }
@@ -214,7 +213,10 @@ class AuthService {
    */
   async findUsername(verificationData) {
     try {
-      const response = await ApiService.publicPost("/member/id", verificationData);
+      const response = await ApiService.publicPost(
+        "/member/id",
+        verificationData
+      );
 
       if (!response || response.status != 200) {
         throw new Error("확인 실패");
@@ -222,7 +224,6 @@ class AuthService {
 
       return response;
     } catch (error) {
-      console.error("아이디 찾기 중 문제 발생:", error);
       throw error;
     }
   }

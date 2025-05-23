@@ -11,6 +11,8 @@ import AuthLayout from "@/layouts/AuthLayout.vue";
  */
 const HomeView = () => import("@/views/HomeView.vue");
 const TripPlannerView = () => import("@/views/travels/TripPlannerView.vue");
+const TripEasyPlannerView = () =>
+  import("@/views/travels/TripEasyPlannerView.vue");
 const ProfileView = () => import("@/views/users/ProfileView.vue");
 
 /**
@@ -74,6 +76,14 @@ const routes = [
             meta: {
               requiresAuth: true,
               title: "여행 일정 계획",
+            },
+          },
+          {
+            path: "travel-planning",
+            name: "travel-planning",
+            component: TripEasyPlannerView,
+            meta: {
+              title: "여행 계획 쉽게 시작하기",
             },
           },
         ],
@@ -212,19 +222,11 @@ const router = createRouter({
  * 인증 및 권한 검사를 수행합니다.
  */
 router.beforeEach(async (to, from, next) => {
-  // 디버깅 정보 출력
-  console.log('=== 라우팅 디버깅 ===');
-  console.log('이동할 경로:', to.path);
-  console.log('라우트 이름:', to.name);
-  console.log('매칭된 라우트들:', to.matched);
-  
   // 페이지 제목 설정
   document.title = to.meta.title || "Trap!ck";
 
   // 인증이 필요한 라우트인지 확인
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  
-  console.log('인증 필요 여부:', requiresAuth);
 
   /**
    * 인증이 필요한 페이지 접근 시 검사
@@ -234,17 +236,14 @@ router.beforeEach(async (to, from, next) => {
       // 동적으로 스토어 import
       const { useAuthStore } = await import("@/stores/auth");
       const { useNotificationStore } = await import("@/stores/notification");
-      
+
       const authStore = useAuthStore();
       const notificationStore = useNotificationStore();
-      
-      console.log('현재 인증 상태:', authStore.isAuthenticated);
 
       // 로그인되지 않은 경우
       if (!authStore.isAuthenticated) {
-        console.log('인증 실패로 로그인 페이지로 리다이렉트');
-        notificationStore.showWarning('로그인 후 이용할 수 있는 페이지입니다.');
-        
+        notificationStore.showWarning("로그인 후 이용할 수 있는 페이지입니다.");
+
         next({
           name: "login",
           query: { redirect: to.fullPath },
@@ -252,7 +251,6 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
     } catch (error) {
-      console.error('인증 검사 중 오류 발생:', error);
       next({ name: "home" });
       return;
     }
@@ -267,21 +265,15 @@ router.beforeEach(async (to, from, next) => {
       // 동적으로 auth 스토어 import
       const { useAuthStore } = await import("@/stores/auth");
       const authStore = useAuthStore();
-      
+
       // 이미 로그인된 사용자인 경우 홈으로 리다이렉트
       if (authStore.isAuthenticated) {
-        console.log('이미 로그인된 사용자가 guest 페이지 접근, 홈으로 리다이렉트');
         next({ name: "home" });
         return;
       }
-    } catch (error) {
-      console.error('게스트 페이지 검사 중 오류 발생:', error);
-      // 오류 발생 시 계속 진행
-    }
+    } catch (error) {}
   }
 
-  // 모든 검사 통과 시 정상 라우팅 진행
-  console.log('정상 라우팅 진행');
   next();
 });
 

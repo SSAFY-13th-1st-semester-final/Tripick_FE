@@ -164,11 +164,7 @@ watch(
         } else {
           delete errors.username;
         }
-      } catch (error) {
-        console.warn("아이디 중복 검사 중 오류:", error);
-        errors.username =
-          "아이디 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.";
-      }
+      } catch (error) {}
     }, 500);
   }
 );
@@ -261,17 +257,6 @@ const submitForm = async () => {
     // 회원가입 성공 후 홈 페이지로 이동
     router.push({ name: "home" });
   } catch (error) {
-    // 서버 측 오류 처리
-    if (error.response && error.response.data && error.response.data.message) {
-      if (error.response.data.message.includes("username")) {
-        errors.username = "이미 사용 중인 아이디입니다.";
-      } else if (error.response.data.message.includes("email")) {
-        errors.email = "이미 사용 중인 이메일입니다.";
-      } else {
-        // 일반적인 오류 처리
-        console.error("회원가입 오류:", error);
-      }
-    }
   } finally {
     // 로딩 상태 해제
     isLoading.value = false;

@@ -53,9 +53,7 @@ const TokenService = {
     try {
       const decoded = jwtDecode(token);
       this.getStorage().setItem(DECODED_TOKEN_KEY, JSON.stringify(decoded));
-    } catch (error) {
-      console.error("디코딩 실패:", error);
-    }
+    } catch (error) {}
   },
 
   getDecodedToken() {
@@ -77,36 +75,35 @@ const TokenService = {
       storage.setItem(DECODED_TOKEN_KEY, JSON.stringify(decoded));
       return decoded;
     } catch (err) {
-      console.error("토큰 디코딩 오류:", err);
       return null;
     }
   },
 
-// 수정된 코드
-getTokenExpiration() {
-  const decoded = this.getDecodedToken();
-  return decoded?.exp || null;  // Unix timestamp (초) 그대로 반환
-},
+  // 수정된 코드
+  getTokenExpiration() {
+    const decoded = this.getDecodedToken();
+    return decoded?.exp || null; // Unix timestamp (초) 그대로 반환
+  },
 
-// 초 단위로 통일해서 비교
-isTokenValid() {
-  const decoded = this.getDecodedToken();
-  if (!decoded?.exp) return false;
-  
-  const now = Math.floor(Date.now() / 1000);
-  return decoded.exp > now;
-},
+  // 초 단위로 통일해서 비교
+  isTokenValid() {
+    const decoded = this.getDecodedToken();
+    if (!decoded?.exp) return false;
+
+    const now = Math.floor(Date.now() / 1000);
+    return decoded.exp > now;
+  },
 
   // 수정된 코드
-getTokenRemainingTime() {
-  const decoded = this.getDecodedToken();
-  if (!decoded?.exp) return 0;
-  
-  const now = Math.floor(Date.now() / 1000);  // 현재 시간 (초)
-  const remainingTime = decoded.exp - now;     // JWT exp는 이미 초 단위
-  
-  return Math.max(0, remainingTime);
-},
+  getTokenRemainingTime() {
+    const decoded = this.getDecodedToken();
+    if (!decoded?.exp) return 0;
+
+    const now = Math.floor(Date.now() / 1000); // 현재 시간 (초)
+    const remainingTime = decoded.exp - now; // JWT exp는 이미 초 단위
+
+    return Math.max(0, remainingTime);
+  },
 
   clearAll() {
     [localStorage, sessionStorage].forEach((store) => {

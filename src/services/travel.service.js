@@ -22,7 +22,6 @@ class TravelService {
       const response = await ApiService.authGet("/place/category");
       return response.data;
     } catch (error) {
-      console.error("Error fetching place categories:", error);
       throw error;
     }
   }
@@ -41,11 +40,7 @@ class TravelService {
     try {
       const { query, categoryGroupCode, page = 1, size = 10 } = params;
 
-      console.log(">>>", this.travelStore.centerCoord);
-
       const { x, y } = this.travelStore.centerCoord;
-
-      console.log(x, y);
 
       // 필수 파라미터 검증
       if (!query) {
@@ -65,7 +60,6 @@ class TravelService {
 
       return response.data;
     } catch (error) {
-      console.error("Error searching places:", error);
       throw error;
     }
   }
@@ -109,7 +103,6 @@ class TravelService {
 
       return response.data;
     } catch (error) {
-      console.error("Error fetching optimal paths:", error);
       throw error;
     }
   }
@@ -144,8 +137,6 @@ class TravelService {
       });
     });
 
-    console.log(tripInfo.startDate);
-
     // 요청 바디 객체 생성
     return {
       title: tripInfo.title,
@@ -164,8 +155,6 @@ class TravelService {
    */
   async saveTrip() {
     const body = this.buildTripRequestBody();
-    console.log(body);
-    console.log(JSON.stringify(body, null, 2));
     try {
       const response = await ApiService.authPost("/trip", body);
       return response.data;

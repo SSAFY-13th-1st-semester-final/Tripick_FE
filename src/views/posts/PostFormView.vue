@@ -42,7 +42,10 @@
         </div>
 
         <!-- 폼 영역 -->
-        <form @submit.prevent="handleFormSubmit" class="post-form__form glass-card">
+        <form
+          @submit.prevent="handleFormSubmit"
+          class="post-form__form glass-card"
+        >
           <!-- 게시판 유형 -->
           <div class="post-form__group">
             <label for="boardType" class="form-label">게시판 유형</label>
@@ -109,7 +112,9 @@
               class="glass-input"
             />
             <div class="input-helper">
-              <span class="char-count">{{ formData.description.length }}/200</span>
+              <span class="char-count"
+                >{{ formData.description.length }}/200</span
+              >
             </div>
           </div>
 
@@ -189,8 +194,8 @@ const isThumbnailUploading = ref(false);
 const errors = reactive({});
 
 // 에디터 키 (컴포넌트 재렌더링용)
-const editorKey = computed(() => 
-  isEditing.value ? `edit-${route.params.id}` : 'create'
+const editorKey = computed(() =>
+  isEditing.value ? `edit-${route.params.id}` : "create"
 );
 
 // 폼 데이터
@@ -230,7 +235,7 @@ const handleThumbnailUploadStart = () => {
 const handleThumbnailUploadEnd = (imageUrl) => {
   isThumbnailUploading.value = false;
   formData.thumbnail = imageUrl;
-  
+
   // 오류 메시지 제거
   if (errors.thumbnail) {
     delete errors.thumbnail;
@@ -265,18 +270,16 @@ const loadPost = async () => {
       formData.description = post.description || "";
       formData.thumbnail = post.thumbnail || "";
       formData.boardType = post.boardType || "GENERAL_FORUM";
-      
+
       // 내용은 마지막에 설정 (에디터 초기화 후)
       setTimeout(() => {
         formData.content = post.content || "";
       }, 100);
-      
     } else {
       notificationStore.showError("게시글을 불러올 수 없습니다.");
       navigateBack();
     }
   } catch (error) {
-    console.error("게시글 로드 오류:", error);
     notificationStore.showError("게시글을 불러오는 중 오류가 발생했습니다.");
     navigateBack();
   }
@@ -301,7 +304,6 @@ const handleEditorSave = (editorData) => {
 const handleFormSubmit = (event) => {
   event.preventDefault();
   // 폼 내부의 의도하지 않은 submit 이벤트는 무시
-  console.log('Form submit event captured and prevented');
 };
 
 // 유효성 검사
@@ -311,7 +313,9 @@ const validateForm = () => {
   // 게시판 유형 검사
   if (!isRequired(formData.boardType)) {
     newErrors.boardType = "게시판 유형을 선택해주세요.";
-  } else if (!["GENERAL_FORUM", "NOTICE", "QNA_FORUM"].includes(formData.boardType)) {
+  } else if (
+    !["GENERAL_FORUM", "NOTICE", "QNA_FORUM"].includes(formData.boardType)
+  ) {
     newErrors.boardType = "유효하지 않은 게시판 유형입니다.";
   }
 
@@ -328,7 +332,7 @@ const validateForm = () => {
   }
 
   // 내용 검사 - HTML 태그 제거 후 검사
-  const plainTextContent = formData.content.replace(/<[^>]*>/g, '').trim();
+  const plainTextContent = formData.content.replace(/<[^>]*>/g, "").trim();
   if (!plainTextContent) {
     newErrors.content = "내용을 입력해주세요.";
   }
@@ -369,7 +373,7 @@ const submitForm = async () => {
     if (isEditing.value) {
       const postId = parseInt(route.params.id);
       postData.postId = postId;
-      
+
       await PostService.updatePost(postData);
       notificationStore.showSuccess("게시글이 성공적으로 수정되었습니다.");
     } else {
@@ -384,19 +388,27 @@ const submitForm = async () => {
       const status = error.response.status;
 
       if (status === 401) {
-        notificationStore.showError("로그인이 필요하거나 세션이 만료되었습니다.");
+        notificationStore.showError(
+          "로그인이 필요하거나 세션이 만료되었습니다."
+        );
       } else if (status === 403) {
         notificationStore.showError("게시글 수정 권한이 없습니다.");
       } else if (status === 400) {
-        notificationStore.showWarning("잘못된 요청입니다. 입력 내용을 확인해주세요.");
+        notificationStore.showWarning(
+          "잘못된 요청입니다. 입력 내용을 확인해주세요."
+        );
       } else {
         notificationStore.showError(
-          isEditing.value ? "게시글 수정에 실패했습니다." : "게시글 작성에 실패했습니다."
+          isEditing.value
+            ? "게시글 수정에 실패했습니다."
+            : "게시글 작성에 실패했습니다."
         );
       }
     } else {
       notificationStore.showError(
-        isEditing.value ? "게시글 수정에 실패했습니다." : "게시글 작성에 실패했습니다."
+        isEditing.value
+          ? "게시글 수정에 실패했습니다."
+          : "게시글 작성에 실패했습니다."
       );
     }
   } finally {

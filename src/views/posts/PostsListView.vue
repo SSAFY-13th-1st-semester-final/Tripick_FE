@@ -196,7 +196,6 @@ const loadPosts = async (isNewSearch = false) => {
       }
     }
   } catch (error) {
-    console.error(error);
     notificationStore.showError(
       "게시글 목록을 불러오는 중 오류가 발생했습니다."
     );

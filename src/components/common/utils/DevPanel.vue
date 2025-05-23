@@ -2,23 +2,23 @@
   <!-- 개발 환경에서만 렌더링 -->
   <div v-if="isDev">
     <!-- 개발자 패널 -->
-    <div 
-      v-if="showDevPanel" 
+    <div
+      v-if="showDevPanel"
       class="dev-panel glass-card"
       :class="{ collapsed: isDevPanelCollapsed }"
     >
       <div class="dev-panel-header" @click="toggleDevPanel">
         <h4>🛠️ 개발자 패널</h4>
         <button class="collapse-btn">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
             stroke-linejoin="round"
             :class="{ 'rotate-180': isDevPanelCollapsed }"
           >
@@ -26,7 +26,7 @@
           </svg>
         </button>
       </div>
-      
+
       <div v-if="!isDevPanelCollapsed" class="dev-panel-content">
         <!-- 인증 상태 -->
         <div class="status-section">
@@ -34,12 +34,12 @@
           <div class="status-item">
             <span>로그인 상태:</span>
             <span :class="{ active: isAuthenticated }">
-              {{ isAuthenticated ? '로그인됨' : '로그아웃됨' }}
+              {{ isAuthenticated ? "로그인됨" : "로그아웃됨" }}
             </span>
           </div>
           <div v-if="isAuthenticated" class="status-item">
             <span>로그인상태저장:</span>
-            <span>{{ authService.isLoggedIn() || 'Unknown' }}</span>
+            <span>{{ authService.isLoggedIn() || "Unknown" }}</span>
           </div>
         </div>
 
@@ -49,7 +49,7 @@
           <div class="status-item">
             <span>모니터링:</span>
             <span :class="{ active: tokenStatus.isInitialized }">
-              {{ tokenStatus.isInitialized ? '활성' : '비활성' }}
+              {{ tokenStatus.isInitialized ? "활성" : "비활성" }}
             </span>
           </div>
           <div v-if="tokenStatus.isInitialized" class="status-item">
@@ -66,7 +66,7 @@
           <div class="status-item">
             <span>리프레시 상태:</span>
             <span :class="{ warning: apiStatus.isRefreshing }">
-              {{ apiStatus.isRefreshing ? '리프레시 중' : '정상' }}
+              {{ apiStatus.isRefreshing ? "리프레시 중" : "정상" }}
             </span>
           </div>
           <div class="status-item">
@@ -77,31 +77,21 @@
 
         <!-- 컨트롤 버튼들 -->
         <div class="dev-controls">
-          <button 
-            @click="forceTokenCheck" 
-            class="glass-btn" 
+          <button
+            @click="forceTokenCheck"
+            class="glass-btn"
             :disabled="!isAuthenticated"
           >
             토큰 체크
           </button>
-          <button 
-            @click="showApiStatus" 
-            class="glass-btn"
-          >
-            API 상태
-          </button>
-          <button 
-            @click="clearDevPanel" 
-            class="glass-btn"
-          >
-            콘솔 클리어
-          </button>
+          <button @click="showApiStatus" class="glass-btn">API 상태</button>
+          <button @click="clearDevPanel" class="glass-btn">콘솔 클리어</button>
         </div>
       </div>
     </div>
 
     <!-- 개발자 패널 토글 버튼 -->
-    <button 
+    <button
       @click="toggleDevPanelVisibility"
       class="dev-toggle glass-btn"
       :title="showDevPanel ? '개발자 패널 숨기기' : '개발자 패널 보이기'"
@@ -112,13 +102,13 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useAuthStore } from '@/stores/auth';
-import authService from '@/services/auth.service';
-import { useNotificationStore } from '@/stores/notification';
-import TokenMonitorService from '@/services/token-monitor.service';
-import ApiService from '@/services/api.service';
+import { onMounted, onBeforeUnmount, ref, computed } from "vue";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
+import authService from "@/services/auth.service";
+import { useNotificationStore } from "@/stores/notification";
+import TokenMonitorService from "@/services/token-monitor.service";
+import ApiService from "@/services/api.service";
 
 // 환경 확인
 const isDev = import.meta.env.DEV;
@@ -141,11 +131,11 @@ let keyboardCleanup = null;
 
 // 계산된 속성
 const formatTime = computed(() => (seconds) => {
-  if (!seconds || seconds <= 0) return '만료됨';
-  
+  if (!seconds || seconds <= 0) return "만료됨";
+
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  
+
   if (minutes > 0) {
     return `${minutes}분 ${remainingSeconds}초`;
   }
@@ -153,10 +143,10 @@ const formatTime = computed(() => (seconds) => {
 });
 
 const getTimeStatusClass = computed(() => (seconds) => {
-  if (!seconds || seconds <= 0) return 'error';
-  if (seconds <= 60) return 'critical';
-  if (seconds <= 300) return 'warning';
-  return 'success';
+  if (!seconds || seconds <= 0) return "error";
+  if (seconds <= 60) return "critical";
+  if (seconds <= 300) return "warning";
+  return "success";
 });
 
 // 메서드들
@@ -165,9 +155,7 @@ const updateDevPanelStatus = () => {
     try {
       tokenStatus.value = TokenMonitorService.getStatus();
       apiStatus.value = ApiService.getStatus();
-    } catch (error) {
-      console.error('개발자 패널 상태 업데이트 실패:', error);
-    }
+    } catch (error) {}
   }
 };
 
@@ -177,7 +165,7 @@ const toggleDevPanel = () => {
 
 const toggleDevPanelVisibility = () => {
   showDevPanel.value = !showDevPanel.value;
-  
+
   if (showDevPanel.value) {
     updateDevPanelStatus();
     statusUpdateTimer = setInterval(updateDevPanelStatus, 1000);
@@ -194,7 +182,7 @@ const forceTokenCheck = async () => {
     await TokenMonitorService.forceCheck();
     updateDevPanelStatus();
   } catch (error) {
-    console.error('❌ 토큰 확인 중 오류:', error);
+    console.error("❌ 토큰 확인 중 오류:", error);
   }
 };
 
@@ -203,7 +191,7 @@ const showApiStatus = () => {
     const status = ApiService.getStatus();
     console.table(status);
   } catch (error) {
-    console.error('❌ API 상태 조회 실패:', error);
+    console.error("❌ API 상태 조회 실패:", error);
   }
 };
 
@@ -213,38 +201,38 @@ const clearDevPanel = () => {
 
 const setupKeyboardShortcuts = () => {
   if (!isDev) return;
-  
+
   const handleKeydown = (e) => {
     // Ctrl + Shift + D: 개발자 패널 토글
-    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    if (e.ctrlKey && e.shiftKey && e.key === "D") {
       e.preventDefault();
       toggleDevPanelVisibility();
     }
-    
+
     // Ctrl + Shift + T: 토큰 강제 체크
-    if (e.ctrlKey && e.shiftKey && e.key === 'T' && isAuthenticated.value) {
+    if (e.ctrlKey && e.shiftKey && e.key === "T" && isAuthenticated.value) {
       e.preventDefault();
       forceTokenCheck();
     }
-    
+
     // Ctrl + Shift + C: 콘솔 클리어
-    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+    if (e.ctrlKey && e.shiftKey && e.key === "C") {
       e.preventDefault();
       clearDevPanel();
     }
   };
-  
-  window.addEventListener('keydown', handleKeydown);
-  
+
+  window.addEventListener("keydown", handleKeydown);
+
   // cleanup 함수 반환
   return () => {
-    window.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener("keydown", handleKeydown);
   };
 };
 
 const setupGlobalObjects = () => {
   if (!isDev) return;
-  
+
   // 전역 접근 객체 설정
   window.__VUE_APP__ = {
     authStore,
@@ -255,18 +243,18 @@ const setupGlobalObjects = () => {
     utils: {
       forceTokenCheck,
       showApiStatus,
-      toggleDevPanel: toggleDevPanelVisibility
-    }
+      toggleDevPanel: toggleDevPanelVisibility,
+    },
   };
 };
 
 // 라이프사이클 훅
 onMounted(() => {
   if (!isDev) return;
-  
+
   // 키보드 단축키 설정
   keyboardCleanup = setupKeyboardShortcuts();
-  
+
   // 전역 객체 설정
   setupGlobalObjects();
 });
@@ -277,7 +265,7 @@ onBeforeUnmount(() => {
     clearInterval(statusUpdateTimer);
     statusUpdateTimer = null;
   }
-  
+
   // 키보드 이벤트 정리
   if (keyboardCleanup) {
     keyboardCleanup();
@@ -286,7 +274,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles' as *;
+@use "@/assets/styles" as *;
 
 /* 개발자 패널 */
 .dev-panel {
@@ -298,7 +286,7 @@ onBeforeUnmount(() => {
   max-height: 70vh;
   overflow-y: auto;
   transition: all $transition-normal;
-  
+
   &.collapsed {
     .dev-panel-content {
       display: none;
@@ -313,13 +301,13 @@ onBeforeUnmount(() => {
   cursor: pointer;
   padding: $spacing-sm 0;
   border-bottom: 1px solid rgba($medium-gray, 0.3);
-  
+
   h4 {
     margin: 0;
     font-size: 0.9rem;
     color: $primary-color;
   }
-  
+
   .collapse-btn {
     background: transparent;
     border: none;
@@ -327,15 +315,15 @@ onBeforeUnmount(() => {
     padding: $spacing-xs;
     border-radius: 4px;
     transition: all $transition-fast;
-    
+
     &:hover {
       background-color: rgba($accent-color, 0.1);
     }
-    
+
     svg {
       transition: transform $transition-fast;
       color: $dark-gray;
-      
+
       &.rotate-180 {
         transform: rotate(180deg);
       }
@@ -349,7 +337,7 @@ onBeforeUnmount(() => {
 
 .status-section {
   margin-bottom: $spacing-md;
-  
+
   h5 {
     margin: 0 0 $spacing-xs 0;
     font-size: 0.8rem;
@@ -364,32 +352,32 @@ onBeforeUnmount(() => {
   align-items: center;
   margin-bottom: $spacing-xs;
   font-size: 0.75rem;
-  
+
   span:first-child {
     color: $dark-gray;
   }
-  
+
   span:last-child {
     font-weight: $font-weight-medium;
     color: $primary-color;
-    
+
     &.active {
       color: $success-color;
     }
-    
+
     &.warning {
       color: $warning-color;
     }
-    
+
     &.critical {
       color: $error-color;
     }
-    
+
     &.error {
       color: $error-color;
       font-weight: $font-weight-bold;
     }
-    
+
     &.success {
       color: $success-color;
     }
@@ -400,11 +388,11 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
-  
+
   button {
     padding: $spacing-xs;
     font-size: 0.75rem;
-    
+
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -426,7 +414,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   font-size: 1.2rem;
   padding: 0;
-  
+
   &:hover {
     transform: scale(1.1);
   }
@@ -441,7 +429,7 @@ onBeforeUnmount(() => {
     width: auto;
     max-height: 50vh;
   }
-  
+
   .dev-toggle {
     bottom: $spacing-sm;
     left: $spacing-sm;
@@ -453,16 +441,16 @@ onBeforeUnmount(() => {
   &::-webkit-scrollbar {
     width: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: rgba($light-gray, 0.3);
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba($dark-gray, 0.3);
     border-radius: 2px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: rgba($primary-color, 0.4);
   }

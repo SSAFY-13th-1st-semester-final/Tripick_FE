@@ -123,7 +123,6 @@ const logout = async () => {
       toggleMenu();
     }
   } catch (error) {
-    console.error("로그아웃 중 오류가 발생했습니다:", error);
     // 오류가 발생해도 로컬 상태는 정리
     authStore.logout();
   }

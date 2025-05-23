@@ -190,8 +190,6 @@ export default {
           );
         }
       } catch (error) {
-        console.error("아이디 찾기 실패:", error);
-
         // 서버 응답 에러 메시지 확인
         const errorMessage =
           error.response?.data?.message ||

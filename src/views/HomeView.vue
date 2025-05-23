@@ -51,7 +51,10 @@
             추천입니다.
           </p>
           <div class="recommendations-actions">
-            <router-link to="#" class="recommendations-btn">
+            <router-link
+              to="/travel/travel-planning"
+              class="recommendations-btn"
+            >
               추천 여행지 보기
             </router-link>
             <button
@@ -66,7 +69,7 @@
     </section>
 
     <!-- TripPlanner 독립 모달 - 간단한 사용법 -->
-    <TripPlanner 
+    <TripPlanner
       v-if="showTripModal"
       :is-modal="true"
       @close="closeTripPlanner"
