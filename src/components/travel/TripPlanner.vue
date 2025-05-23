@@ -133,7 +133,7 @@ const tripDuration = computed(() => {
   const diffTime = Math.abs(end - start);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  return Math.max(1, diffDays + 1); // 최소 1일 보장
+  return Math.max(1, diffDays + 1);
 });
 
 const isFormValid = computed(() => {
@@ -169,6 +169,7 @@ const handleBackdropClick = () => {
   emit("close");
 };
 
+// 수정된 여행 계획 생성 함수 - sessionStorage에만 저장
 const createTripPlan = () => {
   if (!isFormValid.value) {
     notificationStore.showWarning("여행 제목, 지역, 날짜를 모두 입력해주세요.");
@@ -178,7 +179,8 @@ const createTripPlan = () => {
   isLoading.value = true;
 
   try {
-    travelStore.setTripInfo({
+    // sessionStorage에 신규 여행 정보 저장
+    const result = travelStore.saveNewTripToSession({
       title: tripTitle.value,
       region: selectedRegion.value,
       startDate: dateRange.value.startDate,
@@ -188,14 +190,20 @@ const createTripPlan = () => {
 
     setTimeout(() => {
       isLoading.value = false;
-      notificationStore.showSuccess("여행 계획이 성공적으로 생성되었습니다!");
+      
+      if (result.success) {
+        notificationStore.showSuccess("여행 계획이 성공적으로 생성되었습니다!");
 
-      if (props.isModal) {
-        emit("trip-created");
-        emit("close");
+        if (props.isModal) {
+          emit("trip-created");
+          emit("close");
+        }
+
+        // TripPlannerView로 라우팅
+        router.push({ name: "travel-planner" });
+      } else {
+        notificationStore.showError("여행 계획 저장 중 오류가 발생했습니다.");
       }
-
-      router.push({ name: "travel-planner" });
     }, 800);
   } catch (error) {
     isLoading.value = false;
@@ -211,8 +219,8 @@ const resetForm = () => {
   tripMemo.value = "";
 };
 
+// 컴포넌트 마운트 시 초기화
 onMounted(() => {
-  // 모달이 열릴 때 body 스크롤 방지
   if (props.isModal) {
     document.body.style.overflow = "hidden";
   }

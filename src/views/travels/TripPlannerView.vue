@@ -45,7 +45,11 @@
           </svg>
           <span class="btn-text">여행 정보 수정</span>
         </button>
-        <button class="glass-btn primary" @click="saveTrip">
+        <button 
+          class="glass-btn primary" 
+          @click="handleTemporarySave"
+          :disabled="isTemporarySaving"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -63,7 +67,7 @@
             <polyline points="17 21 17 13 7 13 7 21"></polyline>
             <polyline points="7 3 7 8 15 8"></polyline>
           </svg>
-          <span class="btn-text">임시저장</span>
+          <span class="btn-text">{{ isTemporarySaved ? '임시저장됨' : '임시저장' }}</span>
         </button>
         <button class="glass-btn primary" @click="handleGetOptimalPaths">
           <svg
@@ -253,14 +257,15 @@ const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 
 // 스토어에서 상태 가져오기
-const { tripInfo, currentDay, currentDayPlaces, saveAllTripData } =
+const { tripInfo, currentDay, currentDayPlaces, isTemporarySaved } =
   storeToRefs(travelStore);
 
 // 로딩 및 준비 상태
 const isLoading = ref(true);
 const isMapReady = ref(false);
 const isComponentsReady = ref(false);
-const mapKey = ref(0); // 맵 컴포넌트 강제 리렌더링용
+const mapKey = ref(0);
+const isTemporarySaving = ref(false);
 
 // 탭 상태 (모바일)
 const activeMobileTab = ref("search");
@@ -296,50 +301,42 @@ const isTripFormValid = computed(() => {
   );
 });
 
-// 데이터 로딩 함수
-const loadSavedTrip = async () => {
-  try {
-    const savedTrip = localStorage.getItem("savedTrip");
-
-    if (savedTrip) {
-      const tripData = JSON.parse(savedTrip);
-
-      if (tripData && tripData.tripInfo && tripData.itinerary) {
-        // 사용자 확인 없이 자동으로 로드하거나, 확인 후 로드
-        const shouldLoad = confirm("저장된 여행 계획을 불러오시겠습니까?");
-
-        if (shouldLoad) {
-          // 저장된 여행 불러오기
-          await travelStore.loadTrip(tripData);
-          notificationStore.showSuccess("저장된 여행 계획을 불러왔습니다.");
-
-          // 맵 리렌더링을 위해 키 업데이트
-          mapKey.value += 1;
-        }
-      }
-    }
-  } catch (error) {
-    notificationStore.showError("여행 계획을 불러오는 중 오류가 발생했습니다.");
-  }
-};
-
-// 초기화 함수
+// 수정된 초기화 함수 - localStorage vs sessionStorage 처리
 const initializeComponent = async () => {
   isLoading.value = true;
 
   try {
-    // 1단계: 저장된 여행 데이터 로드
-    await loadSavedTrip();
+    // 새로운 초기화 로직 사용
+    const result = await travelStore.initializeTripPlannerView();
+    
+    switch (result) {
+      case 'new':
+        notificationStore.showSuccess("새로운 여행 계획을 시작합니다.");
+        break;
+      case 'existing':
+        if (travelStore.hasTripData) {
+          notificationStore.showInfo("저장된 여행 계획을 불러왔습니다.");
+        }
+        break;
+      case 'empty':
+        notificationStore.showInfo("여행 계획을 새로 작성해주세요.");
+        break;
+      case 'error':
+        notificationStore.showError("여행 계획을 불러오는 중 오류가 발생했습니다.");
+        break;
+    }
 
-    // 2단계: nextTick으로 DOM 업데이트 대기
+    // DOM 업데이트 대기
     await nextTick();
-
-    // 3단계: 맵 준비 상태 활성화
+    
+    // 맵 준비 상태 활성화
     isMapReady.value = true;
-
-    // 4단계: 다른 컴포넌트들 준비 완료
+    
+    // 다른 컴포넌트들 준비 완료
     await nextTick();
     isComponentsReady.value = true;
+  } catch (error) {
+    notificationStore.showError("페이지 초기화 중 오류가 발생했습니다.");
   } finally {
     isLoading.value = false;
   }
@@ -394,11 +391,7 @@ const editTripInfo = () => {
     memo: tripInfo.value.memo,
   };
 
-  // 트립 정보 편집 모달 표시 로직 추가 가능
-  // ...
-
-  // 여행 정보 초기화
-  travelStore.resetTrip();
+  // TODO: 여행 정보 편집 모달 구현
 };
 
 // 컴포넌트에서 간단하게 호출
@@ -410,12 +403,39 @@ const handleGetOptimalPaths = async () => {
   }
 };
 
-const saveTrip = () => {
-  travelStore.saveAllTripData();
+// 수정된 임시저장 함수 - localStorage에 저장
+const handleTemporarySave = async () => {
+  if (!travelStore.hasTripData) {
+    notificationStore.showWarning("저장할 여행 데이터가 없습니다.");
+    return;
+  }
+
+  isTemporarySaving.value = true;
+
+  try {
+    const result = travelStore.saveTripToLocalStorage();
+    
+    if (result.success) {
+      notificationStore.showSuccess(result.message);
+      // sessionStorage 정리 (이제 localStorage에 저장되었으므로)
+      travelStore.clearSessionStorage();
+    } else {
+      notificationStore.showError(result.message);
+    }
+  } catch (error) {
+    notificationStore.showError("임시 저장 중 오류가 발생했습니다.");
+  } finally {
+    isTemporarySaving.value = false;
+  }
 };
 
 const handleSaveUserTrip = () => {
-  travelService.saveTrip();
+  try {
+    travelService.saveTrip();
+    notificationStore.showSuccess("여행이 저장되었습니다.");
+  } catch (error) {
+    notificationStore.showError("여행 저장에 실패했습니다.");
+  }
 };
 
 // 패널 접기/펴기
@@ -518,6 +538,11 @@ onMounted(() => {
       color: inherit;
     }
 
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     @media (max-width: $breakpoint-md) {
       padding: $spacing-xs $spacing-sm;
 
@@ -535,11 +560,11 @@ onMounted(() => {
   transform: translateY(-50%);
   z-index: 2;
   display: flex;
-  pointer-events: none; // 컨테이너 자체는 포인터 이벤트를 통과시킴
+  pointer-events: none;
   height: 90%;
 
   @media (max-width: $breakpoint-lg) {
-    display: none; // 모바일에서는 바텀 시트로 대체
+    display: none;
   }
 }
 
@@ -552,7 +577,7 @@ onMounted(() => {
   max-width: 90vw;
   border-radius: 0 12px 12px 0;
   transition: transform $transition-normal;
-  pointer-events: auto; // 패널 내부는 포인터 이벤트 활성화
+  pointer-events: auto;
   overflow: hidden;
   padding: $spacing-md;
 

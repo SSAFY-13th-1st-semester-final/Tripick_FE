@@ -141,8 +141,10 @@ class TravelService {
     return {
       title: tripInfo.title,
       description: tripInfo.memo || "",
-      startDate: toKSTDateString(tripInfo.startDate), // ✅ 적용
-      endDate: toKSTDateString(tripInfo.endDate), // ✅ 적용
+      startDate: toKSTDateString(tripInfo.startDate),
+      endDate: toKSTDateString(tripInfo.endDate), 
+      // startDate: tripInfo.startDate,
+      // endDate: tripInfo.endDate,
       region: `${tripInfo.region?.provinceName ?? ""} ${
         tripInfo.region?.districtName ?? ""
       }`.trim(),

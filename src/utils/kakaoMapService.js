@@ -102,6 +102,7 @@ class KakaoMapService {
             address: result[0].address_name,
           });
         } else {
+          console.log("주소 변환 실패")
           reject(new Error("주소 변환에 실패했습니다."));
         }
       });
