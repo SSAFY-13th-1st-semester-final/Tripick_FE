@@ -119,9 +119,7 @@
     {
       "id": "sejong",
       "name": "세종",
-      "districts": [
-        { "id": "sejong", "name": "세종특별자치시" }
-      ]
+      "districts": [{ "id": "sejong", "name": "세종특별자치시" }]
     },
     {
       "id": "gyeonggi",
@@ -330,7 +328,7 @@
       ]
     }
   ],
-  
+
   "popularRegions": [
     {
       "provinceId": "jeju",

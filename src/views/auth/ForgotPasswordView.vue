@@ -164,7 +164,6 @@ onMounted(async () => {
       email.value = response.data?.email || response.data?.data?.email;
     }
   } catch (error) {
-    console.error("사용자 정보 가져오기 실패:", error);
     showNotification("사용자 정보를 가져오는데 실패했습니다.", "error");
   }
 });
@@ -271,8 +270,6 @@ const handleSubmit = async () => {
     isSuccess.value = true;
     startCountdown();
   } catch (error) {
-    console.error("비밀번호 변경 오류:", error);
-
     // 에러 메시지 처리
     if (error.response && error.response.data) {
       if (error.response.status === 401) {
