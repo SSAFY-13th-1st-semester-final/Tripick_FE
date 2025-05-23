@@ -64,8 +64,6 @@ export const useAuthStore = defineStore("auth", {
 
         return response;
       } catch (error) {
-        console.error("로그인 오류:", error);
-
         // 에러 메시지 설정
         if (error.response && error.response.data) {
           this.authError =
@@ -99,8 +97,6 @@ export const useAuthStore = defineStore("auth", {
 
         return response;
       } catch (error) {
-        console.error("회원가입 오류:", error);
-
         // 에러 메시지 설정
         if (error.response && error.response.data) {
           this.registerError =
@@ -125,7 +121,6 @@ export const useAuthStore = defineStore("auth", {
       try {
         await AuthService.logout();
       } catch (error) {
-        console.error("로그아웃 오류:", error);
         // 로그아웃 실패시에도 로컬 상태 정리는 수행
       } finally {
         // 상태 초기화
@@ -152,8 +147,6 @@ export const useAuthStore = defineStore("auth", {
           localStorage.setItem("user", JSON.stringify(response.data.data));
         }
       } catch (error) {
-        console.error("사용자 정보 갱신 오류:", error);
-
         if (error.response && error.response.status === 401) {
           // 인증 만료, 로그아웃 처리
           this.user = null;

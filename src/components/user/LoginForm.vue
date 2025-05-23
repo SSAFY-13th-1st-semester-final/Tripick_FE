@@ -131,9 +131,7 @@ const submitForm = async () => {
       authStore.authError = null;
       authStore.registerError = null;
     }
-  } catch (e) {
-    console.warn("오류 초기화 중 문제 발생:", e);
-  }
+  } catch (e) {}
 
   // 유효성 검사
   if (!validateForm()) {
@@ -166,8 +164,6 @@ const submitForm = async () => {
         duration: 5000,
       });
     }
-
-    console.error("로그인 오류:", error);
   } finally {
     // 로딩 상태 해제
     isLoading.value = false;
@@ -214,9 +210,7 @@ onMounted(() => {
         }
       );
     }
-  } catch (e) {
-    console.warn("마운트 시 오류 초기화 중 문제 발생:", e);
-  }
+  } catch (e) {}
 });
 </script>
 

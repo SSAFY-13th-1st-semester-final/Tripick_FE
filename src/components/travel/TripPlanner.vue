@@ -10,7 +10,7 @@
 
     <div class="container">
       <div class="trip-form-container glass-card">
-        <TripPlannerContent 
+        <TripPlannerContent
           :current-step="currentStep"
           :selected-region="selectedRegion"
           :date-range="dateRange"
@@ -53,8 +53,8 @@
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          
-          <TripPlannerContent 
+
+          <TripPlannerContent
             :current-step="currentStep"
             :selected-region="selectedRegion"
             :date-range="dateRange"
@@ -133,9 +133,6 @@ const tripDuration = computed(() => {
   const diffTime = Math.abs(end - start);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  console.log(start);
-  console.log(end);
-
   return Math.max(1, diffDays + 1); // 최소 1일 보장
 });
 
@@ -169,7 +166,7 @@ const onDateSelected = (range) => {
 };
 
 const handleBackdropClick = () => {
-  emit('close');
+  emit("close");
 };
 
 const createTripPlan = () => {
@@ -201,7 +198,6 @@ const createTripPlan = () => {
       router.push({ name: "travel-planner" });
     }, 800);
   } catch (error) {
-    console.error("여행 계획 생성 오류:", error);
     isLoading.value = false;
     notificationStore.showError("여행 계획 생성 중 오류가 발생했습니다.");
   }
@@ -218,7 +214,7 @@ const resetForm = () => {
 onMounted(() => {
   // 모달이 열릴 때 body 스크롤 방지
   if (props.isModal) {
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
   }
 });
 
@@ -228,16 +224,16 @@ watch(
   (newValue) => {
     if (newValue) {
       resetForm();
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
   }
 );
 
 // 컴포넌트 언마운트 시 body 스크롤 복원
 onUnmounted(() => {
-  document.body.style.overflow = '';
+  document.body.style.overflow = "";
 });
 </script>
 
@@ -297,7 +293,7 @@ onUnmounted(() => {
   justify-content: center;
   z-index: 9999;
   padding: $spacing-md;
-  
+
   @media (max-width: $breakpoint-md) {
     padding: $spacing-xs;
   }

@@ -151,7 +151,6 @@ const fetchUserData = async () => {
       updateEditData(userData.value);
     }
   } catch (error) {
-    console.error("사용자 정보 불러오기 오류:", error);
     showNotification("사용자 정보를 불러오는데 실패했습니다.", "error");
   } finally {
     isLoading.value = false;
@@ -299,8 +298,6 @@ const saveChanges = async () => {
     // 성공 메시지 표시
     notificationStore.showSuccess("정보가 성공적으로 업데이트되었습니다.");
   } catch (error) {
-    console.error("프로필 업데이트 오류:", error);
-
     // 오류 메시지 추출
     let errorMessage = "정보 업데이트에 실패했습니다.";
     if (error.response && error.response.data && error.response.data.message) {
@@ -345,7 +342,7 @@ const logout = async () => {
     await authStore.logout();
     router.push({ name: "home" });
   } catch (error) {
-    console.error("로그아웃 오류:", error);
+    return null;
   }
 };
 
@@ -371,7 +368,6 @@ const deleteAccount = async () => {
     notificationStore.showSuccess("회원 탈퇴가 완료되었습니다.");
     router.push({ name: "home" });
   } catch (error) {
-    console.error("회원 탈퇴 오류:", error);
     notificationStore.showError("회원 탈퇴에 실패했습니다.");
   }
 };

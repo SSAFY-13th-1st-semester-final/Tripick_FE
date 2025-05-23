@@ -163,16 +163,19 @@
             </button>
           </div>
           <div class="panel-content">
-            <TripSchedule 
-              v-if="isComponentsReady" 
-              @edit-trip-info="editTripInfo" 
+            <TripSchedule
+              v-if="isComponentsReady"
+              @edit-trip-info="editTripInfo"
             />
           </div>
         </div>
       </div>
 
       <!-- 모바일용 바텀 시트 -->
-      <div v-if="hasTripInfo && isComponentsReady" class="mobile-bottom-sheet glass-card">
+      <div
+        v-if="hasTripInfo && isComponentsReady"
+        class="mobile-bottom-sheet glass-card"
+      >
         <div class="sheet-handle"></div>
         <div class="trip-tabs">
           <button
@@ -250,7 +253,8 @@ const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 
 // 스토어에서 상태 가져오기
-const { tripInfo, currentDay, currentDayPlaces, saveAllTripData } = storeToRefs(travelStore);
+const { tripInfo, currentDay, currentDayPlaces, saveAllTripData } =
+  storeToRefs(travelStore);
 
 // 로딩 및 준비 상태
 const isLoading = ref(true);
@@ -296,26 +300,25 @@ const isTripFormValid = computed(() => {
 const loadSavedTrip = async () => {
   try {
     const savedTrip = localStorage.getItem("savedTrip");
-    
+
     if (savedTrip) {
       const tripData = JSON.parse(savedTrip);
-      
+
       if (tripData && tripData.tripInfo && tripData.itinerary) {
         // 사용자 확인 없이 자동으로 로드하거나, 확인 후 로드
         const shouldLoad = confirm("저장된 여행 계획을 불러오시겠습니까?");
-        
+
         if (shouldLoad) {
           // 저장된 여행 불러오기
           await travelStore.loadTrip(tripData);
           notificationStore.showSuccess("저장된 여행 계획을 불러왔습니다.");
-          
+
           // 맵 리렌더링을 위해 키 업데이트
           mapKey.value += 1;
         }
       }
     }
   } catch (error) {
-    console.error("여행 불러오기 오류:", error);
     notificationStore.showError("여행 계획을 불러오는 중 오류가 발생했습니다.");
   }
 };
@@ -323,21 +326,20 @@ const loadSavedTrip = async () => {
 // 초기화 함수
 const initializeComponent = async () => {
   isLoading.value = true;
-  
+
   try {
     // 1단계: 저장된 여행 데이터 로드
     await loadSavedTrip();
-    
+
     // 2단계: nextTick으로 DOM 업데이트 대기
     await nextTick();
-    
+
     // 3단계: 맵 준비 상태 활성화
     isMapReady.value = true;
-    
+
     // 4단계: 다른 컴포넌트들 준비 완료
     await nextTick();
     isComponentsReady.value = true;
-    
   } finally {
     isLoading.value = false;
   }
@@ -345,7 +347,6 @@ const initializeComponent = async () => {
 
 // 맵 준비 완료 이벤트 핸들러
 const onMapReady = () => {
-  console.log("카카오맵이 준비되었습니다.");
   // 맵이 준비된 후 추가 작업이 필요하면 여기서 수행
 };
 
@@ -405,7 +406,7 @@ const handleGetOptimalPaths = async () => {
   try {
     const result = await useTravelService.getOptimalPaths();
   } catch (error) {
-    notificationStore.showError('경로 조회에 실패했습니다.');
+    notificationStore.showError("경로 조회에 실패했습니다.");
   }
 };
 
@@ -462,7 +463,7 @@ onMounted(() => {
 .loading-content {
   text-align: center;
   padding: $spacing-xl;
-  
+
   p {
     margin-top: $spacing-md;
     color: $primary-color;
@@ -481,8 +482,12 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 지도 컨테이너 (전체 화면) */
