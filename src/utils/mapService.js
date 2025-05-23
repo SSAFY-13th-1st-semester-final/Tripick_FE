@@ -54,7 +54,7 @@ class MapService {
       const script = document.createElement("script");
       script.async = true;
       script.src =
-        "https://dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
+        `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&autoload=false`;
 
       script.onload = () => {
         window.kakao.maps.load(() => {
