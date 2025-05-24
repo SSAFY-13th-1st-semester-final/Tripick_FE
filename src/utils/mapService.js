@@ -10,6 +10,32 @@ class MapService {
       onRegionSelected: null,
       onNotification: null,
     };
+    
+    // 지역 우선순위 정의 (높을수록 우선)
+    this.regionPriority = {
+      // 특별시/광역시 (최고 우선순위)
+      '서울': 100,
+      '부산': 100,
+      '대구': 100,
+      '인천': 100,
+      '광주': 100,
+      '대전': 100,
+      '울산': 100,
+      '세종': 100,
+      
+      // 특별자치시/도 (중간 우선순위)
+      '제주': 50,
+      
+      // 일반 도 (낮은 우선순위)
+      '경기': 10,
+      '강원': 10,
+      '충북': 10,
+      '충남': 10,
+      '전북': 10,
+      '전남': 10,
+      '경북': 10,
+      '경남': 10
+    };
   }
 
   // 이벤트 핸들러 설정
@@ -20,7 +46,6 @@ class MapService {
   // 카카오맵 스크립트 로드
   loadKakaoMapScript() {
     return new Promise((resolve, reject) => {
-      // 이미 로드된 경우
       if (window.kakao && window.kakao.maps) {
         resolve();
         return;
@@ -29,7 +54,7 @@ class MapService {
       const script = document.createElement("script");
       script.async = true;
       script.src =
-        "https://dapi.kakao.com/v2/maps/sdk.js?appkey=e275d3ecdc79f7233649e9ee24d2e982&autoload=false";
+        `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&autoload=false`;
 
       script.onload = () => {
         window.kakao.maps.load(() => {
@@ -50,8 +75,8 @@ class MapService {
     if (!container) return null;
 
     const options = {
-      center: new window.kakao.maps.LatLng(36.5, 127.5), // 대한민국 중심 좌표
-      level: 13, // 전국이 보이는 레벨
+      center: new window.kakao.maps.LatLng(36.5, 127.5),
+      level: 13,
       draggable: true,
       scrollwheel: true,
       disableDoubleClick: false,
@@ -84,8 +109,9 @@ class MapService {
       }
 
       let totalPolygons = 0;
+      const regionPolygons = [];
 
-      // GeoJSON 데이터를 기반으로 폴리곤 생성
+      // 1단계: 모든 폴리곤 데이터 수집
       geoJsonData.features.forEach((feature, index) => {
         const regionName =
           regionNameMapping[feature.properties.CTP_ENG_NM] ||
@@ -98,62 +124,72 @@ class MapService {
 
         const coordinates = feature.geometry.coordinates;
 
-        // MultiPolygon 처리
         if (feature.geometry.type === "MultiPolygon") {
           coordinates.forEach((polygonCoords, polyIndex) => {
             if (polygonCoords[0].length > 3) {
-              // 최소 좌표 개수 체크
-              this.createPolygon(polygonCoords[0], regionName, polyIndex);
+              regionPolygons.push({
+                coords: polygonCoords[0],
+                regionName,
+                partIndex: polyIndex,
+                priority: this.regionPriority[regionName] || 1
+              });
               totalPolygons++;
             }
           });
         } else if (feature.geometry.type === "Polygon") {
-          // ⭐ 수정: 모든 좌표 배열을 처리 (본토 + 섬들)
           coordinates.forEach((coordArray, polyIndex) => {
             if (coordArray.length > 3) {
-              this.createPolygon(coordArray, regionName, polyIndex);
+              regionPolygons.push({
+                coords: coordArray,
+                regionName,
+                partIndex: polyIndex,
+                priority: this.regionPriority[regionName] || 1
+              });
               totalPolygons++;
             }
           });
         }
       });
 
-      // 디버깅을 위한 지역별 폴리곤 개수 확인
-      this.checkPolygonCounts();
+      // 2단계: 우선순위별로 정렬하여 생성 (우선순위 높은 것이 나중에 생성되어 위에 표시)
+      regionPolygons
+        .sort((a, b) => a.priority - b.priority)
+        .forEach(polygonData => {
+          this.createPolygon(
+            polygonData.coords, 
+            polygonData.regionName, 
+            polygonData.partIndex,
+            polygonData.priority
+          );
+        });
 
-      // 생성된 폴리곤이 있다면 지도 범위 조정
       if (totalPolygons > 0) {
         setTimeout(() => {
           this.adjustMapBounds();
         }, 500);
       }
     } catch (error) {
-      // 대체 데이터로 주요 도시만 표시
       this.createFallbackData();
     }
   }
 
   // 폴리곤 생성 함수
-  createPolygon(coords, regionName, partIndex = 0) {
+  createPolygon(coords, regionName, partIndex = 0, priority = 1) {
     try {
-      // 좌표 유효성 검사
       if (!coords || !Array.isArray(coords) || coords.length === 0) {
         return;
       }
 
-      // 좌표 변환 시 에러 체크 (범위 검사 완화)
       const path = coords
         .filter((coord) => Array.isArray(coord) && coord.length >= 2)
         .map((coord, index) => {
           const lat = parseFloat(coord[1]);
           const lng = parseFloat(coord[0]);
 
-          // NaN 체크
           if (isNaN(lat) || isNaN(lng)) {
             return null;
           }
 
-          // ⭐ 수정: 좌표 범위를 더 넓게 설정 (제주도, 울릉도 등 포함)
           if (lat < 32.5 || lat > 39.5 || lng < 123.5 || lng > 132.5) {
             return null;
           }
@@ -166,50 +202,102 @@ class MapService {
         return;
       }
 
+      // 우선순위에 따른 z-index 설정 (색상은 모두 동일)
+      const zIndex = priority;
+      
       const polygon = new window.kakao.maps.Polygon({
         map: this.map,
         path: path,
-        strokeWeight: 3, // 두께 증가로 더 잘 보이게
-        strokeColor: "#0064FF",
-        strokeOpacity: 1, // 완전 불투명
-        fillColor: "#0064FF",
-        fillOpacity: 0.3, // 채우기 불투명도 증가
+        strokeWeight: 1, // 얇은 테두리
+        strokeColor: "#0064FF", // 모든 지역 동일한 색상
+        strokeOpacity: 1,
+        fillColor: "#0064FF", // 모든 지역 동일한 색상
+        fillOpacity: 0.3, // 모든 지역 동일한 투명도
+        zIndex: zIndex, // 우선순위에 따른 z-index만 차별화
       });
 
-      // 폴리곤 저장 (나중에 정리용)
       this.polygons.push(polygon);
 
-      // 폴리곤 경계 영역 계산 및 로그
-      const bounds = new window.kakao.maps.LatLngBounds();
-      path.forEach((point) => bounds.extend(point));
+      // 폴리곤에 메타데이터 저장
+      polygon._regionName = regionName;
+      polygon._priority = priority;
 
-      // ⭐ 수정: 동일한 지역의 모든 파트에 동일한 이벤트 적용
-      // 마우스 호버 이벤트
-      window.kakao.maps.event.addListener(polygon, "mouseover", () => {
-        // 같은 지역의 모든 폴리곤 하이라이트
-        this.highlightRegion(regionName, true);
-        this.eventHandlers.onRegionHovered?.(regionName);
+      // 이벤트 리스너
+      window.kakao.maps.event.addListener(polygon, "mouseover", (mouseEvent) => {
+        const overlappingRegions = this.getOverlappingRegions(mouseEvent.latLng);
+        const topPriorityRegion = this.getTopPriorityRegion(overlappingRegions);
+        
+        if (topPriorityRegion === regionName) {
+          this.highlightRegion(regionName, true);
+          this.eventHandlers.onRegionHovered?.(regionName);
+        }
       });
 
       window.kakao.maps.event.addListener(polygon, "mouseout", () => {
-        // 같은 지역의 모든 폴리곤 원래 상태로
         this.highlightRegion(regionName, false);
         this.eventHandlers.onRegionHovered?.(null);
       });
 
-      // 클릭 이벤트
-      window.kakao.maps.event.addListener(polygon, "click", () => {
-        this.eventHandlers.onRegionSelected?.(regionName);
+      window.kakao.maps.event.addListener(polygon, "click", (mouseEvent) => {
+        const overlappingRegions = this.getOverlappingRegions(mouseEvent.latLng);
+        const topPriorityRegion = this.getTopPriorityRegion(overlappingRegions);
+        
+        this.eventHandlers.onRegionSelected?.(topPriorityRegion);
       });
 
-      // ⭐ 추가: 지역별 폴리곤 관리를 위해 regionName을 저장
-      polygon._regionName = regionName;
     } catch (error) {
       return null;
     }
   }
 
-  // ⭐ 추가: 지역별 하이라이트 함수
+  // 특정 좌표에서 겹치는 지역들 찾기
+  getOverlappingRegions(latLng) {
+    const overlapping = [];
+    
+    this.polygons.forEach(polygon => {
+      const path = polygon.getPath();
+      if (this.isPointInPolygon(latLng, path)) {
+        overlapping.push({
+          name: polygon._regionName,
+          priority: polygon._priority
+        });
+      }
+    });
+    
+    return overlapping;
+  }
+
+  // 가장 높은 우선순위 지역 반환
+  getTopPriorityRegion(overlappingRegions) {
+    if (overlappingRegions.length === 0) return null;
+    
+    return overlappingRegions.reduce((top, current) => 
+      current.priority > top.priority ? current : top
+    ).name;
+  }
+
+  // 점이 폴리곤 내부에 있는지 확인 (Ray Casting 알고리즘)
+  isPointInPolygon(point, path) {
+    const lat = point.getLat();
+    const lng = point.getLng();
+    let inside = false;
+
+    for (let i = 0, j = path.length - 1; i < path.length; j = i++) {
+      const xi = path[i].getLng();
+      const yi = path[i].getLat();
+      const xj = path[j].getLng();
+      const yj = path[j].getLat();
+
+      if (((yi > lat) !== (yj > lat)) &&
+          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+
+    return inside;
+  }
+
+  // 지역별 하이라이트 함수
   highlightRegion(regionName, highlight) {
     this.polygons.forEach((polygon) => {
       if (polygon._regionName === regionName) {
@@ -238,18 +326,15 @@ class MapService {
 
       circle.setMap(this.map);
 
-      // 마커 추가
       const marker = new window.kakao.maps.Marker({
         position: new window.kakao.maps.LatLng(region.lat, region.lng),
         map: this.map,
       });
 
-      // 마커 클릭 이벤트
       window.kakao.maps.event.addListener(marker, "click", () => {
         this.eventHandlers.onRegionSelected?.(region.name);
       });
 
-      // 마커 호버 이벤트
       window.kakao.maps.event.addListener(marker, "mouseover", () => {
         this.eventHandlers.onRegionHovered?.(region.name);
       });
@@ -282,7 +367,7 @@ class MapService {
     }
   }
 
-  // ⭐ 추가: 디버깅을 위한 지역별 폴리곤 개수 확인 함수
+  // 지역별 폴리곤 개수 확인
   checkPolygonCounts() {
     const regionCounts = {};
     this.polygons.forEach((polygon) => {
@@ -319,7 +404,6 @@ class MapService {
   // 리소스 정리
   cleanup() {
     if (this.map) {
-      // 이벤트 리스너 정리
       this.polygons.forEach((polygon) => {
         polygon.setMap(null);
       });

@@ -30,6 +30,7 @@
         v-for="trip in tripHistory"
         :key="trip.tripId"
         class="trip-card glass-card"
+        @click="loadTripHistoryDetail(trip.tripId)"
       >
         <div class="trip-header">
           <div class="user-info">
@@ -80,8 +81,11 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import { useNotificationStore } from "@/stores/notification";
 import postService from "@/services/post.service";
+import travelService from "@/services/travel.service";
+
 
 // Props
 const props = defineProps({
@@ -104,6 +108,7 @@ const isMounted = ref(true); // 마운트 상태 추적
 
 // 알림 스토어
 const notificationStore = useNotificationStore();
+const router = useRouter();
 
 // 여행 기록 초기화
 const resetTripHistory = () => {
@@ -176,6 +181,19 @@ const loadTripHistory = async (region, isLoadMore = false) => {
     }
   }
 };
+
+const loadTripHistoryDetail = async (tripId) => {
+  try {
+    const result = await travelService.searchTripInfo(tripId);
+    if (result.success) {
+      router.push({ name: "travel-planner" });
+    }
+  } catch (error) {
+    console.error("여행 지도 이동 실패 : ", error);
+  }
+}
+
+
 
 // 무한 스크롤 설정
 const setupInfiniteScroll = () => {

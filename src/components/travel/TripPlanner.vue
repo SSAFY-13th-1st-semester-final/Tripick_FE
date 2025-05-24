@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <!-- 로딩 오버레이도 별도로 모달에 포함 -->
+    <!-- 로딩 오버레이 -->
     <div v-if="isLoading" class="modal-loading-overlay">
       <div class="loading-spinner"></div>
       <p>여행 계획을 생성하는 중입니다...</p>
@@ -108,7 +108,7 @@ const router = useRouter();
 const notificationStore = useNotificationStore();
 const travelStore = useTravelStore();
 
-// 상태
+// 상태 관리
 const currentStep = ref(1);
 const selectedRegion = ref(null);
 const dateRange = ref({ startDate: null, endDate: null });
@@ -133,7 +133,7 @@ const tripDuration = computed(() => {
   const diffTime = Math.abs(end - start);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  return Math.max(1, diffDays + 1); // 최소 1일 보장
+  return Math.max(1, diffDays + 1);
 });
 
 const isFormValid = computed(() => {
@@ -144,7 +144,7 @@ const isFormValid = computed(() => {
   );
 });
 
-// 메서드
+// 단계 이동 메서드
 const goToNextStep = () => {
   if (currentStep.value < 2) {
     currentStep.value++;
@@ -157,6 +157,7 @@ const goToPrevStep = () => {
   }
 };
 
+// 이벤트 핸들러
 const onRegionSelected = (region) => {
   selectedRegion.value = region;
 };
@@ -169,7 +170,8 @@ const handleBackdropClick = () => {
   emit("close");
 };
 
-const createTripPlan = () => {
+// 여행 계획 생성 및 sessionStorage 저장
+const createTripPlan = async () => {
   if (!isFormValid.value) {
     notificationStore.showWarning("여행 제목, 지역, 날짜를 모두 입력해주세요.");
     return;
@@ -178,31 +180,44 @@ const createTripPlan = () => {
   isLoading.value = true;
 
   try {
-    travelStore.setTripInfo({
-      title: tripTitle.value,
-      region: selectedRegion.value,
+    // 여행 정보 객체 생성
+    const tripData = {
+      title: tripTitle.value.trim(),
+      region: selectedRegion.value, // region이 이미 문자열
       startDate: dateRange.value.startDate,
       endDate: dateRange.value.endDate,
-      memo: tripMemo.value,
-    });
+      memo: tripMemo.value.trim(),
+    };
 
-    setTimeout(() => {
-      isLoading.value = false;
+    // sessionStorage에 새 여행 정보 저장
+    const result = travelStore.saveNewTripToSession(tripData);
+
+    // 사용자 경험을 위한 로딩 시간
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (result.success) {
       notificationStore.showSuccess("여행 계획이 성공적으로 생성되었습니다!");
 
+      // 모달 모드인 경우 이벤트 발생
       if (props.isModal) {
-        emit("trip-created");
+        emit("trip-created", tripData);
         emit("close");
       }
 
+      // TripPlannerView로 라우팅
       router.push({ name: "travel-planner" });
-    }, 800);
+    } else {
+      throw new Error(result.error || "여행 계획 저장 실패");
+    }
   } catch (error) {
-    isLoading.value = false;
+    console.error("여행 계획 생성 오류:", error);
     notificationStore.showError("여행 계획 생성 중 오류가 발생했습니다.");
+  } finally {
+    isLoading.value = false;
   }
 };
 
+// 폼 초기화
 const resetForm = () => {
   currentStep.value = 1;
   selectedRegion.value = null;
@@ -211,30 +226,29 @@ const resetForm = () => {
   tripMemo.value = "";
 };
 
-onMounted(() => {
-  // 모달이 열릴 때 body 스크롤 방지
-  if (props.isModal) {
+// 모달 모드 관리
+const handleModalMode = (isModalMode) => {
+  if (isModalMode) {
+    resetForm();
     document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+};
+
+// 라이프사이클 훅
+onMounted(() => {
+  if (props.isModal) {
+    handleModalMode(true);
   }
 });
 
-// 모달 모드 변경 감지
-watch(
-  () => props.isModal,
-  (newValue) => {
-    if (newValue) {
-      resetForm();
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
-);
-
-// 컴포넌트 언마운트 시 body 스크롤 복원
 onUnmounted(() => {
   document.body.style.overflow = "";
 });
+
+// 모달 모드 변경 감지
+watch(() => props.isModal, handleModalMode);
 </script>
 
 <style lang="scss" scoped>
