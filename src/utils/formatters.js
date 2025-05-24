@@ -147,7 +147,15 @@ export const formatFileSize = (bytes, decimals = 2) => {
  * 한국 날짜로 변환합니다.
  * 
  */
-export const toKSTDateString = date =>
-  new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+export const toKSTDateString = (date) => {
+  // 문자열인 경우 Date 객체로 변환
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+    return null;
+  }
+
+  return new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
+};

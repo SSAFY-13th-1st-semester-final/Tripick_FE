@@ -1,95 +1,35 @@
 <template>
   <div class="profile-page">
-    <div class="profile-container glass-container">
-      <h1 class="profile-title">마이 페이지</h1>
+    <h1 class="profile-title">마이 페이지</h1>
 
+    <!-- 메인 컨텐츠 영역 - 수평 배치 -->
+    <div class="profile-main-content">
       <!-- 유저 프로필 컴포넌트 -->
-      <UserProfile
-        :userData="userData"
-        :loading="isLoading"
-        :editMode="isEditMode"
-        :editable="true"
-        :errors="errors"
-        @update:userData="updateEditData"
-        @imageSelected="handleImageSelected"
-        @validateField="handleValidationError"
-      />
-
-      <!-- 프로필 액션 버튼 -->
-      <div class="profile-actions">
-        <template v-if="!isEditMode">
-          <AppButton
-            @click="toggleEditMode"
-            variant="outline"
-            size="sm"
-            class="edit-button"
-          >
-            <template #icon>
-              <i class="icon-edit"></i>
-            </template>
-            정보 수정
-          </AppButton>
-        </template>
-        <template v-else>
-          <AppButton
-            @click="saveChanges"
-            variant="primary"
-            size="sm"
-            :loading="isSaving"
-            class="save-button"
-          >
-            저장
-          </AppButton>
-          <AppButton
-            @click="cancelEdit"
-            variant="outline"
-            size="sm"
-            class="cancel-button"
-          >
-            취소
-          </AppButton>
-        </template>
+      <div class="profile-section">
+        <UserProfile
+          :userData="userData"
+          :loading="isLoading"
+          :isSaving="isSaving"
+          :errors="errors"
+          @update:userData="updateEditData"
+          @imageSelected="handleImageSelected"
+          @validateField="handleValidationError"
+          @save="saveChanges"
+          @passwordChange="redirectToPasswordChange"
+          @logout="logout"
+          @deleteAccount="confirmDeleteAccount"
+        />
       </div>
 
-      <!-- 알림 메시지 -->
-      <div
-        v-if="notification.show"
-        :class="[
-          'profile-notification',
-          `profile-notification--${notification.type}`,
-        ]"
-      >
-        {{ notification.message }}
-      </div>
-
-      <!-- 추가 액션 버튼 -->
-      <div class="profile-extra-actions">
-        <AppButton
-          variant="ghost"
-          size="sm"
-          class="password-change-button"
-          @click="redirectToPasswordChange"
-        >
-          비밀번호 변경
-        </AppButton>
-
-        <AppButton
-          variant="ghost"
-          size="sm"
-          class="logout-button"
-          @click="logout"
-        >
-          로그아웃
-        </AppButton>
-
-        <AppButton
-          variant="outline"
-          size="sm"
-          class="delete-account-button danger"
-          @click="confirmDeleteAccount"
-        >
-          회원 탈퇴
-        </AppButton>
+      <!-- 내 게시글 리스트 컴포넌트 -->
+      <div class="posts-section">
+        <MyPostsList
+          :posts="myPosts"
+          :loading="isPostsLoading"
+          :hasMore="hasMorePosts"
+          @loadMore="loadMorePosts"
+          @deletePosts="handleDeletePosts"
+        />
       </div>
     </div>
   </div>
@@ -101,9 +41,10 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import AuthService from "@/services/auth.service";
+import PostService from "@/services/post.service";
 import apiClient from "@/services/api.service";
-import AppButton from "@/components/common/shared/AppButton.vue";
 import UserProfile from "@/components/user/UserProfile.vue";
+import MyPostsList from "@/components/user/MyPostsList.vue";
 import {
   isValidEmail,
   isValidPhoneNumber,
@@ -115,20 +56,22 @@ const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
-// 상태 정의
+// 사용자 정보 상태
 const userData = ref({});
 const isLoading = ref(true);
 const isSaving = ref(false);
-const isEditMode = ref(false);
 const errors = reactive({});
-const profileImageFile = ref(null); // 실제 파일 객체 저장
-const profileImagePreview = ref(null); // 미리보기 URL
-const notification = reactive({
-  show: false,
-  message: "",
-  type: "success",
-  timeout: null,
-});
+const profileImageFile = ref(null);
+const profileImagePreview = ref(null);
+
+// 게시글 관련 상태
+const myPosts = ref([]);
+const isPostsLoading = ref(false);
+const hasMorePosts = ref(true);
+const currentPage = ref(0);
+const pageSize = ref(10); // 페이지당 게시글 수
+const totalPages = ref(0);
+const totalElements = ref(0);
 
 // 편집을 위한 데이터
 const editData = reactive({
@@ -144,31 +87,84 @@ const fetchUserData = async () => {
   try {
     const response = await AuthService.getCurrentUser();
 
-    // API 응답 구조: { status: number, message: string, data: {...} }
     if (response.data && response.data.data) {
       userData.value = response.data.data;
-      // 초기 데이터 설정
       updateEditData(userData.value);
     }
   } catch (error) {
-    showNotification("사용자 정보를 불러오는데 실패했습니다.", "error");
+    notificationStore.showError("사용자 정보를 불러오는데 실패했습니다.");
   } finally {
     isLoading.value = false;
   }
 };
 
-// 편집 모드 토글
-const toggleEditMode = () => {
-  isEditMode.value = true;
+// 내 게시글 불러오기
+const fetchMyPosts = async (page = 0, reset = false) => {
+  if (isPostsLoading.value) return;
+  
+  isPostsLoading.value = true;
 
-  // 오류 초기화
-  Object.keys(errors).forEach((key) => delete errors[key]);
+  try {
+    // 페이징 파라미터 설정
+    const params = {
+      page: page,
+      size: pageSize.value
+    };
 
-  // 이미지 상태 초기화
-  profileImageFile.value = null;
-  if (profileImagePreview.value) {
-    URL.revokeObjectURL(profileImagePreview.value);
-    profileImagePreview.value = null;
+    const response = await PostService.getAllMyPosts(params);
+
+    if (response && response.data && response.data.data) {
+      const postsData = response.data.data;
+      const newPosts = postsData.content || [];
+
+      if (reset || page === 0) {
+        myPosts.value = newPosts;
+      } else {
+        myPosts.value.push(...newPosts);
+      }
+
+      // 페이지 정보 업데이트
+      currentPage.value = postsData.number || 0;
+      totalPages.value = postsData.totalPages || 0;
+      totalElements.value = postsData.totalElements || 0;
+      hasMorePosts.value = !postsData.last && (currentPage.value + 1 < totalPages.value);
+      
+    }
+  } catch (error) {
+    // 에러 메시지 세분화
+    let errorMessage = "게시글을 불러오는데 실패했습니다.";
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          errorMessage = "로그인이 필요합니다.";
+          break;
+        case 403:
+          errorMessage = "게시글에 접근할 권한이 없습니다.";
+          break;
+        case 404:
+          errorMessage = "요청한 페이지를 찾을 수 없습니다.";
+          break;
+        case 500:
+          errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+          break;
+      }
+    }
+    
+    notificationStore.showError(errorMessage);
+    
+    // 첫 페이지 로딩 실패 시에만 hasMore를 false로 설정
+    if (page === 0) {
+      hasMorePosts.value = false;
+    }
+  } finally {
+    isPostsLoading.value = false;
+  }
+};
+
+// 더 많은 게시글 로드 (무한스크롤용)
+const loadMorePosts = () => {
+  if (hasMorePosts.value && !isPostsLoading.value) {
+    fetchMyPosts(currentPage.value + 1);
   }
 };
 
@@ -183,12 +179,10 @@ const updateEditData = (data) => {
 
 // 이미지 선택 처리
 const handleImageSelected = ({ file, previewUrl }) => {
-  // 이전 미리보기 URL 정리
   if (profileImagePreview.value) {
     URL.revokeObjectURL(profileImagePreview.value);
   }
 
-  // 새 파일 및 미리보기 저장
   profileImageFile.value = file;
   profileImagePreview.value = previewUrl;
 };
@@ -200,43 +194,23 @@ const handleValidationError = ({ field, error }) => {
   } else {
     delete errors[field];
   }
-  showNotification(error, "error");
-};
-
-// 편집 취소
-const cancelEdit = () => {
-  isEditMode.value = false;
-
-  // 이미지 상태 초기화
-  profileImageFile.value = null;
-  if (profileImagePreview.value) {
-    URL.revokeObjectURL(profileImagePreview.value);
-    profileImagePreview.value = null;
+  if (error) {
+    notificationStore.showError(error);
   }
-
-  // 오류 초기화
-  Object.keys(errors).forEach((key) => delete errors[key]);
-
-  // 편집 데이터 초기화 - 원래 값으로 복원
-  updateEditData(userData.value);
 };
 
 // 유효성 검사
-const validateForm = () => {
+const validateForm = (data) => {
   const newErrors = {};
 
-  // 이메일 유효성 검사
-  if (editData.email && !isValidEmail(editData.email)) {
+  if (data.email && !isValidEmail(data.email)) {
     newErrors.email = "올바른 이메일 형식이 아닙니다.";
   }
 
-  // 전화번호 유효성 검사
-  if (editData.phoneNumber && !isValidPhoneNumber(editData.phoneNumber)) {
-    newErrors.phoneNumber =
-      "올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)";
+  if (data.phoneNumber && !isValidPhoneNumber(data.phoneNumber)) {
+    newErrors.phoneNumber = "올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)";
   }
 
-  // 오류 객체 업데이트
   Object.keys(errors).forEach((key) => delete errors[key]);
   Object.keys(newErrors).forEach((key) => {
     errors[key] = newErrors[key];
@@ -246,23 +220,20 @@ const validateForm = () => {
 };
 
 // 변경사항 저장
-const saveChanges = async () => {
-  if (!validateForm()) return;
+const saveChanges = async (saveData) => {
+  if (!validateForm(saveData)) return;
 
   isSaving.value = true;
 
   try {
-    // FormData 객체 생성
     const formData = new FormData();
 
-    // request 객체 생성 - 모든 텍스트 필드 포함 (수정 여부와 상관없이)
     const requestData = {
-      nickname: editData.nickname,
-      email: editData.email,
-      phoneNumber: editData.phoneNumber,
+      nickname: saveData.nickname,
+      email: saveData.email,
+      phoneNumber: saveData.phoneNumber,
     };
 
-    // Request 객체를 JSON 문자열로 변환하여 FormData에 추가
     formData.append(
       "request",
       new Blob([JSON.stringify(requestData)], {
@@ -270,35 +241,26 @@ const saveChanges = async () => {
       })
     );
 
-    // 이미지 파일이 있으면(수정된 경우에만) FormData에 추가
-    if (profileImageFile.value) {
-      formData.append("profileImage", profileImageFile.value);
+    if (saveData.profileImageFile) {
+      formData.append("profileImage", saveData.profileImageFile);
     }
 
-    // multipart/form-data 요청 전송
     const response = await apiClient.put("/member", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    // 사용자 정보 다시 불러오기
     await fetchUserData();
 
-    // 편집 모드 종료
-    isEditMode.value = false;
-
-    // 이미지 상태 초기화
     profileImageFile.value = null;
     if (profileImagePreview.value) {
       URL.revokeObjectURL(profileImagePreview.value);
       profileImagePreview.value = null;
     }
 
-    // 성공 메시지 표시
     notificationStore.showSuccess("정보가 성공적으로 업데이트되었습니다.");
   } catch (error) {
-    // 오류 메시지 추출
     let errorMessage = "정보 업데이트에 실패했습니다.";
     if (error.response && error.response.data && error.response.data.message) {
       errorMessage = error.response.data.message;
@@ -310,29 +272,87 @@ const saveChanges = async () => {
   }
 };
 
-// 알림 메시지 표시 (로컬 알림)
-const showNotification = (message, type = "success") => {
-  // 이전 타임아웃이 있으면 제거
-  if (notification.timeout) {
-    clearTimeout(notification.timeout);
+// 게시글 삭제 처리 (단일/다중 모두 처리)
+const handleDeletePosts = async (postIds) => {
+  if (!postIds || postIds.length === 0) {
+    notificationStore.showWarning("삭제할 게시글이 선택되지 않았습니다.");
+    return;
   }
 
-  // 새 알림 설정
-  notification.show = true;
-  notification.message = message;
-  notification.type = type;
+  // 삭제 확인 다이얼로그
+  const confirmMessage = postIds.length === 1 
+    ? "이 게시글을 삭제하시겠습니까?"
+    : `선택된 ${postIds.length}개의 게시글을 삭제하시겠습니까?`;
+    
+  if (!window.confirm(confirmMessage)) {
+    return;
+  }
 
-  // 3초 후 자동 제거
-  notification.timeout = setTimeout(() => {
-    notification.show = false;
-  }, 3000);
+  try {
+    // 모든 게시글 삭제 요청을 병렬로 처리
+    const deletePromises = postIds.map(postId => 
+      PostService.deletePost(postId)
+        .then(() => ({ postId, success: true }))
+        .catch(error => ({ postId, success: false, error }))
+    );
+
+    // 모든 요청이 완료될 때까지 대기 (일부 실패해도 계속 진행)
+    const results = await Promise.allSettled(deletePromises);
+    
+    // 성공한 삭제 결과들 추출
+    const successfulDeletes = results
+      .filter(result => result.status === 'fulfilled' && result.value.success)
+      .map(result => result.value.postId);
+    
+    const failedDeletes = results
+      .filter(result => result.status === 'fulfilled' && !result.value.success)
+      .map(result => result.value.postId);
+
+    // 성공한 게시글들을 목록에서 제거
+    if (successfulDeletes.length > 0) {
+      myPosts.value = myPosts.value.filter(
+        post => !successfulDeletes.includes(post.postId)
+      );
+    }
+
+    // 결과에 따른 알림 메시지
+    if (successfulDeletes.length === postIds.length) {
+      // 모든 게시글이 성공적으로 삭제됨
+      const message = postIds.length === 1 
+        ? "게시글이 성공적으로 삭제되었습니다."
+        : `${successfulDeletes.length}개의 게시글이 성공적으로 삭제되었습니다.`;
+      notificationStore.showSuccess(message);
+    } else if (successfulDeletes.length > 0) {
+      // 일부만 성공
+      notificationStore.showWarning(
+        `${successfulDeletes.length}개의 게시글이 삭제되었습니다. ${failedDeletes.length}개의 게시글 삭제에 실패했습니다.`
+      );
+    } else {
+      // 모든 게시글 삭제 실패
+      const message = postIds.length === 1 
+        ? "게시글 삭제에 실패했습니다."
+        : "선택된 게시글 삭제에 실패했습니다.";
+      notificationStore.showError(message);
+    }
+
+    // 삭제 후 게시글 목록 새로고침 (필요시)
+    // 성공적으로 삭제된 게시글이 있다면 전체 목록을 새로고침하여 동기화
+    if (successfulDeletes.length > 0) {
+      // 첫 페이지부터 다시 로드하여 전체 목록 동기화
+      currentPage.value = 0;
+      await fetchMyPosts(0, true);
+    }
+
+  } catch (error) {
+    notificationStore.showError("게시글 삭제 중 오류가 발생했습니다.");
+  }
 };
 
 // 비밀번호 변경 페이지로 이동
 const redirectToPasswordChange = () => {
   router.push({
-    name: "change-password", // 변경된 라우트 이름 사용
-    params: { email: userData.value.email }, // 이메일 파라미터 전달
+    name: "change-password",
+    params: { email: userData.value.email },
   });
 };
 
@@ -348,7 +368,6 @@ const logout = async () => {
 
 // 회원 탈퇴 확인
 const confirmDeleteAccount = () => {
-  // 확인 대화상자 표시
   if (
     window.confirm(
       "정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다."
@@ -363,7 +382,6 @@ const deleteAccount = async () => {
   try {
     await AuthService.deleteMember();
 
-    // 로그아웃 처리 및 홈으로 이동
     await authStore.logout();
     notificationStore.showSuccess("회원 탈퇴가 완료되었습니다.");
     router.push({ name: "home" });
@@ -372,17 +390,13 @@ const deleteAccount = async () => {
   }
 };
 
-// 컴포넌트 마운트 시 사용자 정보 불러오기
-onMounted(() => {
-  fetchUserData();
+// 컴포넌트 마운트 시 데이터 불러오기
+onMounted(async () => {
+  await Promise.all([
+    fetchUserData(),
+    fetchMyPosts(0, true)
+  ]);
 });
-
-// 컴포넌트 언마운트 시 메모리 누수 방지를 위한 정리
-// onBeforeUnmount(() => {
-//   if (profileImagePreview.value) {
-//     URL.revokeObjectURL(profileImagePreview.value);
-//   }
-// });
 </script>
 
 <style lang="scss" scoped>
@@ -392,17 +406,10 @@ onMounted(() => {
   padding: $spacing-lg;
   min-height: calc(100vh - 60px);
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.profile-container {
-  @include glassmorphism(0.7, 15px);
-  width: 100%;
-  max-width: 800px;
-  padding: $spacing-xl;
-  border-radius: 16px;
-  margin: $spacing-xl 0;
+  flex-direction: column;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .profile-title {
@@ -410,47 +417,118 @@ onMounted(() => {
   text-align: center;
   margin-bottom: $spacing-xl;
   font-weight: $font-weight-bold;
-}
+  font-size: 2rem;
 
-.profile-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: $spacing-md;
-  margin: $spacing-lg 0;
-}
-
-.profile-notification {
-  padding: $spacing-md;
-  border-radius: 8px;
-  text-align: center;
-  margin: $spacing-md 0;
-
-  &--success {
-    background-color: rgba($success-color, 0.1);
-    color: $success-color;
-  }
-
-  &--error {
-    background-color: rgba($error-color, 0.1);
-    color: $error-color;
+  @media (max-width: $breakpoint-md) {
+    font-size: 1.75rem;
+    margin-bottom: $spacing-lg;
   }
 }
 
-.profile-extra-actions {
+.profile-main-content {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: $spacing-md;
-  margin-top: $spacing-2xl;
-  padding-top: $spacing-lg;
-  border-top: 1px solid rgba($primary-color, 0.1);
+  gap: $spacing-xl;
+  width: 100%;
+  align-items: flex-start;
 
-  .danger {
-    color: $error-color;
+  @media (max-width: $breakpoint-lg) {
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
+}
 
-    &:hover {
-      background-color: rgba($error-color, 0.1);
+.profile-section {
+  flex: 0 0 45%;
+  min-width: 400px;
+  height: 450px; // 높이 감소
+
+  @media (max-width: $breakpoint-lg) {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+    height: auto; // 모바일에서는 자동 높이
+  }
+
+  @media (max-width: $breakpoint-md) {
+    min-width: unset;
+  }
+
+  // UserProfile 컴포넌트 스타일 오버라이드 (새로운 구조에 맞춤)
+  :deep(.user-profile-container) {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    max-width: none;
+
+    @media (max-width: $breakpoint-lg) {
+      height: auto;
     }
+  }
+
+  :deep(.user-profile) {
+    height: 100%;
+
+    @media (max-width: $breakpoint-lg) {
+      height: auto;
+    }
+  }
+}
+
+.posts-section {
+  flex: 1;
+  min-width: 500px;
+  height: 450px; // 프로필 섹션과 동일한 높이
+
+  @media (max-width: $breakpoint-lg) {
+    min-width: unset;
+    width: 100%;
+    height: auto; // 모바일에서는 자동 높이
+  }
+
+  // MyPostsList 컴포넌트 스타일 오버라이드
+  :deep(.my-posts-container) {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+
+    @media (max-width: $breakpoint-lg) {
+      height: auto;
+    }
+  }
+
+  :deep(.my-posts) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-md; // 패딩 줄임
+
+    @media (max-width: $breakpoint-lg) {
+      height: auto;
+      padding: $spacing-lg; // 모바일에서는 조금 더 여유있게
+    }
+  }
+
+  :deep(.my-posts__list) {
+    flex: 1;
+    max-height: none; // 기존 max-height 제거
+    height: 100%;
+
+    @media (max-width: $breakpoint-lg) {
+      height: 70vh; // 모바일에서는 뷰포트 높이 기준
+    }
+  }
+}
+
+// 반응형 디자인 개선
+@media (max-width: $breakpoint-lg) {
+  .profile-page {
+    padding: $spacing-md;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .profile-main-content {
+    gap: $spacing-md;
   }
 }
 </style>

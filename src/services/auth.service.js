@@ -85,7 +85,7 @@ class AuthService {
   clearUserData() {
     localStorage.removeItem("user");
     sessionStorage.removeItem("user");
-    localStorage.removeItem("savedTrip");
+    localStorage.removeItem("newTripInfo");
   }
 
   clearRememberMe() {
