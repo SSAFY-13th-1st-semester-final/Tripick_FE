@@ -148,18 +148,14 @@ const closeRegionInfo = async () => {
 
 const addToTravelPlan = () => {
   if (selectedRegion.value) {
-    notificationStore.showSuccess(
-      `${selectedRegion.value}이(가) 여행 계획에 추가되었습니다`
-    );
+    notificationStore.showSuccess(`준비 중인 기능입니다.`);
     // TODO: 실제 여행 계획 저장 로직 구현
   }
 };
 
 const viewDetails = () => {
   if (selectedRegion.value) {
-    notificationStore.showInfo(
-      `${selectedRegion.value}의 상세 정보 페이지로 이동합니다`
-    );
+    notificationStore.showInfo(`준비 중인 기능입니다.`);
     // TODO: 상세 페이지로 라우팅
   }
 };

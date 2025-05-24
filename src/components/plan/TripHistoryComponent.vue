@@ -86,7 +86,6 @@ import { useNotificationStore } from "@/stores/notification";
 import postService from "@/services/post.service";
 import travelService from "@/services/travel.service";
 
-
 // Props
 const props = defineProps({
   region: {
@@ -119,6 +118,7 @@ const resetTripHistory = () => {
 
 // 여행 기록 로드
 const loadTripHistory = async (region, isLoadMore = false) => {
+  // 실행 조건 체크
   if (
     !isMounted.value ||
     tripHistoryLoading.value ||
@@ -141,36 +141,35 @@ const loadTripHistory = async (region, isLoadMore = false) => {
       return;
     }
 
-    // 응답 데이터 처리
-    if (
-      response.status === 200 &&
-      response.data &&
-      response.data.data.totalElements !== 0
-    ) {
-      const { content, totalElements, totalPages, last } = response.data.data;
+    // 정상 응답이 아닌 경우 에러 처리
+    if (response.status !== 200 || !response.data) {
+      throw new Error("Invalid response");
+    }
 
-      if (isLoadMore) {
-        tripHistory.value.push(...content);
-      } else {
-        tripHistory.value = content;
-      }
+    const { totalElements } = response.data.data;
 
-      hasMoreTripHistory.value = !last;
-      currentPage.value += 1;
-
-      // 사용자에게 필요한 정보만 알림 (데이터 없음)
-      if (totalElements === 0 && !isLoadMore) {
+    // 데이터가 없는 경우
+    if (totalElements === 0) {
+      hasMoreTripHistory.value = false;
+      if (!isLoadMore) {
         notificationStore.showInfo(`${region}의 여행 기록이 없습니다`);
       }
-    } else {
-      // 데이터 로드 실패 시 사용자에게 알림
-      if (isMounted.value) {
-        notificationStore.showError("여행 기록을 불러오는데 실패했습니다");
-      }
-      hasMoreTripHistory.value = false;
+      return;
     }
+
+    // 데이터가 있는 경우 처리
+    const { content, last } = response.data.data;
+
+    if (isLoadMore) {
+      tripHistory.value.push(...content);
+    } else {
+      tripHistory.value = content;
+    }
+
+    hasMoreTripHistory.value = !last;
+    currentPage.value += 1;
   } catch (error) {
-    // 사용자 액션으로 인한 데이터 로드 실패만 알림
+    // 에러 처리
     if (isMounted.value) {
       notificationStore.showError("여행 기록을 불러오는데 실패했습니다");
     }
@@ -185,15 +184,14 @@ const loadTripHistory = async (region, isLoadMore = false) => {
 const loadTripHistoryDetail = async (tripId) => {
   try {
     const result = await travelService.searchTripInfo(tripId);
+
     if (result.success) {
       router.push({ name: "travel-planner" });
     }
   } catch (error) {
     console.error("여행 지도 이동 실패 : ", error);
   }
-}
-
-
+};
 
 // 무한 스크롤 설정
 const setupInfiniteScroll = () => {

@@ -169,22 +169,20 @@ export class PostService {
   async getAllMyPosts(params = {}) {
     try {
       // 기본값 설정
-      const {
-        page = 0,
-        size = 10
-      } = params;
+      const { page = 0, size = 10 } = params;
 
       // URL 파라미터 구성
       const queryParams = new URLSearchParams();
-      queryParams.append('page', page.toString());
-      queryParams.append('size', size.toString());
+      queryParams.append("page", page.toString());
+      queryParams.append("size", size.toString());
 
-      const response = await ApiService.authGet(`/member/post?${queryParams.toString()}`);
+      const response = await ApiService.authGet(
+        `/member/post?${queryParams.toString()}`
+      );
 
       return response;
     } catch (error) {
-      console.error("내 게시글 조회 오류: ", error);
-      throw error; // 에러를 다시 던져서 호출하는 곳에서 처리할 수 있도록
+      throw error;
     }
   }
 }
