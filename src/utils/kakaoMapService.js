@@ -102,7 +102,6 @@ class KakaoMapService {
             address: result[0].address_name,
           });
         } else {
-          console.log("주소 변환 실패")
           reject(new Error("주소 변환에 실패했습니다."));
         }
       });
@@ -155,11 +154,11 @@ class KakaoMapService {
     this.clearMarkers();
 
     places.forEach((place, index) => {
-      if (!place.latitude || !place.longitude) return;
+      if (!place.y || !place.x) return;
 
       const position = new window.kakao.maps.LatLng(
-        place.latitude,
-        place.longitude
+        place.y,
+        place.x
       );
 
       const markerOptions = {
@@ -510,11 +509,11 @@ class KakaoMapService {
    * @returns {Object} 생성된 커스텀 오버레이 객체
    */
   addCustomOverlay(place, content) {
-    if (!this.map || !place.latitude || !place.longitude) return null;
+    if (!this.map || !place.y || !place.x) return null;
 
     const position = new window.kakao.maps.LatLng(
-      place.latitude,
-      place.longitude
+      place.y,
+      place.x
     );
 
     const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -929,101 +928,6 @@ class KakaoMapService {
     };
   }
 
-  /**
-   * 현재 보이는 마커 개수 가져오기
-   * @returns {number} 마커 개수
-   */
-  getVisibleMarkersCount() {
-    return this.markers.length;
-  }
-
-  /**
-   * 현재 활성화된 경로 개수 가져오기
-   * @returns {number} 경로 개수
-   */
-  getActiveRoutesCount() {
-    let count = 0;
-    this.routeOverlays.forEach((overlays) => {
-      if (overlays.length > 0) count++;
-    });
-    return count;
-  }
-
-  /**
-   * 지도 범위 내 마커 필터링
-   * @returns {Array} 현재 보이는 영역 내의 마커들
-   */
-  getMarkersInBounds() {
-    if (!this.map || this.markers.length === 0) return [];
-
-    const bounds = this.map.getBounds();
-    return this.markers.filter((marker) => {
-      return bounds.contain(marker.getPosition());
-    });
-  }
-
-  /**
-   * 특정 좌표가 지도 영역 내에 있는지 확인
-   * @param {number} lat - 위도
-   * @param {number} lng - 경도
-   * @returns {boolean} 영역 내 포함 여부
-   */
-  isLocationInBounds(lat, lng) {
-    if (!this.map) return false;
-
-    const position = new window.kakao.maps.LatLng(lat, lng);
-    const bounds = this.map.getBounds();
-    return bounds.contain(position);
-  }
-
-  /**
-   * 두 지점 간 거리 계산 (미터 단위)
-   * @param {number} lat1 - 첫 번째 지점 위도
-   * @param {number} lng1 - 첫 번째 지점 경도
-   * @param {number} lat2 - 두 번째 지점 위도
-   * @param {number} lng2 - 두 번째 지점 경도
-   * @returns {number} 거리 (미터)
-   */
-  calculateDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371000; // 지구 반지름 (미터)
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  /**
-   * 마커 클러스터링 설정
-   * @param {boolean} enable - 클러스터링 활성화 여부
-   * @param {Object} options - 클러스터 옵션
-   */
-  setMarkerClustering(enable = true, options = {}) {
-    if (!this.map || !window.kakao.maps.MarkerClusterer) return;
-
-    if (this.clusterer) {
-      this.clusterer.clear();
-      this.clusterer = null;
-    }
-
-    if (enable && this.markers.length > 0) {
-      const defaultOptions = {
-        map: this.map,
-        averageCenter: true,
-        minLevel: 6,
-        disableClickZoom: false,
-        ...options,
-      };
-
-      this.clusterer = new window.kakao.maps.MarkerClusterer(defaultOptions);
-      this.clusterer.addMarkers(this.markers);
-    }
-  }
 
   /**
    * 서비스 정리 (메모리 정리용)

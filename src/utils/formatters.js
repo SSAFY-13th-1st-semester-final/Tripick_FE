@@ -152,7 +152,6 @@ export const toKSTDateString = (date) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
   if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    console.error('Invalid date provided to toKSTDateString:', date);
     return null;
   }
 

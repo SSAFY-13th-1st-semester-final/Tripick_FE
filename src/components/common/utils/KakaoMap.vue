@@ -296,11 +296,11 @@ const addMarkersWithHotels = async (places) => {
   // 숙소 마커 (빨간색 핀)
   const hotelPositions = [];
   hotels.forEach((hotel) => {
-    if (!hotel.latitude || !hotel.longitude) return;
+    if (!hotel.y || !hotel.x) return;
 
     const position = new window.kakao.maps.LatLng(
-      hotel.latitude,
-      hotel.longitude
+      hotel.y,
+      hotel.x
     );
     hotelPositions.push(position);
 
@@ -348,9 +348,9 @@ const addMarkersWithHotels = async (places) => {
     });
 
     visitPlaces.forEach((place) => {
-      if (place.latitude && place.longitude) {
+      if (place.y && place.x) {
         bounds.extend(
-          new window.kakao.maps.LatLng(place.latitude, place.longitude)
+          new window.kakao.maps.LatLng(place.y, place.x)
         );
       }
     });
@@ -373,8 +373,8 @@ const createDayRoute = async (dayIndex) => {
 
   // 숙소 좌표 처리
   if (dayHotel) {
-    if (dayHotel.latitude && dayHotel.longitude) {
-      hotelCoord = { lat: dayHotel.latitude, lng: dayHotel.longitude };
+    if (dayHotel.y && dayHotel.x) {
+      hotelCoord = { lat: dayHotel.y, lng: dayHotel.x };
     } else if (dayHotel.roadAddressName || dayHotel.addressName) {
       try {
         const address = dayHotel.roadAddressName || dayHotel.addressName;
@@ -398,8 +398,8 @@ const createDayRoute = async (dayIndex) => {
   for (const place of dayPlaces) {
     let placeCoord = null;
 
-    if (place.latitude && place.longitude) {
-      placeCoord = { lat: place.latitude, lng: place.longitude };
+    if (place.y && place.x) {
+      placeCoord = { lat: place.y, lng: place.x };
     } else if (place.roadAddressName || place.addressName) {
       try {
         const address = place.roadAddressName || place.addressName;
@@ -483,7 +483,7 @@ const updateMapRoutes = async () => {
 const addCoordsToPlaces = async (places) => {
   const results = await Promise.allSettled(
     places.map(async (place) => {
-      if (place.latitude && place.longitude) {
+      if (place.y && place.x) {
         return place;
       }
 
@@ -494,8 +494,8 @@ const addCoordsToPlaces = async (places) => {
 
           return {
             ...place,
-            latitude: coord.lat,
-            longitude: coord.lng,
+            y: coord.lat,
+            x: coord.lng,
           };
         }
         return place;

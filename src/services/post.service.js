@@ -158,6 +158,35 @@ export class PostService {
       throw error;
     }
   }
+
+  /**
+   * 내가 쓴 게시글 전체 조회
+   * @param {Object} params - 페이징 파라미터
+   * @param {number} params.page - 페이지 번호 (0부터 시작)
+   * @param {number} params.size - 페이지 크기
+   * @return {Promise} - 내가 쓴 게시글 전체 조회 (페이징)
+   */
+  async getAllMyPosts(params = {}) {
+    try {
+      // 기본값 설정
+      const {
+        page = 0,
+        size = 10
+      } = params;
+
+      // URL 파라미터 구성
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+      queryParams.append('size', size.toString());
+
+      const response = await ApiService.authGet(`/member/post?${queryParams.toString()}`);
+
+      return response;
+    } catch (error) {
+      console.error("내 게시글 조회 오류: ", error);
+      throw error; // 에러를 다시 던져서 호출하는 곳에서 처리할 수 있도록
+    }
+  }
 }
 
 export default new PostService();

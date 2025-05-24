@@ -81,13 +81,9 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path
-              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-            ></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
           </svg>
-          <span class="btn-text">여행생성</span>
+          <span class="btn-text">경로최적화</span>
         </button>
         <button class="glass-btn primary" @click="handleSaveUserTrip">
           <svg
@@ -168,7 +164,7 @@
           </div>
           <div class="panel-content">
             <TripSchedule
-              v-if="isComponentsReady"
+              v-if="isComponentsReady && hasTripInfo"
               @edit-trip-info="editTripInfo"
             />
           </div>
@@ -242,7 +238,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import { onBeforeRouteLeave } from 'vue-router';
 import { useTravelStore } from "@/stores/travel";
 import useTravelService from "@/services/travel.service.js";
 import { useNotificationStore } from "@/stores/notification";
@@ -250,15 +247,14 @@ import { storeToRefs } from "pinia";
 import PlaceSearch from "@/components/travel/PlaceSearch.vue";
 import TripSchedule from "@/components/travel/TripSchedule.vue";
 import KakaoMap from "@/components/common/utils/KakaoMap.vue";
-import travelService from "../../services/travel.service";
+import travelService from "@/services/travel.service";
 
 // 스토어
 const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 
 // 스토어에서 상태 가져오기
-const { tripInfo, currentDay, currentDayPlaces, isTemporarySaved } =
-  storeToRefs(travelStore);
+const { tripInfo, isTemporarySaved } = storeToRefs(travelStore);
 
 // 로딩 및 준비 상태
 const isLoading = ref(true);
@@ -274,41 +270,104 @@ const activeMobileTab = ref("search");
 const isSearchPanelCollapsed = ref(false);
 const isSchedulePanelCollapsed = ref(false);
 
-// 여행 설정 폼
-const tripForm = ref({
-  title: "",
-  region: null,
-  dateRange: {
-    startDate: null,
-    endDate: null,
-  },
-  memo: "",
-});
-
 // 계산된 속성
 const hasTripInfo = computed(() => {
-  return (
-    tripInfo.value.title && tripInfo.value.startDate && tripInfo.value.endDate
+  return Boolean(
+    tripInfo.value.title && 
+    tripInfo.value.startDate && 
+    tripInfo.value.endDate
   );
 });
 
-const isTripFormValid = computed(() => {
-  return (
-    tripForm.value.title.trim() !== "" &&
-    tripForm.value.region &&
-    tripForm.value.dateRange.startDate &&
-    tripForm.value.dateRange.endDate
-  );
+// ===== 세션 관리 기능 =====
+
+// 다른 페이지로 이동 시 세션 정리
+onBeforeRouteLeave(async (to, from, next) => {
+  try {
+    // 현재 여행 계획이 있는지 확인
+    const hasTripData = travelStore.hasTripData;
+    
+    if (hasTripData) {
+      // 사용자에게 확인 요청
+      const shouldSave = confirm(
+        '현재 작업 중인 여행 계획이 있습니다.\n\n' +
+        '확인: 임시 저장하고 나가기\n' +
+        '취소: 저장하지 않고 나가기'
+      );
+      
+      if (shouldSave) {
+        // localStorage에 임시 저장
+        const saveResult = travelStore.saveTripToLocalStorage();
+        if (saveResult.success) {
+          notificationStore.showSuccess('여행 계획이 임시 저장되었습니다.');
+        } else {
+          notificationStore.showError('임시 저장에 실패했습니다.');
+        }
+      }
+    }
+    
+    // 세션 스토리지의 newTripInfo 삭제
+    travelStore.clearNewTripFromSession();
+    travelStore.resetTrip();
+    
+    // 페이지 이동 허용
+    next();
+    
+  } catch (error) {
+    notificationStore.showError('페이지 이동 중 오류가 발생했습니다.');
+    
+    // 오류가 발생해도 이동은 허용
+    travelStore.clearNewTripFromSession();
+    next();
+  }
 });
 
-// 수정된 초기화 함수 - localStorage vs sessionStorage 처리
+// 컴포넌트 해제 시 세션 정리
+onBeforeUnmount(() => {
+  // 비상 정리 (만약 onBeforeRouteLeave가 실행되지 않은 경우)
+  travelStore.clearNewTripFromSession();
+  travelStore.resetTrip();
+});
+
+// 브라우저 창 닫기/새로고침 처리
+const handleBeforeUnload = (event) => {
+  // 현재 여행 계획이 있으면 localStorage에 자동 저장
+  if (travelStore.hasTripData) {
+    travelStore.saveTripToLocalStorage();
+    travelStore.resetTrip();
+  }
+  
+  // 세션 스토리지 정리
+  travelStore.clearNewTripFromSession();
+  travelStore.resetTrip();
+  
+  // 브라우저에 확인 메시지 표시 (데이터가 있는 경우에만)
+  if (travelStore.hasTripData) {
+    event.preventDefault();
+    event.returnValue = '작업 중인 여행 계획이 있습니다. 정말 나가시겠습니까?';
+    return event.returnValue;
+  }
+};
+
+// 브라우저 이벤트 리스너 등록/해제
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+});
+
+// ===== 기존 기능들 =====
+
+// 초기화 함수 - sessionStorage vs localStorage 처리
 const initializeComponent = async () => {
   isLoading.value = true;
 
   try {
-    // 새로운 초기화 로직 사용
     const result = await travelStore.initializeTripPlannerView();
     
+    // 초기화 결과에 따른 알림
     switch (result) {
       case 'new':
         notificationStore.showSuccess("새로운 여행 계획을 시작합니다.");
@@ -347,11 +406,10 @@ const onMapReady = () => {
   // 맵이 준비된 후 추가 작업이 필요하면 여기서 수행
 };
 
-// 여행 정보 변경 감지
+// 여행 정보 변경 감지하여 맵 리렌더링
 watch(
   () => tripInfo.value,
   async (newTripInfo, oldTripInfo) => {
-    // 여행 정보가 변경되면 맵을 리렌더링
     if (newTripInfo && newTripInfo !== oldTripInfo) {
       await nextTick();
       mapKey.value += 1;
@@ -360,50 +418,34 @@ watch(
   { deep: true }
 );
 
-// 메서드
-const createTrip = () => {
-  if (!isTripFormValid.value) {
-    notificationStore.showWarning("모든 필수 항목을 입력해주세요.");
+// 여행 정보 수정
+const editTripInfo = () => {
+  // TODO: 여행 정보 편집 모달 구현
+  notificationStore.showInfo("여행 정보 편집 기능은 준비 중입니다.");
+};
+
+// 경로 최적화 요청
+const handleGetOptimalPaths = async () => {
+  if (!travelStore.hasTripData) {
+    notificationStore.showWarning("여행 계획 데이터가 없습니다.");
     return;
   }
 
-  // 여행 정보 설정
-  travelStore.setTripInfo({
-    title: tripForm.value.title,
-    region: tripForm.value.region,
-    startDate: tripForm.value.dateRange.startDate,
-    endDate: tripForm.value.dateRange.endDate,
-    memo: tripForm.value.memo,
-  });
-
-  notificationStore.showSuccess("여행 계획이 생성되었습니다.");
-};
-
-const editTripInfo = () => {
-  // 현재 여행 정보로 폼 초기화
-  tripForm.value = {
-    title: tripInfo.value.title,
-    region: tripInfo.value.region,
-    dateRange: {
-      startDate: tripInfo.value.startDate,
-      endDate: tripInfo.value.endDate,
-    },
-    memo: tripInfo.value.memo,
-  };
-
-  // TODO: 여행 정보 편집 모달 구현
-};
-
-// 컴포넌트에서 간단하게 호출
-const handleGetOptimalPaths = async () => {
   try {
+    notificationStore.showInfo("경로 최적화를 요청합니다...");
     const result = await useTravelService.getOptimalPaths();
+    
+    if (result.success) {
+      notificationStore.showSuccess("경로가 최적화되었습니다.");
+    } else {
+      notificationStore.showError(result.message || "경로 최적화에 실패했습니다.");
+    }
   } catch (error) {
-    notificationStore.showError("경로 조회에 실패했습니다.");
+    notificationStore.showError("경로 최적화 중 오류가 발생했습니다.");
   }
 };
 
-// 수정된 임시저장 함수 - localStorage에 저장
+// 임시저장 - sessionStorage에서 localStorage로 이동
 const handleTemporarySave = async () => {
   if (!travelStore.hasTripData) {
     notificationStore.showWarning("저장할 여행 데이터가 없습니다.");
@@ -413,26 +455,32 @@ const handleTemporarySave = async () => {
   isTemporarySaving.value = true;
 
   try {
-    const result = travelStore.saveTripToLocalStorage();
+    // sessionStorage의 데이터를 localStorage로 이동
+    const result = travelStore.moveNewTripToLocalStorage();
     
     if (result.success) {
-      notificationStore.showSuccess(result.message);
-      // sessionStorage 정리 (이제 localStorage에 저장되었으므로)
-      travelStore.clearSessionStorage();
+      notificationStore.showSuccess("여행 계획이 임시저장되었습니다.");
     } else {
-      notificationStore.showError(result.message);
+      notificationStore.showError(result.message || "임시저장에 실패했습니다.");
     }
   } catch (error) {
-    notificationStore.showError("임시 저장 중 오류가 발생했습니다.");
+    notificationStore.showError("임시저장 중 오류가 발생했습니다.");
   } finally {
     isTemporarySaving.value = false;
   }
 };
 
-const handleSaveUserTrip = () => {
+// 여행 저장하기 (API 호출)
+const handleSaveUserTrip = async () => {
+  if (!travelStore.hasTripData) {
+    notificationStore.showWarning("저장할 여행 데이터가 없습니다.");
+    return;
+  }
+
   try {
-    travelService.saveTrip();
-    notificationStore.showSuccess("여행이 저장되었습니다.");
+    notificationStore.showInfo("여행을 저장하는 중...");
+    await travelService.saveTrip();
+    notificationStore.showSuccess("여행이 성공적으로 저장되었습니다.");
   } catch (error) {
     notificationStore.showError("여행 저장에 실패했습니다.");
   }
@@ -451,6 +499,25 @@ const toggleSchedulePanel = () => {
 onMounted(() => {
   initializeComponent();
 });
+
+// 개발용 디버그 기능 (개발 모드에서만)
+if (process.env.NODE_ENV === 'development') {
+  window.tripPlannerDebug = {
+    manualCleanup: () => {
+      travelStore.clearNewTripFromSession();
+      notificationStore.showInfo('세션이 수동으로 정리되었습니다.');
+    },
+    manualSave: () => {
+      const result = travelStore.saveTripToLocalStorage();
+      if (result.success) {
+        notificationStore.showSuccess('수동 저장 완료');
+      } else {
+        notificationStore.showError('수동 저장 실패');
+      }
+    },
+    store: travelStore
+  };
+}
 </script>
 
 <style lang="scss" scoped>

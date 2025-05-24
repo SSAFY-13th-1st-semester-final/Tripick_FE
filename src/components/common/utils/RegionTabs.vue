@@ -61,6 +61,7 @@ const activeProvince = computed(
 const selectProvince = (index, province) => {
   activeProvinceIndex.value = index;
 
+
   // 도/시 선택 시 전체 지역을 선택하는 것으로 간주
   emit("region-selected", {
     provinceId: province.id,
