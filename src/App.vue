@@ -15,6 +15,9 @@
 
     <AppNotification />
     <DevPanel />
+
+    <!-- AI 챗봇 토글 (전역) -->
+    <AiChatbotToggle />
   </div>
 </template>
 
@@ -26,6 +29,7 @@ import { useNotificationStore } from "@/stores/notification";
 import TokenMonitorService from "@/services/token-monitor.service";
 import AppNotification from "@/components/common/utils/AppNotification.vue";
 import DevPanel from "@/components/common/utils/DevPanel.vue";
+import AiChatbotToggle from "@/components/common/utils/AiChatbotToggle.vue";
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();

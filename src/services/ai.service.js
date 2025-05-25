@@ -57,6 +57,21 @@ export class AiService {
       throw error; // 호출부에서 catch할 수 있도록 다시 throw
     }
   }
+
+  /**
+   * Ai 챗봇 상담 메서드
+   * @param {string} query - 사용자의 질문
+   * @return {Promise} - AI 챗봇의 응답
+   */
+  async requestAiChat(query) {
+    try {
+      const response = await ApiService.authPost("/chatbot/chat", { query });
+      return response;
+    } catch (error) {
+      console.error("AI 챗봇 상담 에러:", error);
+      throw error; // 호출부에서 catch할 수 있도록 다시 throw
+    }
+  }
 }
 
 export default new AiService();
