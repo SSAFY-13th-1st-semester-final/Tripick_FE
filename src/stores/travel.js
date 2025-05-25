@@ -23,6 +23,9 @@ export const useTravelStore = defineStore("travel", {
     // 일차 별 숙소 정보 (1차원 배열)
     hotels: [],
 
+    // 경로 정보 저장 (일차별 경로 leg 데이터)
+    routeData: [],
+
     // 현재 선택 중인 일차
     currentDay: 0,
 
@@ -79,6 +82,20 @@ export const useTravelStore = defineStore("travel", {
      */
     isFirstRouteRequest: (state) => {
       return state.routeApiCallCount === 0;
+    },
+
+    /**
+     * 특정 일차의 경로 데이터 가져오기
+     */
+    getRouteDataForDay: (state) => (day) => {
+      return state.routeData[day] || null;
+    },
+
+    /**
+     * 현재 일차의 경로 데이터
+     */
+    currentDayRouteData: (state) => {
+      return state.routeData[state.currentDay] || null;
     },
 
     /**
@@ -255,6 +272,7 @@ export const useTravelStore = defineStore("travel", {
           tripInfo: this.tripInfo,
           itinerary: this.itinerary,
           hotels: this.hotels,
+          routeData: this.routeData,
           currentDay: this.currentDay,
           routeApiCallCount: this.routeApiCallCount,
           hasRouteOptimization: this.hasRouteOptimization,
@@ -341,6 +359,7 @@ export const useTravelStore = defineStore("travel", {
           tripInfo: this.tripInfo,
           itinerary: this.itinerary,
           hotels: this.hotels,
+          routeData: this.routeData,
           currentDay: this.currentDay,
           routeApiCallCount: this.routeApiCallCount,
           hasRouteOptimization: this.hasRouteOptimization,
@@ -669,6 +688,7 @@ export const useTravelStore = defineStore("travel", {
       this.tripInfo = tripData.tripInfo || this.tripInfo;
       this.itinerary = tripData.itinerary || [];
       this.hotels = tripData.hotels || [];
+      this.routeData = tripData.routeData || [];
       this.currentDay = tripData.currentDay || 0;
       this.routeApiCallCount = tripData.routeApiCallCount || 0;
       this.hasRouteOptimization = tripData.hasRouteOptimization || false;
@@ -721,6 +741,7 @@ export const useTravelStore = defineStore("travel", {
       this.routeApiCallCount = 0;
       this.hasRouteOptimization = false;
       this.lastRouteApiCall = null;
+      this.routeData = [];
     },
 
     /**
@@ -950,7 +971,7 @@ export const useTravelStore = defineStore("travel", {
     },
 
     /**
-     * 최적화된 경로 응답을 기반으로 일차별 방문지 순서 재정렬
+     * 최적화된 경로 응답을 기반으로 일차별 방문지 순서 재정렬 및 경로 데이터 저장
      */
     reorderPlacesByOptimizedRoutes(routeResponse) {
       try {
@@ -984,6 +1005,9 @@ export const useTravelStore = defineStore("travel", {
         let reorderedCount = 0;
         const results = [];
 
+        // 경로 데이터 초기화
+        this.routeData = [];
+
         actualData.paths.forEach((dayPath) => {
           const dayIndex = dayPath.day - 1;
 
@@ -997,6 +1021,19 @@ export const useTravelStore = defineStore("travel", {
           }
 
           const currentDayPlaces = this.itinerary[dayIndex] || [];
+
+          // 경로 데이터 저장
+          if (dayPath.path && Array.isArray(dayPath.path)) {
+            this.routeData[dayIndex] = dayPath.path.map(
+              (segment, segmentIndex) => ({
+                fromPlace: segment.origin,
+                toPlaceId: segment.destinationId,
+                distance: segment.leg.distance,
+                duration: segment.leg.duration,
+                segmentIndex: segmentIndex,
+              })
+            );
+          }
 
           if (currentDayPlaces.length === 0) {
             results.push({
@@ -1177,6 +1214,7 @@ export const useTravelStore = defineStore("travel", {
       };
       this.itinerary = [];
       this.hotels = [];
+      this.routeData = [];
       this.currentDay = 0;
       this.selectedPlace = null;
       this.searchMode = "place";
@@ -1195,6 +1233,7 @@ export const useTravelStore = defineStore("travel", {
         tripInfo: this.tripInfo,
         itinerary: this.itinerary,
         hotels: this.hotels,
+        routeData: this.routeData,
         routeApiCallCount: this.routeApiCallCount,
         hasRouteOptimization: this.hasRouteOptimization,
         lastSavedAt: this.lastSavedAt,
@@ -1223,7 +1262,68 @@ export const useTravelStore = defineStore("travel", {
     },
 
     /**
-     * API 응답 데이터를 store 데이터 구조로 변환
+     * 변환된 API 데이터를 store에 로드하고 sessionStorage에 저장
+     * @param {Object} apiResponse - API 응답 전체 객체
+     * @returns {Object} 로드 결과
+     */
+    loadTripFromApiResponse(apiResponse) {
+      try {
+        const conversionResult =
+          this.convertApiResponseToStoreData(apiResponse);
+
+        if (!conversionResult.success) {
+          return conversionResult;
+        }
+
+        // API에서 변환된 데이터를 sessionStorage에 직접 저장
+        const { tripInfo, itinerary, hotels, currentDay, tripId } =
+          conversionResult.data;
+
+        const dataToSave = {
+          tripInfo: tripInfo,
+          itinerary: itinerary,
+          hotels: hotels,
+          currentDay: currentDay,
+          routeApiCallCount: 0,
+          hasRouteOptimization: false,
+          lastRouteApiCall: null,
+          timestamp: new Date().toISOString(),
+          version: "2.0.0",
+        };
+
+        let saveResult;
+        try {
+          sessionStorage.setItem("newTripInfo", JSON.stringify(dataToSave));
+          saveResult = { success: true };
+        } catch (error) {
+          saveResult = { success: false, error: error.message };
+        }
+
+        if (!saveResult.success) {
+          return {
+            success: true,
+            message: "여행 데이터가 변환되었으나 임시 저장에 실패했습니다.",
+            tripId: tripId,
+            saveWarning: saveResult.error,
+          };
+        }
+
+        return {
+          success: true,
+          message: "여행 데이터가 성공적으로 변환되고 저장되었습니다.",
+          tripId: tripId,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: "여행 데이터 로드 중 오류가 발생했습니다.",
+          error: error.message,
+        };
+      }
+    },
+
+    /**
+     * API 응답 데이터를 store 데이터 구조로 변환 (기존 메서드 유지)
      * @param {Object} apiResponse - API 응답 전체 객체
      * @returns {Object} 변환된 데이터 또는 에러 정보
      */
@@ -1248,10 +1348,36 @@ export const useTravelStore = defineStore("travel", {
           }
         };
 
+        // region 문자열 파싱 (간단 버전)
+        const parseRegion = (regionString) => {
+          if (!regionString || typeof regionString !== "string") {
+            return null;
+          }
+
+          const parts = regionString
+            .trim()
+            .split(" ")
+            .filter((part) => part.trim() !== "");
+
+          if (parts.length === 0) {
+            return null;
+          } else if (parts.length === 1) {
+            return {
+              provinceName: parts[0],
+              districtName: null,
+            };
+          } else {
+            return {
+              provinceName: parts[0],
+              districtName: parts.slice(1).join(" "),
+            };
+          }
+        };
+
         // 1. tripInfo 변환
         const convertedTripInfo = {
           title: apiData.title || "",
-          region: apiData.region,
+          region: parseRegion(apiData.region),
           startDate: parseDate(apiData.startDate),
           endDate: parseDate(apiData.endDate),
           memo: apiData.description || "",
@@ -1327,6 +1453,7 @@ export const useTravelStore = defineStore("travel", {
             tripInfo: convertedTripInfo,
             itinerary: convertedItinerary,
             hotels: convertedHotels,
+            routeData: [],
             currentDay: 0,
             // API에서 가져온 추가 정보
             tripId: apiData.tripId,
@@ -1337,67 +1464,6 @@ export const useTravelStore = defineStore("travel", {
         return {
           success: false,
           message: "API 데이터 변환 중 오류가 발생했습니다.",
-          error: error.message,
-        };
-      }
-    },
-
-    /**
-     * 변환된 API 데이터를 store에 로드하고 sessionStorage에 저장
-     * @param {Object} apiResponse - API 응답 전체 객체
-     * @returns {Object} 로드 결과
-     */
-    loadTripFromApiResponse(apiResponse) {
-      try {
-        const conversionResult =
-          this.convertApiResponseToStoreData(apiResponse);
-
-        if (!conversionResult.success) {
-          return conversionResult;
-        }
-
-        // API에서 변환된 데이터를 sessionStorage에 직접 저장
-        const { tripInfo, itinerary, hotels, currentDay, tripId } =
-          conversionResult.data;
-
-        const dataToSave = {
-          tripInfo: tripInfo,
-          itinerary: itinerary,
-          hotels: hotels,
-          currentDay: currentDay,
-          routeApiCallCount: 0,
-          hasRouteOptimization: false,
-          lastRouteApiCall: null,
-          timestamp: new Date().toISOString(),
-          version: "2.0.0",
-        };
-
-        let saveResult;
-        try {
-          sessionStorage.setItem("newTripInfo", JSON.stringify(dataToSave));
-          saveResult = { success: true };
-        } catch (error) {
-          saveResult = { success: false, error: error.message };
-        }
-
-        if (!saveResult.success) {
-          return {
-            success: true,
-            message: "여행 데이터가 변환되었으나 임시 저장에 실패했습니다.",
-            tripId: tripId,
-            saveWarning: saveResult.error,
-          };
-        }
-
-        return {
-          success: true,
-          message: "여행 데이터가 성공적으로 변환되고 저장되었습니다.",
-          tripId: tripId,
-        };
-      } catch (error) {
-        return {
-          success: false,
-          message: "여행 데이터 로드 중 오류가 발생했습니다.",
           error: error.message,
         };
       }

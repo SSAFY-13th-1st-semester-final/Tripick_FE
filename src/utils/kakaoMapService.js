@@ -1,5 +1,8 @@
 // src/utils/kakaoMapService.js
 
+import infoWindowRenderer from "./InfoWindowRenderer.js";
+import websiteModal from "./WebsiteModal.js";
+
 /**
  * 카카오맵 API 관련 유틸리티 함수들
  */
@@ -14,9 +17,6 @@ class KakaoMapService {
 
     // 경로 관련 저장소
     this.routeOverlays = new Map();
-
-    // 웹사이트 모달 관련
-    this.websiteModal = null;
 
     this.dayColors = [
       "#0066CC", // 1일차: 진한 파란색
@@ -39,300 +39,8 @@ class KakaoMapService {
     // 마커 이미지 캐시
     this.markerImageCache = {};
 
-    // 웹사이트 모달 생성
-    this.createWebsiteModal();
-  }
-
-  /**
-   * 웹사이트 모달 생성
-   */
-  createWebsiteModal() {
-    // 기존 모달이 있으면 제거
-    if (this.websiteModal) {
-      document.body.removeChild(this.websiteModal);
-    }
-
-    // 모달 HTML 생성
-    this.websiteModal = document.createElement("div");
-    this.websiteModal.className = "website-modal-overlay";
-    this.websiteModal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-    `;
-
-    this.websiteModal.innerHTML = `
-      <div class="website-modal-content" style="
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 16px;
-        width: 90%;
-        max-width: 1200px;
-        height: 85%;
-        max-height: 800px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        position: relative;
-      ">
-        <div class="modal-header" style="
-          padding: 20px 24px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          display: flex;
-          justify-content: between;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.8);
-        ">
-          <div class="modal-title" style="
-            font-size: 18px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-right: auto;
-          "></div>
-          <button class="modal-close-btn" style="
-            background: rgba(239, 68, 68, 0.1);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #ef4444;
-            font-size: 18px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" 
-             onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">×</button>
-        </div>
-        <div class="modal-body" style="
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        ">
-          <div class="loading-indicator" style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            font-size: 16px;
-            color: #718096;
-          ">
-            <div style="
-              width: 40px;
-              height: 40px;
-              border: 3px solid #e2e8f0;
-              border-top: 3px solid #0064FF;
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-              margin-right: 12px;
-            "></div>
-            웹사이트를 불러오는 중...
-          </div>
-          <iframe class="website-iframe" style="
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 0 0 16px 16px;
-            display: none;
-          "></iframe>
-          <div class="error-message" style="
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 40px;
-            text-align: center;
-          ">
-            <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
-            <div style="font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
-              웹사이트를 불러올 수 없습니다
-            </div>
-            <div style="font-size: 14px; color: #718096; margin-bottom: 20px;">
-              이 웹사이트는 보안 정책으로 인해 미리보기가 제한됩니다.
-            </div>
-            <button class="open-new-tab-btn" style="
-              background: linear-gradient(135deg, #0064FF, #0051CC);
-              color: white;
-              border: none;
-              padding: 12px 24px;
-              border-radius: 8px;
-              font-size: 14px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 100, 255, 0.4)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 100, 255, 0.3)'">
-              새 탭에서 열기 →
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // CSS 애니메이션 추가
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      .website-modal-overlay {
-        animation: modalFadeIn 0.3s ease-out;
-      }
-      
-      @keyframes modalFadeIn {
-        from {
-          opacity: 0;
-          backdrop-filter: blur(0px);
-        }
-        to {
-          opacity: 1;
-          backdrop-filter: blur(5px);
-        }
-      }
-      
-      .website-modal-content {
-        animation: modalSlideIn 0.3s ease-out;
-      }
-      
-      @keyframes modalSlideIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-    `;
-    document.head.appendChild(style);
-
-    // 이벤트 리스너 추가
-    this.setupModalEvents();
-
-    document.body.appendChild(this.websiteModal);
-  }
-
-  /**
-   * 모달 이벤트 설정
-   */
-  setupModalEvents() {
-    // 닫기 버튼
-    const closeBtn = this.websiteModal.querySelector(".modal-close-btn");
-    closeBtn.addEventListener("click", () => this.closeWebsiteModal());
-
-    // 배경 클릭 시 닫기
-    this.websiteModal.addEventListener("click", (e) => {
-      if (e.target === this.websiteModal) {
-        this.closeWebsiteModal();
-      }
-    });
-
-    // ESC 키로 닫기
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.websiteModal.style.display === "flex") {
-        this.closeWebsiteModal();
-      }
-    });
-  }
-
-  /**
-   * 웹사이트 모달 열기
-   */
-  openWebsiteModal(url, placeName) {
-    const iframe = this.websiteModal.querySelector(".website-iframe");
-    const loadingIndicator =
-      this.websiteModal.querySelector(".loading-indicator");
-    const errorMessage = this.websiteModal.querySelector(".error-message");
-    const modalTitle = this.websiteModal.querySelector(".modal-title");
-    const newTabBtn = this.websiteModal.querySelector(".open-new-tab-btn");
-
-    // 초기화
-    iframe.style.display = "none";
-    loadingIndicator.style.display = "flex";
-    errorMessage.style.display = "none";
-    modalTitle.textContent = placeName;
-    iframe.src = "";
-
-    // 모달 표시
-    this.websiteModal.style.display = "flex";
-
-    // iframe 로드 이벤트
-    const onLoad = () => {
-      loadingIndicator.style.display = "none";
-      iframe.style.display = "block";
-    };
-
-    const onError = () => {
-      loadingIndicator.style.display = "none";
-      errorMessage.style.display = "flex";
-
-      // 새 탭에서 열기 버튼 이벤트
-      newTabBtn.onclick = () => {
-        window.open(url, "_blank");
-        this.closeWebsiteModal();
-      };
-    };
-
-    iframe.onload = onLoad;
-    iframe.onerror = onError;
-
-    // 타이머로 로딩 실패 감지 (10초)
-    const timeoutId = setTimeout(() => {
-      if (loadingIndicator.style.display !== "none") {
-        onError();
-      }
-    }, 10000);
-
-    // iframe src 설정
-    try {
-      iframe.src = url;
-    } catch (error) {
-      onError();
-    }
-
-    // 성공적으로 로드되면 타이머 클리어
-    iframe.addEventListener(
-      "load",
-      () => {
-        clearTimeout(timeoutId);
-      },
-      { once: true }
-    );
-  }
-
-  /**
-   * 웹사이트 모달 닫기
-   */
-  closeWebsiteModal() {
-    if (this.websiteModal) {
-      this.websiteModal.style.display = "none";
-
-      // iframe 정리
-      const iframe = this.websiteModal.querySelector(".website-iframe");
-      iframe.src = "";
-    }
+    // 웹사이트 모달 초기화
+    websiteModal.initialize();
   }
 
   /**
@@ -459,8 +167,9 @@ class KakaoMapService {
    * @param {Array} itinerary 여행 일정 배열
    * @param {Array} hotels 숙소 배열
    * @param {boolean} showRoutes 경로 표시 여부
+   * @param {Array} routeData 각 일차별 경로 데이터 (거리/소요시간)
    */
-  addTravelItinerary(itinerary, hotels, showRoutes = true) {
+  addTravelItinerary(itinerary, hotels, showRoutes = true, routeData = []) {
     this.clearAll();
 
     if (!itinerary || itinerary.length === 0) return;
@@ -471,16 +180,22 @@ class KakaoMapService {
       const dayColor = this.getDayColor(day);
       const hotel = hotels[dayIndex];
 
+      // showRoutes가 true이고 routeData가 있을 때만 경로 데이터 사용
+      const dayRouteData =
+        showRoutes && routeData && routeData[dayIndex]
+          ? routeData[dayIndex]
+          : [];
+
       // 해당 일차의 전체 장소 목록 생성 (숙소-방문지들-숙소)
       const dayRoute = this.createDayRoute(hotel, dayPlaces, day);
 
       if (dayRoute.length > 0) {
-        // 마커 추가
-        this.addDayMarkers(dayRoute, dayColor);
+        // 마커 추가 (showRoutes에 따라 경로 정보 포함 여부 결정)
+        this.addDayMarkers(dayRoute, dayColor, dayRouteData, showRoutes);
 
-        // 경로 표시
-        if (showRoutes) {
-          this.addDayRoute(dayRoute, dayColor, day);
+        // 경로 표시 (showRoutes가 true이고 경로 데이터가 있을 때만)
+        if (showRoutes && dayRouteData.length > 0) {
+          this.addDayRoute(dayRoute, dayColor, day, dayRouteData);
         }
       }
     });
@@ -492,10 +207,17 @@ class KakaoMapService {
   }
 
   /**
-   * 일차별 경로 데이터 생성 (숙소-방문지들-숙소)
+   * 일차별 경로 생성 (숙소 -> 방문지들 -> 숙소)
+   * @param {Object} hotel 숙소 정보
+   * @param {Array} places 해당 일차의 방문지 목록
+   * @param {number} day 일차
+   * @returns {Array} 경로 배열
    */
   createDayRoute(hotel, places, day) {
     const route = [];
+
+    // places가 undefined이거나 배열이 아닌 경우 방어 코드
+    const safePlaces = Array.isArray(places) ? places : [];
 
     // 시작점: 숙소
     if (hotel && hotel.y && hotel.x) {
@@ -508,8 +230,8 @@ class KakaoMapService {
     }
 
     // 중간점들: 방문지들
-    places.forEach((place, index) => {
-      if (place.y && place.x) {
+    safePlaces.forEach((place, index) => {
+      if (place && place.y && place.x) {
         route.push({
           ...place,
           type: "place",
@@ -520,7 +242,7 @@ class KakaoMapService {
     });
 
     // 종료점: 숙소 복귀 (방문지가 있을 때만)
-    if (hotel && hotel.y && hotel.x && places.length > 0) {
+    if (hotel && hotel.y && hotel.x && safePlaces.length > 0) {
       route.push({
         ...hotel,
         type: "hotel_end",
@@ -536,7 +258,7 @@ class KakaoMapService {
   /**
    * 일차별 마커 추가
    */
-  addDayMarkers(route, color) {
+  addDayMarkers(route, color, routeData = []) {
     route.forEach((place, index) => {
       const position = new window.kakao.maps.LatLng(place.y, place.x);
 
@@ -563,8 +285,19 @@ class KakaoMapService {
         zIndex: index + 1,
       });
 
+      // 해당 장소의 leg 데이터 찾기
+      const legData = infoWindowRenderer.findLegDataForPlace(
+        place,
+        routeData,
+        index
+      );
+
       // 인포윈도우 생성
-      const content = this.createInfoWindowContent(place, markerNumber);
+      const content = infoWindowRenderer.createInfoWindowContent(
+        place,
+        markerNumber,
+        legData
+      );
       const infowindow = new window.kakao.maps.InfoWindow({
         content: content,
         removable: false,
@@ -577,126 +310,9 @@ class KakaoMapService {
       this.infowindows.push(infowindow);
       this.bounds.extend(position);
     });
-  }
 
-  /**
-   * 인포윈도우 콘텐츠 생성
-   */
-  createInfoWindowContent(place, markerNumber) {
-    const isHotel = place.type === "hotel_start" || place.type === "hotel_end";
-    const dayColor = this.getDayColor(place.day);
-
-    return `
-      <div class="map-infowindow glass-infowindow" data-marker-index="${
-        place.routeIndex
-      }" style="
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
-        padding: 12px;
-        min-width: 180px;
-        max-width: 280px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      ">
-        <div class="infowindow-day" style="
-          color: ${dayColor};
-          font-size: 12px;
-          font-weight: 700;
-          margin-bottom: 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        ">
-          ${place.day}일차 ${isHotel ? "(숙소)" : `- ${markerNumber}번째`}
-        </div>
-        <div class="infowindow-title" style="
-          font-weight: 600;
-          font-size: 15px;
-          margin-bottom: 6px;
-          color: #2d3748;
-          line-height: 1.3;
-        ">${place.placeName}</div>
-        <div class="infowindow-address" style="
-          font-size: 12px;
-          margin-bottom: 8px;
-          color: #718096;
-          line-height: 1.4;
-        ">${place.roadAddressName || place.addressName || ""}</div>
-        ${
-          place.phone
-            ? `
-          <div class="infowindow-phone" style="
-            font-size: 12px;
-            margin-bottom: 8px;
-            color: #4a5568;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <span style="font-size: 10px;">📞</span> ${place.phone}
-          </div>
-        `
-            : ""
-        }
-        ${
-          place.placeUrl
-            ? `
-          <div class="infowindow-link" style="margin-top: 10px;">
-            <button class="place-detail-btn" data-url="${
-              place.placeUrl
-            }" data-place-name="${place.placeName}" style="
-              color: white;
-              background: linear-gradient(135deg, ${dayColor}, ${this.darkenColor(
-                dayColor,
-                0.2
-              )});
-              text-decoration: none;
-              font-size: 12px;
-              font-weight: 600;
-              padding: 8px 12px;
-              border: none;
-              border-radius: 8px;
-              display: inline-block;
-              transition: all 0.2s ease;
-              cursor: pointer;
-              box-shadow: 0 2px 8px rgba(${this.hexToRgb(dayColor)}, 0.3);
-            " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(${this.hexToRgb(
-              dayColor
-            )}, 0.4)'" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(${this.hexToRgb(
-                 dayColor
-               )}, 0.3)'">
-              🌐 장소 정보 보기
-            </button>
-          </div>
-        `
-            : ""
-        }
-      </div>
-    `;
-  }
-
-  /**
-   * 색상을 어둡게 만드는 함수
-   */
-  darkenColor(hex, amount) {
-    const num = parseInt(hex.replace("#", ""), 16);
-    const amt = Math.round(2.55 * amount * 100);
-    const R = (num >> 16) - amt;
-    const G = ((num >> 8) & 0x00ff) - amt;
-    const B = (num & 0x0000ff) - amt;
-    return (
-      "#" +
-      (
-        0x1000000 +
-        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-        (B < 255 ? (B < 1 ? 0 : B) : 255)
-      )
-        .toString(16)
-        .slice(1)
-    );
+    // 스타일 추가
+    infoWindowRenderer.addInfoWindowStyles();
   }
 
   /**
@@ -721,99 +337,147 @@ class KakaoMapService {
   }
 
   /**
-   * hex 색상을 rgb로 변환 (rgba 사용을 위해)
+   * 일차별 경로 라인 추가 (점선 + 화살표 + 호버 정보)
+   * @param {Array} route 경로 배열
+   * @param {string} color 색상
+   * @param {number} day 일차
+   * @param {Array} routeData 경로 leg 데이터 (거리/소요시간)
    */
-  hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(
-          result[3],
-          16
-        )}`
-      : "0, 100, 255";
-  }
-
-  /**
-   * 일차별 경로 라인 추가 (점선 + 화살표)
-   */
-  addDayRoute(route, color, day) {
+  addDayRoute(route, color, day, routeData = []) {
     if (route.length < 2) return;
 
     const path = route.map(
       (place) => new window.kakao.maps.LatLng(place.y, place.x)
     );
 
-    // 점선 경로 생성
-    const polyline = new window.kakao.maps.Polyline({
-      map: this.map,
-      path: path,
-      strokeWeight: 3,
-      strokeColor: color,
-      strokeOpacity: 0.8,
-      strokeStyle: "shortdash", // 점선 스타일
-    });
-
-    // 방향 화살표 추가
-    this.addDirectionArrows(path, color, day);
-
-    // 경로 저장
-    if (!this.routeOverlays.has(day)) {
-      this.routeOverlays.set(day, []);
-    }
-    this.routeOverlays.get(day).push(polyline);
-  }
-
-  /**
-   * 경로에 방향 화살표 추가
-   */
-  addDirectionArrows(path, color, day) {
+    // 경로별 구간 라인 생성 (개별 구간으로 분리)
     for (let i = 0; i < path.length - 1; i++) {
-      const start = path[i];
-      const end = path[i + 1];
+      const startPoint = path[i];
+      const endPoint = path[i + 1];
+      const segmentPath = [startPoint, endPoint];
 
-      // 중점 계산
-      const midLat = (start.getLat() + end.getLat()) / 2;
-      const midLng = (start.getLng() + end.getLng()) / 2;
+      // 해당 구간의 leg 데이터 찾기
+      const legData = routeData[i] || null;
 
-      // 방향 각도 계산
-      const angle =
-        (Math.atan2(
-          end.getLng() - start.getLng(),
-          end.getLat() - start.getLat()
-        ) *
-          180) /
-        Math.PI;
-
-      // 화살표 커스텀 오버레이
-      const arrowContent = `
-        <div style="
-          width: 24px; 
-          height: 24px; 
-          transform: rotate(${angle}deg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: ${color};
-          font-size: 18px;
-          font-weight: bold;
-          text-shadow: 2px 2px 4px rgba(255,255,255,0.9), -1px -1px 2px rgba(0,0,0,0.3);
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-        ">▲</div>
-      `;
-
-      const customOverlay = new window.kakao.maps.CustomOverlay({
+      // 개별 구간 라인 생성
+      const polyline = new window.kakao.maps.Polyline({
         map: this.map,
-        position: new window.kakao.maps.LatLng(midLat, midLng),
-        content: arrowContent,
-        xAnchor: 0.5,
-        yAnchor: 0.5,
+        path: segmentPath,
+        strokeWeight: 3,
+        strokeColor: color,
+        strokeOpacity: 0.8,
+        strokeStyle: "shortdash",
+        zIndex: 1,
       });
 
+      // 경로 구간에 호버 이벤트 추가 (leg 데이터가 있는 경우만)
+      if (legData) {
+        this.addRouteSegmentHoverEvents(polyline, legData, color, day, i);
+      }
+
+      // 방향 화살표 추가
+      this.addDirectionArrow(startPoint, endPoint, color, day);
+
+      // 경로 저장
       if (!this.routeOverlays.has(day)) {
         this.routeOverlays.set(day, []);
       }
-      this.routeOverlays.get(day).push(customOverlay);
+      this.routeOverlays.get(day).push(polyline);
     }
+  }
+
+  /**
+   * 개별 경로 구간에 방향 화살표 추가
+   */
+  addDirectionArrow(start, end, color, day) {
+    // 중점 계산
+    const midLat = (start.getLat() + end.getLat()) / 2;
+    const midLng = (start.getLng() + end.getLng()) / 2;
+
+    // 방향 각도 계산
+    const angle =
+      (Math.atan2(
+        end.getLng() - start.getLng(),
+        end.getLat() - start.getLat()
+      ) *
+        180) /
+      Math.PI;
+
+    // 화살표 커스텀 오버레이
+    const arrowContent = `
+      <div style="
+        width: 24px; 
+        height: 24px; 
+        transform: rotate(${angle}deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: ${color};
+        font-size: 18px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(255,255,255,0.9), -1px -1px 2px rgba(0,0,0,0.3);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        pointer-events: none;
+      ">▲</div>
+    `;
+
+    const customOverlay = new window.kakao.maps.CustomOverlay({
+      map: this.map,
+      position: new window.kakao.maps.LatLng(midLat, midLng),
+      content: arrowContent,
+      xAnchor: 0.5,
+      yAnchor: 0.5,
+      zIndex: 2,
+    });
+
+    if (!this.routeOverlays.has(day)) {
+      this.routeOverlays.set(day, []);
+    }
+    this.routeOverlays.get(day).push(customOverlay);
+  }
+
+  /**
+   * 경로 구간에 호버 이벤트 추가
+   */
+  addRouteSegmentHoverEvents(polyline, legData, color, day, segmentIndex) {
+    let hoverOverlay = null;
+
+    // 마우스 오버 이벤트
+    window.kakao.maps.event.addListener(polyline, "mouseover", (mouseEvent) => {
+      // 호버 툴팁 생성
+      if (!hoverOverlay) {
+        const content = infoWindowRenderer.createRouteHoverContent(
+          legData,
+          color,
+          day,
+          segmentIndex
+        );
+
+        hoverOverlay = new window.kakao.maps.CustomOverlay({
+          map: this.map,
+          position: mouseEvent.latLng,
+          content: content,
+          xAnchor: 0.5,
+          yAnchor: 1.2,
+          zIndex: 1000,
+        });
+      }
+    });
+
+    // 마우스 아웃 이벤트
+    window.kakao.maps.event.addListener(polyline, "mouseout", () => {
+      if (hoverOverlay) {
+        hoverOverlay.setMap(null);
+        hoverOverlay = null;
+      }
+    });
+
+    // 마우스 이동 이벤트
+    window.kakao.maps.event.addListener(polyline, "mousemove", (mouseEvent) => {
+      if (hoverOverlay) {
+        hoverOverlay.setPosition(mouseEvent.latLng);
+      }
+    });
   }
 
   /**
@@ -859,33 +523,7 @@ class KakaoMapService {
 
     setTimeout(() => {
       this.setupInfowindowHoverEvents();
-      this.setupDetailButtonEvents();
     }, 100);
-  }
-
-  /**
-   * 상세보기 버튼 이벤트 설정
-   */
-  setupDetailButtonEvents() {
-    const detailButtons = document.querySelectorAll(".place-detail-btn");
-
-    detailButtons.forEach((button) => {
-      if (button.getAttribute("data-events-added")) return;
-
-      button.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const url = button.getAttribute("data-url");
-        const placeName = button.getAttribute("data-place-name");
-
-        if (url) {
-          this.openWebsiteModal(url, placeName);
-        }
-      });
-
-      button.setAttribute("data-events-added", "true");
-    });
   }
 
   /**
@@ -1016,15 +654,9 @@ class KakaoMapService {
    */
   destroy() {
     this.clearAll();
-    this.closeWebsiteModal();
-
-    if (this.websiteModal && this.websiteModal.parentNode) {
-      this.websiteModal.parentNode.removeChild(this.websiteModal);
-    }
-
+    websiteModal.destroy();
     this.map = null;
     this.markerImageCache = {};
-    this.websiteModal = null;
   }
 }
 

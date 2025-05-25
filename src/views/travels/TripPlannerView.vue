@@ -45,8 +45,8 @@
           </svg>
           <span class="btn-text">여행 정보 수정</span>
         </button>
-        <button 
-          class="glass-btn primary" 
+        <button
+          class="glass-btn primary"
           @click="handleTemporarySave"
           :disabled="isTemporarySaving"
         >
@@ -67,7 +67,9 @@
             <polyline points="17 21 17 13 7 13 7 21"></polyline>
             <polyline points="7 3 7 8 15 8"></polyline>
           </svg>
-          <span class="btn-text">{{ isTemporarySaved ? '임시저장됨' : '임시저장' }}</span>
+          <span class="btn-text">{{
+            isTemporarySaved ? "임시저장됨" : "임시저장"
+          }}</span>
         </button>
         <button class="glass-btn primary" @click="handleGetOptimalPaths">
           <svg
@@ -238,8 +240,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
-import { onBeforeRouteLeave } from 'vue-router';
+import {
+  ref,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+  watch,
+} from "vue";
+import { onBeforeRouteLeave } from "vue-router";
 import { useTravelStore } from "@/stores/travel";
 import useTravelService from "@/services/travel.service.js";
 import { useNotificationStore } from "@/stores/notification";
@@ -273,9 +282,7 @@ const isSchedulePanelCollapsed = ref(false);
 // 계산된 속성
 const hasTripInfo = computed(() => {
   return Boolean(
-    tripInfo.value.title && 
-    tripInfo.value.startDate && 
-    tripInfo.value.endDate
+    tripInfo.value.title && tripInfo.value.startDate && tripInfo.value.endDate
   );
 });
 
@@ -286,36 +293,35 @@ onBeforeRouteLeave(async (to, from, next) => {
   try {
     // 현재 여행 계획이 있는지 확인
     const hasTripData = travelStore.hasTripData;
-    
+
     if (hasTripData) {
       // 사용자에게 확인 요청
       const shouldSave = confirm(
-        '현재 작업 중인 여행 계획이 있습니다.\n\n' +
-        '확인: 임시 저장하고 나가기\n' +
-        '취소: 저장하지 않고 나가기'
+        "현재 작업 중인 여행 계획이 있습니다.\n\n" +
+          "확인: 임시 저장하고 나가기\n" +
+          "취소: 저장하지 않고 나가기"
       );
-      
+
       if (shouldSave) {
         // localStorage에 임시 저장
         const saveResult = travelStore.saveTripToLocalStorage();
         if (saveResult.success) {
-          notificationStore.showSuccess('여행 계획이 임시 저장되었습니다.');
+          notificationStore.showSuccess("여행 계획이 임시 저장되었습니다.");
         } else {
-          notificationStore.showError('임시 저장에 실패했습니다.');
+          notificationStore.showError("임시 저장에 실패했습니다.");
         }
       }
     }
-    
+
     // 세션 스토리지의 newTripInfo 삭제
     travelStore.clearNewTripFromSession();
     travelStore.resetTrip();
-    
+
     // 페이지 이동 허용
     next();
-    
   } catch (error) {
-    notificationStore.showError('페이지 이동 중 오류가 발생했습니다.');
-    
+    notificationStore.showError("페이지 이동 중 오류가 발생했습니다.");
+
     // 오류가 발생해도 이동은 허용
     travelStore.clearNewTripFromSession();
     next();
@@ -336,26 +342,26 @@ const handleBeforeUnload = (event) => {
     travelStore.saveTripToLocalStorage();
     travelStore.resetTrip();
   }
-  
+
   // 세션 스토리지 정리
   travelStore.clearNewTripFromSession();
   travelStore.resetTrip();
-  
+
   // 브라우저에 확인 메시지 표시 (데이터가 있는 경우에만)
   if (travelStore.hasTripData) {
     event.preventDefault();
-    event.returnValue = '작업 중인 여행 계획이 있습니다. 정말 나가시겠습니까?';
+    event.returnValue = "작업 중인 여행 계획이 있습니다. 정말 나가시겠습니까?";
     return event.returnValue;
   }
 };
 
 // 브라우저 이벤트 리스너 등록/해제
 onMounted(() => {
-  window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener("beforeunload", handleBeforeUnload);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload);
+  window.removeEventListener("beforeunload", handleBeforeUnload);
 });
 
 // ===== 기존 기능들 =====
@@ -366,31 +372,33 @@ const initializeComponent = async () => {
 
   try {
     const result = await travelStore.initializeTripPlannerView();
-    
+
     // 초기화 결과에 따른 알림
     switch (result) {
-      case 'new':
+      case "new":
         notificationStore.showSuccess("새로운 여행 계획을 시작합니다.");
         break;
-      case 'existing':
+      case "existing":
         if (travelStore.hasTripData) {
           notificationStore.showInfo("저장된 여행 계획을 불러왔습니다.");
         }
         break;
-      case 'empty':
+      case "empty":
         notificationStore.showInfo("여행 계획을 새로 작성해주세요.");
         break;
-      case 'error':
-        notificationStore.showError("여행 계획을 불러오는 중 오류가 발생했습니다.");
+      case "error":
+        notificationStore.showError(
+          "여행 계획을 불러오는 중 오류가 발생했습니다."
+        );
         break;
     }
 
     // DOM 업데이트 대기
     await nextTick();
-    
+
     // 맵 준비 상태 활성화
     isMapReady.value = true;
-    
+
     // 다른 컴포넌트들 준비 완료
     await nextTick();
     isComponentsReady.value = true;
@@ -434,11 +442,13 @@ const handleGetOptimalPaths = async () => {
   try {
     notificationStore.showInfo("경로 최적화를 요청합니다...");
     const result = await useTravelService.getOptimalPaths();
-    
-    if (result.success) {
+
+    if (result.status) {
       notificationStore.showSuccess("경로가 최적화되었습니다.");
     } else {
-      notificationStore.showError(result.message || "경로 최적화에 실패했습니다.");
+      notificationStore.showError(
+        result.message || "경로 최적화에 실패했습니다."
+      );
     }
   } catch (error) {
     notificationStore.showError("경로 최적화 중 오류가 발생했습니다.");
@@ -457,7 +467,7 @@ const handleTemporarySave = async () => {
   try {
     // sessionStorage의 데이터를 localStorage로 이동
     const result = travelStore.moveNewTripToLocalStorage();
-    
+
     if (result.success) {
       notificationStore.showSuccess("여행 계획이 임시저장되었습니다.");
     } else {
@@ -501,21 +511,21 @@ onMounted(() => {
 });
 
 // 개발용 디버그 기능 (개발 모드에서만)
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   window.tripPlannerDebug = {
     manualCleanup: () => {
       travelStore.clearNewTripFromSession();
-      notificationStore.showInfo('세션이 수동으로 정리되었습니다.');
+      notificationStore.showInfo("세션이 수동으로 정리되었습니다.");
     },
     manualSave: () => {
       const result = travelStore.saveTripToLocalStorage();
       if (result.success) {
-        notificationStore.showSuccess('수동 저장 완료');
+        notificationStore.showSuccess("수동 저장 완료");
       } else {
-        notificationStore.showError('수동 저장 실패');
+        notificationStore.showError("수동 저장 실패");
       }
     },
-    store: travelStore
+    store: travelStore,
   };
 }
 </script>

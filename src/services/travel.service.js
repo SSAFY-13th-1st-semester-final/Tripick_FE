@@ -111,7 +111,7 @@ class TravelService {
    * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
    */
   buildTripRequestBody() {
-    const { tripInfo, itinerary, hotels, tripDates } = this.travelStore;
+    const { tripInfo, itinerary, hotels, tripDates, region } = this.travelStore;
 
     const tripPlaces = [];
 
@@ -149,13 +149,17 @@ class TravelService {
       });
     });
 
+    console.log(tripInfo.region);
+
     // 요청 바디 객체 생성
     return {
       title: tripInfo.title,
       description: tripInfo.memo || "",
       startDate: toKSTDateString(tripInfo.startDate),
       endDate: toKSTDateString(tripInfo.endDate),
-      region: tripInfo.region,
+      region: tripInfo.region.districtName
+        ? tripInfo.region.provinceName + " " + tripInfo.region.districtName
+        : tripInfo.region.provinceName,
       tripPlaces,
     };
   }
@@ -186,7 +190,7 @@ class TravelService {
       const result = this.travelStore.loadTripFromApiResponse(response);
 
       if (result.success) {
-        // notificationStore.showSuccess("여행 기록을 불러왔습니다.");
+        // 이제 데이터가 store에 로드되고 sessionStorage에도 자동 저장됨
         console.log("조회 성공");
 
         if (result.saveWarning) {
@@ -198,6 +202,7 @@ class TravelService {
         // notificationStore.showError(result.message);
         console.log("조회 에러");
       }
+
       return result;
     } catch (error) {}
   }

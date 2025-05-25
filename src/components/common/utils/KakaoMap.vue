@@ -105,11 +105,22 @@ const errorMessage = ref("");
 const selectedPlaceIndex = ref(-1);
 const mapInstance = ref(null);
 
+// routeApiCallCount 변화 감지를 위한 이전 값 저장
+const previousRouteApiCallCount = ref(0);
+const hasRouteApiCallCountChanged = ref(false);
+
 const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 
-const { currentDayPlaces, currentDay, itinerary, hotels, centerCoord } =
-  storeToRefs(travelStore);
+const {
+  currentDayPlaces,
+  currentDay,
+  itinerary,
+  hotels,
+  routeData,
+  routeApiCallCount,
+  hasRouteOptimization,
+} = storeToRefs(travelStore);
 
 // 표시할 장소 데이터 계산 (스토어 또는 props 기반)
 const displayPlaces = computed(() => {
@@ -123,19 +134,31 @@ const hasPlaces = computed(() => {
   return displayPlaces.value.length > 0;
 });
 
+// 동적 경로 표시 여부 결정
+const shouldShowRoutesNow = computed(() => {
+  // props.showRoutes가 false이면 항상 경로 표시 안함
+  if (!props.showRoutes) return false;
+
+  // usePlacesFromStore가 false이면 단순 마커만 표시
+  if (!props.usePlacesFromStore) return false;
+
+  // routeApiCallCount가 변경되었고, 경로 최적화가 활성화된 경우에만 경로 표시
+  return hasRouteApiCallCountChanged.value && hasRouteOptimization.value;
+});
+
 // 지역 정보에서 좌표 가져오기
 const getRegionCoordinates = (region) => {
   if (!region) return null;
 
-  const provinceId = region.provinceId || region.id;
-  const districtId = region.districtId;
+  const provinceName = region.provinceName || region.Name;
+  const districtName = region.districtName;
 
-  const province = regionData.provinces.find((p) => p.id === provinceId);
+  const province = regionData.provinces.find((p) => p.name === provinceName);
   if (!province) return null;
 
   // district가 지정되어 있으면 district 좌표, 없으면 province 좌표 사용
-  if (districtId) {
-    const district = province.districts.find((d) => d.id === districtId);
+  if (districtName) {
+    const district = province.districts.find((d) => d.name === districtName);
     if (district && district.coordinates) {
       return {
         lat: district.coordinates.lat,
@@ -190,6 +213,11 @@ const initializeMap = async () => {
     });
 
     kakaoMapService.addMapControls(true, true);
+
+    // 초기 로드 시 routeApiCallCount 저장
+    previousRouteApiCallCount.value = routeApiCallCount.value;
+    hasRouteApiCallCountChanged.value = false;
+
     await updateMapDisplay();
 
     emit("map-ready", mapInstance.value);
@@ -216,7 +244,8 @@ const updateMapDisplay = async () => {
         kakaoMapService.addTravelItinerary(
           validItinerary,
           validHotels,
-          props.showRoutes
+          shouldShowRoutesNow.value, // 동적으로 결정된 경로 표시 여부
+          routeData.value
         );
       } else {
         // 현재 일차만 표시
@@ -230,10 +259,16 @@ const updateMapDisplay = async () => {
         const validItinerary = await addCoordsToItinerary(currentDayItinerary);
         const validHotels = await addCoordsToHotels(currentDayHotel);
 
+        // 현재 일차의 경로 데이터만 전달
+        const currentDayRouteData = routeData.value[currentDay.value]
+          ? [routeData.value[currentDay.value]]
+          : [];
+
         kakaoMapService.addTravelItinerary(
           validItinerary,
           validHotels,
-          props.showRoutes
+          shouldShowRoutesNow.value, // 동적으로 결정된 경로 표시 여부
+          currentDayRouteData
         );
       }
     } else {
@@ -242,7 +277,7 @@ const updateMapDisplay = async () => {
       if (placesWithCoords.length > 0) {
         // 단순 마커 표시를 위한 임시 일정 생성
         const tempItinerary = [placesWithCoords];
-        kakaoMapService.addTravelItinerary(tempItinerary, [], false);
+        kakaoMapService.addTravelItinerary(tempItinerary, [], false, []);
       }
     }
   } catch (error) {
@@ -362,9 +397,27 @@ onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
 });
 
-// 반응형 데이터 변경 감시
+// routeApiCallCount 변화 감지
 watch(
-  [() => itinerary.value, () => hotels.value],
+  () => routeApiCallCount.value,
+  (newValue, oldValue) => {
+    // 값이 실제로 변경되었는지 확인
+    if (newValue !== previousRouteApiCallCount.value) {
+      console.log(newValue, previousRouteApiCallCount.value);
+      hasRouteApiCallCountChanged.value = true;
+      previousRouteApiCallCount.value = newValue;
+
+      // 지도가 준비되어 있으면 업데이트
+      if (mapInstance.value) {
+        updateMapDisplay();
+      }
+    }
+  }
+);
+
+// 기존 반응형 데이터 변경 감시 (routeApiCallCount 제외)
+watch(
+  [() => itinerary.value, () => hotels.value, () => routeData.value],
   () => {
     if (props.usePlacesFromStore && mapInstance.value) {
       updateMapDisplay();
@@ -391,8 +444,9 @@ watch(
   }
 );
 
+// hasRouteOptimization 변화 감시 (경로 데이터가 있어도 최적화 상태가 변경되면 업데이트)
 watch(
-  () => props.showRoutes,
+  () => hasRouteOptimization.value,
   () => {
     if (mapInstance.value) {
       updateMapDisplay();
