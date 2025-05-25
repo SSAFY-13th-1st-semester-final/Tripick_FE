@@ -107,59 +107,62 @@ class TravelService {
     }
   }
 
+  /**
+   * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
+   */
+  buildTripRequestBody() {
+    const { tripInfo, itinerary, hotels, tripDates, region } = this.travelStore;
 
-/**
- * 현재 travelStore 상태를 API 요청 바디 형식으로 변환
- */
-buildTripRequestBody() {
-  const { tripInfo, itinerary, hotels, tripDates } = this.travelStore;
+    const tripPlaces = [];
 
-  const tripPlaces = [];
+    itinerary.forEach((dayPlaces, dayIndex) => {
+      if (!dayPlaces) return;
 
-  itinerary.forEach((dayPlaces, dayIndex) => {
-    if (!dayPlaces) return;
+      // 해당 일차의 날짜를 toKSTDateString으로 변환
+      const date = tripDates[dayIndex]
+        ? toKSTDateString(tripDates[dayIndex])
+        : null;
 
-    // 해당 일차의 날짜를 toKSTDateString으로 변환
-    const date = tripDates[dayIndex]
-      ? toKSTDateString(tripDates[dayIndex])
-      : null;
+      let sequence = 1;
 
-    let sequence = 1;
+      // 해당 일차의 호텔을 먼저 추가 (sequence 1)
+      const dayHotel = hotels[dayIndex];
+      if (dayHotel) {
+        tripPlaces.push({
+          placeId: dayHotel.id,
+          placeName: dayHotel.placeName,
+          sequence: sequence,
+          date: date,
+        });
+        sequence++;
+      }
 
-    // 해당 일차의 호텔을 먼저 추가 (sequence 1)
-    const dayHotel = hotels[dayIndex];
-    if (dayHotel) {
-      tripPlaces.push({
-        placeId: dayHotel.id,
-        placeName: dayHotel.placeName,
-        sequence: sequence,
-        date: date,
+      // 이후 일반 장소들을 순서대로 추가 (sequence 2부터)
+      dayPlaces.forEach((place) => {
+        tripPlaces.push({
+          placeId: place.id,
+          placeName: place.placeName,
+          sequence: sequence,
+          date: date,
+        });
+        sequence++;
       });
-      sequence++;
-    }
-
-    // 이후 일반 장소들을 순서대로 추가 (sequence 2부터)
-    dayPlaces.forEach((place) => {
-      tripPlaces.push({
-        placeId: place.id,
-        placeName: place.placeName,
-        sequence: sequence,
-        date: date,
-      });
-      sequence++;
     });
-  });
 
-  // 요청 바디 객체 생성
-  return {
-    title: tripInfo.title,
-    description: tripInfo.memo || "",
-    startDate: toKSTDateString(tripInfo.startDate),
-    endDate: toKSTDateString(tripInfo.endDate), 
-    region: tripInfo.region,
-    tripPlaces,
-  };
-}
+    console.log(tripInfo.region);
+
+    // 요청 바디 객체 생성
+    return {
+      title: tripInfo.title,
+      description: tripInfo.memo || "",
+      startDate: toKSTDateString(tripInfo.startDate),
+      endDate: toKSTDateString(tripInfo.endDate),
+      region: tripInfo.region.districtName
+        ? tripInfo.region.provinceName + " " + tripInfo.region.districtName
+        : tripInfo.region.provinceName,
+      tripPlaces,
+    };
+  }
 
   /**
    * 여행 일정 저장 API 호출 - 인증 필요
@@ -177,33 +180,31 @@ buildTripRequestBody() {
   /**
    * 여행 일정 상세 조회
    * <p>tripId에 해당하는 저장된 여행 일정 기록의 상세 정보를 조회합니다.</p>
-   * @param {Number} tripId - 여행 일정 id 
+   * @param {Number} tripId - 여행 일정 id
    * @return {Promise} -여행 일정 기록 상세 정보
    */
   async searchTripInfo(tripId) {
     try {
       const response = await ApiService.authGet(`/trip/${tripId}`);
 
-    const result = this.travelStore.loadTripFromApiResponse(response);
+      const result = this.travelStore.loadTripFromApiResponse(response);
 
-    if (result.success) {
-      // 이제 데이터가 store에 로드되고 sessionStorage에도 자동 저장됨
-      notificationStore.showSuccess("여행 기록을 불러왔습니다.");
-      console.log("조회 성공")
-      
-      if (result.saveWarning) {
-        // 저장에 실패한 경우 경고 표시
-        // notificationStore.showWarning("₩");
-        console.log("조회 결과 저장 실패")
+      if (result.success) {
+        // 이제 데이터가 store에 로드되고 sessionStorage에도 자동 저장됨
+        console.log("조회 성공");
+
+        if (result.saveWarning) {
+          // 저장에 실패한 경우 경고 표시
+          // notificationStore.showWarning("₩");
+          console.log("조회 결과 저장 실패");
+        }
+      } else {
+        // notificationStore.showError(result.message);
+        console.log("조회 에러");
       }
-    } else {
-      // notificationStore.showError(result.message);
-      console.log("조회 에러")
-    }
 
-    return result;
-    } catch (error) {
-    }
+      return result;
+    } catch (error) {}
   }
 }
 

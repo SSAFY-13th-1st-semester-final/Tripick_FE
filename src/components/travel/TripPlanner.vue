@@ -193,7 +193,7 @@ const createTripPlan = async () => {
     const result = travelStore.saveNewTripToSession(tripData);
 
     // 사용자 경험을 위한 로딩 시간
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     if (result.success) {
       notificationStore.showSuccess("여행 계획이 성공적으로 생성되었습니다!");
@@ -210,7 +210,6 @@ const createTripPlan = async () => {
       throw new Error(result.error || "여행 계획 저장 실패");
     }
   } catch (error) {
-    console.error("여행 계획 생성 오류:", error);
     notificationStore.showError("여행 계획 생성 중 오류가 발생했습니다.");
   } finally {
     isLoading.value = false;
