@@ -3,7 +3,7 @@
     <div class="container">
       <div class="navbar-content">
         <router-link to="/" class="navbar-logo">
-          <h1>Trap!ck</h1>
+          <h1>Trip<span class="exclam">!</span>ck</h1>
         </router-link>
 
         <nav class="navbar-menu" :class="{ 'is-active': isMenuOpen }">
@@ -149,6 +149,10 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use "@/assets/styles/glassmorphism" as *;
+
+.exclam {
+  color: $accent-color;
+}
 
 .navbar {
   width: 100%;

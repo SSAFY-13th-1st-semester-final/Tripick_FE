@@ -149,8 +149,6 @@ class TravelService {
       });
     });
 
-    console.log(tripInfo.region);
-
     // 요청 바디 객체 생성
     return {
       title: tripInfo.title,
@@ -205,43 +203,6 @@ class TravelService {
 
       return result;
     } catch (error) {}
-  }
-
-  /**
-   * AI 여행 일정 평가 (하나의 일차에 대한 평가 요청)
-   * @param {Object} params - 평가 요청 파라미터 (예: { dayIndex: 0 })
-   * @return {Promise} - 여행일정 평가 정보 응답
-   */
-  async requestAiTripEvaluation({ dayIndex }) {
-    try {
-      const travelStore = useTravelStore();
-
-      const day = dayIndex + 1;
-      const placeList = travelStore.itinerary[dayIndex] || [];
-
-      const placeIds = placeList
-        .filter((place) => place && place.id != null)
-        .map((place) => place.id);
-
-      const requestBody = {
-        requests: [
-          {
-            day,
-            placeIds,
-          },
-        ],
-      };
-
-      const response = await ApiService.authPost(
-        "/chatbot/trip/evaluate",
-        requestBody
-      );
-
-      return response;
-    } catch (error) {
-      console.error("여행 일정 평가 에러:", error);
-      throw error; // 호출부에서 catch할 수 있도록 다시 throw
-    }
   }
 }
 

@@ -403,7 +403,6 @@ watch(
   (newValue, oldValue) => {
     // 값이 실제로 변경되었는지 확인
     if (newValue !== previousRouteApiCallCount.value) {
-      console.log(newValue, previousRouteApiCallCount.value);
       hasRouteApiCallCountChanged.value = true;
       previousRouteApiCallCount.value = newValue;
 
