@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
 
 .map-action-bar {
   position: fixed;
-  bottom: $spacing-2xl;
+  bottom: 120px;
   right: $spacing-md;
   z-index: $z-index-modal;
   @include glassmorphism(0.8, 15px);

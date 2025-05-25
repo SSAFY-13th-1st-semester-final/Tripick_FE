@@ -205,6 +205,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import PostService from "@/services/post.service";
+import AiService from "@/services/ai.service";
 import AppButton from "@/components/common/shared/AppButton.vue";
 import AiPostSummaryCard from "@/components/posts/AiPostSummaryCard.vue";
 
@@ -311,7 +312,7 @@ const handleSummaryRequest = async (postId) => {
     await authStore.refreshUserData();
 
     // AI 요약 API 호출
-    const response = await PostService.getPostSummary(postId);
+    const response = await AiService.getPostSummary(postId);
 
     // 응답 처리
     if (response && response.data && response.data.data) {
