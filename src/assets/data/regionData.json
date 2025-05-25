@@ -3,368 +3,1351 @@
     {
       "id": "seoul",
       "name": "서울",
+      "coordinates": {
+        "lat": 37.5665,
+        "lng": 126.978
+      },
       "districts": [
-        { "id": "gangnam", "name": "강남구" },
-        { "id": "gangdong", "name": "강동구" },
-        { "id": "gangbuk", "name": "강북구" },
-        { "id": "gangseo", "name": "강서구" },
-        { "id": "gwanak", "name": "관악구" },
-        { "id": "gwangjin", "name": "광진구" },
-        { "id": "guro", "name": "구로구" },
-        { "id": "geumcheon", "name": "금천구" },
-        { "id": "nowon", "name": "노원구" },
-        { "id": "dobong", "name": "도봉구" },
-        { "id": "dongdaemun", "name": "동대문구" },
-        { "id": "dongjak", "name": "동작구" },
-        { "id": "mapo", "name": "마포구" },
-        { "id": "seodaemun", "name": "서대문구" },
-        { "id": "seocho", "name": "서초구" },
-        { "id": "seongdong", "name": "성동구" },
-        { "id": "seongbuk", "name": "성북구" },
-        { "id": "songpa", "name": "송파구" },
-        { "id": "yangcheon", "name": "양천구" },
-        { "id": "yeongdeungpo", "name": "영등포구" },
-        { "id": "yongsan", "name": "용산구" },
-        { "id": "eunpyeong", "name": "은평구" },
-        { "id": "jongno", "name": "종로구" },
-        { "id": "jung", "name": "중구" },
-        { "id": "jungnang", "name": "중랑구" }
+        {
+          "id": "gangnam",
+          "name": "강남구",
+          "coordinates": { "lat": 37.4951, "lng": 127.06278 }
+        },
+        {
+          "id": "gangdong",
+          "name": "강동구",
+          "coordinates": { "lat": 37.55274, "lng": 127.14546 }
+        },
+        {
+          "id": "gangbuk",
+          "name": "강북구",
+          "coordinates": { "lat": 37.6349, "lng": 127.02015 }
+        },
+        {
+          "id": "gangseo",
+          "name": "강서구",
+          "coordinates": { "lat": 37.56227, "lng": 126.81622 }
+        },
+        {
+          "id": "gwanak",
+          "name": "관악구",
+          "coordinates": { "lat": 37.47876, "lng": 126.95235 }
+        },
+        {
+          "id": "gwangjin",
+          "name": "광진구",
+          "coordinates": { "lat": 37.53913, "lng": 127.08366 }
+        },
+        {
+          "id": "guro",
+          "name": "구로구",
+          "coordinates": { "lat": 37.49447, "lng": 126.8502 }
+        },
+        {
+          "id": "geumcheon",
+          "name": "금천구",
+          "coordinates": { "lat": 37.47486, "lng": 126.89106 }
+        },
+        {
+          "id": "nowon",
+          "name": "노원구",
+          "coordinates": { "lat": 37.66045, "lng": 127.06718 }
+        },
+        {
+          "id": "dobong",
+          "name": "도봉구",
+          "coordinates": { "lat": 37.65066, "lng": 127.03011 }
+        },
+        {
+          "id": "dongdaemun",
+          "name": "동대문구",
+          "coordinates": { "lat": 37.58189, "lng": 127.05408 }
+        },
+        {
+          "id": "dongjak",
+          "name": "동작구",
+          "coordinates": { "lat": 37.50056, "lng": 126.95149 }
+        },
+        {
+          "id": "mapo",
+          "name": "마포구",
+          "coordinates": { "lat": 37.55438, "lng": 126.90926 }
+        },
+        {
+          "id": "seodaemun",
+          "name": "서대문구",
+          "coordinates": { "lat": 37.57809, "lng": 126.93506 }
+        },
+        {
+          "id": "seocho",
+          "name": "서초구",
+          "coordinates": { "lat": 37.49447, "lng": 127.01088 }
+        },
+        {
+          "id": "seongdong",
+          "name": "성동구",
+          "coordinates": { "lat": 37.54784, "lng": 127.02461 }
+        },
+        {
+          "id": "seongbuk",
+          "name": "성북구",
+          "coordinates": { "lat": 37.60267, "lng": 127.01448 }
+        },
+        {
+          "id": "songpa",
+          "name": "송파구",
+          "coordinates": { "lat": 37.5021, "lng": 127.11113 }
+        },
+        {
+          "id": "yangcheon",
+          "name": "양천구",
+          "coordinates": { "lat": 37.52056, "lng": 126.87472 }
+        },
+        {
+          "id": "yeongdeungpo",
+          "name": "영등포구",
+          "coordinates": { "lat": 37.52606, "lng": 126.90308 }
+        },
+        {
+          "id": "yongsan",
+          "name": "용산구",
+          "coordinates": { "lat": 37.53391, "lng": 126.9775 }
+        },
+        {
+          "id": "eunpyeong",
+          "name": "은평구",
+          "coordinates": { "lat": 37.61846, "lng": 126.9278 }
+        },
+        {
+          "id": "jongno",
+          "name": "종로구",
+          "coordinates": { "lat": 37.5729, "lng": 126.97928 }
+        },
+        {
+          "id": "jung",
+          "name": "중구",
+          "coordinates": { "lat": 37.55986, "lng": 126.99398 }
+        },
+        {
+          "id": "jungnang",
+          "name": "중랑구",
+          "coordinates": { "lat": 37.60199, "lng": 127.10461 }
+        }
       ]
     },
     {
       "id": "busan",
       "name": "부산",
+      "coordinates": {
+        "lat": 35.1796,
+        "lng": 129.0756
+      },
       "districts": [
-        { "id": "gangseo", "name": "강서구" },
-        { "id": "geumjeong", "name": "금정구" },
-        { "id": "gijang", "name": "기장군" },
-        { "id": "namgu", "name": "남구" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "dongrae", "name": "동래구" },
-        { "id": "busanjin", "name": "부산진구" },
-        { "id": "bukgu", "name": "북구" },
-        { "id": "sasang", "name": "사상구" },
-        { "id": "saha", "name": "사하구" },
-        { "id": "seogu", "name": "서구" },
-        { "id": "suyeong", "name": "수영구" },
-        { "id": "yeonje", "name": "연제구" },
-        { "id": "yeongdo", "name": "영도구" },
-        { "id": "junggu", "name": "중구" },
-        { "id": "haeundae", "name": "해운대구" }
+        {
+          "id": "gangseo",
+          "name": "강서구",
+          "coordinates": { "lat": 35.1593, "lng": 128.933 }
+        },
+        {
+          "id": "geumjeong",
+          "name": "금정구",
+          "coordinates": { "lat": 35.25863, "lng": 129.0901 }
+        },
+        {
+          "id": "gijang",
+          "name": "기장군",
+          "coordinates": { "lat": 35.29721, "lng": 129.20076 }
+        },
+        {
+          "id": "namgu",
+          "name": "남구",
+          "coordinates": { "lat": 35.13648, "lng": 129.08266 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 35.12468, "lng": 129.03432 }
+        },
+        {
+          "id": "dongrae",
+          "name": "동래구",
+          "coordinates": { "lat": 35.20447, "lng": 129.078 }
+        },
+        {
+          "id": "busanjin",
+          "name": "부산진구",
+          "coordinates": { "lat": 35.16293, "lng": 129.05133 }
+        },
+        {
+          "id": "bukgu",
+          "name": "북구",
+          "coordinates": { "lat": 35.19724, "lng": 128.99134 }
+        },
+        {
+          "id": "sasang",
+          "name": "사상구",
+          "coordinates": { "lat": 35.14479, "lng": 128.97986 }
+        },
+        {
+          "id": "saha",
+          "name": "사하구",
+          "coordinates": { "lat": 35.08552, "lng": 128.98725 }
+        },
+        {
+          "id": "seogu",
+          "name": "서구",
+          "coordinates": { "lat": 35.12529, "lng": 129.01946 }
+        },
+        {
+          "id": "suyeong",
+          "name": "수영구",
+          "coordinates": { "lat": 35.15627, "lng": 129.11253 }
+        },
+        {
+          "id": "yeonje",
+          "name": "연제구",
+          "coordinates": { "lat": 35.18206, "lng": 129.08285 }
+        },
+        {
+          "id": "yeongdo",
+          "name": "영도구",
+          "coordinates": { "lat": 35.07849, "lng": 129.06483 }
+        },
+        {
+          "id": "junggu",
+          "name": "중구",
+          "coordinates": { "lat": 35.10594, "lng": 129.03331 }
+        },
+        {
+          "id": "haeundae",
+          "name": "해운대구",
+          "coordinates": { "lat": 35.16665, "lng": 129.16792 }
+        }
       ]
     },
     {
       "id": "daegu",
       "name": "대구",
+      "coordinates": {
+        "lat": 35.8714,
+        "lng": 128.6014
+      },
       "districts": [
-        { "id": "namgu", "name": "남구" },
-        { "id": "dalseo", "name": "달서구" },
-        { "id": "dalseong", "name": "달성군" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "bukgu", "name": "북구" },
-        { "id": "seogu", "name": "서구" },
-        { "id": "suseong", "name": "수성구" },
-        { "id": "junggu", "name": "중구" }
+        {
+          "id": "namgu",
+          "name": "남구",
+          "coordinates": { "lat": 35.84119, "lng": 128.588 }
+        },
+        {
+          "id": "dalseo",
+          "name": "달서구",
+          "coordinates": { "lat": 35.82569, "lng": 128.52403 }
+        },
+        {
+          "id": "dalseong",
+          "name": "달성군",
+          "coordinates": { "lat": 35.77467, "lng": 128.42955 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 35.88566, "lng": 128.63296 }
+        },
+        {
+          "id": "bukgu",
+          "name": "북구",
+          "coordinates": { "lat": 35.9, "lng": 128.59175 }
+        },
+        {
+          "id": "seogu",
+          "name": "서구",
+          "coordinates": { "lat": 35.87465, "lng": 128.55109 }
+        },
+        {
+          "id": "suseong",
+          "name": "수성구",
+          "coordinates": { "lat": 35.85905, "lng": 128.62625 }
+        },
+        {
+          "id": "junggu",
+          "name": "중구",
+          "coordinates": { "lat": 35.86678, "lng": 128.59538 }
+        }
       ]
     },
     {
       "id": "incheon",
       "name": "인천",
+      "coordinates": {
+        "lat": 37.4563,
+        "lng": 126.7052
+      },
       "districts": [
-        { "id": "ganghwa", "name": "강화군" },
-        { "id": "gyeyang", "name": "계양구" },
-        { "id": "namdong", "name": "남동구" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "michuhol", "name": "미추홀구" },
-        { "id": "bupyeong", "name": "부평구" },
-        { "id": "seogu", "name": "서구" },
-        { "id": "yeonsu", "name": "연수구" },
-        { "id": "ongjin", "name": "옹진군" },
-        { "id": "junggu", "name": "중구" }
+        {
+          "id": "ganghwa",
+          "name": "강화군",
+          "coordinates": { "lat": 37.74722, "lng": 126.48556 }
+        },
+        {
+          "id": "gyeyang",
+          "name": "계양구",
+          "coordinates": { "lat": 37.52306, "lng": 126.74472 }
+        },
+        {
+          "id": "namdong",
+          "name": "남동구",
+          "coordinates": { "lat": 37.41831, "lng": 126.7184 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 37.48375, "lng": 126.6369 }
+        },
+        {
+          "id": "michuhol",
+          "name": "미추홀구",
+          "coordinates": { "lat": 37.46362, "lng": 126.65 }
+        },
+        {
+          "id": "bupyeong",
+          "name": "부평구",
+          "coordinates": { "lat": 37.4972, "lng": 126.71107 }
+        },
+        {
+          "id": "seogu",
+          "name": "서구",
+          "coordinates": { "lat": 37.55233, "lng": 126.65543 }
+        },
+        {
+          "id": "yeonsu",
+          "name": "연수구",
+          "coordinates": { "lat": 37.41911, "lng": 126.66489 }
+        },
+        {
+          "id": "ongjin",
+          "name": "옹진군",
+          "coordinates": { "lat": 37.23361, "lng": 126.12305 }
+        },
+        {
+          "id": "junggu",
+          "name": "중구",
+          "coordinates": { "lat": 37.47353, "lng": 126.62151 }
+        }
       ]
     },
     {
       "id": "gwangju",
       "name": "광주",
+      "coordinates": {
+        "lat": 35.1595,
+        "lng": 126.8526
+      },
       "districts": [
-        { "id": "gwangsan", "name": "광산구" },
-        { "id": "namgu", "name": "남구" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "bukgu", "name": "북구" },
-        { "id": "seogu", "name": "서구" }
+        {
+          "id": "gwangsan",
+          "name": "광산구",
+          "coordinates": { "lat": 35.16158, "lng": 126.8081 }
+        },
+        {
+          "id": "namgu",
+          "name": "남구",
+          "coordinates": { "lat": 35.12159, "lng": 126.90943 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 35.14592, "lng": 126.9232 }
+        },
+        {
+          "id": "bukgu",
+          "name": "북구",
+          "coordinates": { "lat": 35.19232, "lng": 126.92439 }
+        },
+        {
+          "id": "seogu",
+          "name": "서구",
+          "coordinates": { "lat": 35.15248, "lng": 126.89106 }
+        }
       ]
     },
     {
       "id": "daejeon",
       "name": "대전",
+      "coordinates": {
+        "lat": 36.3504,
+        "lng": 127.3845
+      },
       "districts": [
-        { "id": "daedeok", "name": "대덕구" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "seogu", "name": "서구" },
-        { "id": "yuseong", "name": "유성구" },
-        { "id": "junggu", "name": "중구" }
+        {
+          "id": "daedeok",
+          "name": "대덕구",
+          "coordinates": { "lat": 36.39591, "lng": 127.43437 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 36.32938, "lng": 127.44313 }
+        },
+        {
+          "id": "seogu",
+          "name": "서구",
+          "coordinates": { "lat": 36.28071, "lng": 127.34533 }
+        },
+        {
+          "id": "yuseong",
+          "name": "유성구",
+          "coordinates": { "lat": 36.36685, "lng": 127.327 }
+        },
+        {
+          "id": "junggu",
+          "name": "중구",
+          "coordinates": { "lat": 36.28044, "lng": 127.41093 }
+        }
       ]
     },
     {
       "id": "ulsan",
       "name": "울산",
+      "coordinates": {
+        "lat": 35.5384,
+        "lng": 129.3114
+      },
       "districts": [
-        { "id": "namgu", "name": "남구" },
-        { "id": "donggu", "name": "동구" },
-        { "id": "bukgu", "name": "북구" },
-        { "id": "ulju", "name": "울주군" },
-        { "id": "junggu", "name": "중구" }
+        {
+          "id": "namgu",
+          "name": "남구",
+          "coordinates": { "lat": 35.54382, "lng": 129.32917 }
+        },
+        {
+          "id": "donggu",
+          "name": "동구",
+          "coordinates": { "lat": 35.5047, "lng": 129.4186 }
+        },
+        {
+          "id": "bukgu",
+          "name": "북구",
+          "coordinates": { "lat": 35.58243, "lng": 129.36049 }
+        },
+        {
+          "id": "ulju",
+          "name": "울주군",
+          "coordinates": { "lat": 35.56233, "lng": 129.1269 }
+        },
+        {
+          "id": "junggu",
+          "name": "중구",
+          "coordinates": { "lat": 35.5684, "lng": 129.33226 }
+        }
       ]
     },
     {
       "id": "sejong",
       "name": "세종",
-      "districts": [{ "id": "sejong", "name": "세종특별자치시" }]
+      "coordinates": {
+        "lat": 36.48,
+        "lng": 127.2891
+      },
+      "districts": [
+        {
+          "id": "sejong",
+          "name": "세종특별자치시",
+          "coordinates": { "lat": 36.48, "lng": 127.2891 }
+        }
+      ]
     },
     {
       "id": "gyeonggi",
       "name": "경기",
+      "coordinates": {
+        "lat": 37.4138,
+        "lng": 127.5183
+      },
       "districts": [
-        { "id": "gapyeong", "name": "가평군" },
-        { "id": "goyang", "name": "고양시" },
-        { "id": "gwacheon", "name": "과천시" },
-        { "id": "gwangmyeong", "name": "광명시" },
-        { "id": "gwangju", "name": "광주시" },
-        { "id": "guri", "name": "구리시" },
-        { "id": "gunpo", "name": "군포시" },
-        { "id": "gimpo", "name": "김포시" },
-        { "id": "namyangju", "name": "남양주시" },
-        { "id": "dongducheon", "name": "동두천시" },
-        { "id": "bucheon", "name": "부천시" },
-        { "id": "seongnam", "name": "성남시" },
-        { "id": "suwon", "name": "수원시" },
-        { "id": "siheung", "name": "시흥시" },
-        { "id": "ansan", "name": "안산시" },
-        { "id": "anseong", "name": "안성시" },
-        { "id": "anyang", "name": "안양시" },
-        { "id": "yangju", "name": "양주시" },
-        { "id": "yangpyeong", "name": "양평군" },
-        { "id": "yeoju", "name": "여주시" },
-        { "id": "yeoncheon", "name": "연천군" },
-        { "id": "osan", "name": "오산시" },
-        { "id": "yongin", "name": "용인시" },
-        { "id": "uiwang", "name": "의왕시" },
-        { "id": "uijeongbu", "name": "의정부시" },
-        { "id": "icheon", "name": "이천시" },
-        { "id": "paju", "name": "파주시" },
-        { "id": "pyeongtaek", "name": "평택시" },
-        { "id": "pocheon", "name": "포천시" },
-        { "id": "hanam", "name": "하남시" },
-        { "id": "hwaseong", "name": "화성시" }
+        {
+          "id": "gapyeong",
+          "name": "가평군",
+          "coordinates": { "lat": 37.8308, "lng": 127.51522 }
+        },
+        {
+          "id": "goyang",
+          "name": "고양시",
+          "coordinates": { "lat": 37.65639, "lng": 126.835 }
+        },
+        {
+          "id": "gwacheon",
+          "name": "과천시",
+          "coordinates": { "lat": 37.43407, "lng": 126.99989 }
+        },
+        {
+          "id": "gwangmyeong",
+          "name": "광명시",
+          "coordinates": { "lat": 37.44435, "lng": 126.86499 }
+        },
+        {
+          "id": "gwangju",
+          "name": "광주시",
+          "coordinates": { "lat": 37.4297, "lng": 127.2549 }
+        },
+        {
+          "id": "guri",
+          "name": "구리시",
+          "coordinates": { "lat": 37.5986, "lng": 127.1394 }
+        },
+        {
+          "id": "gunpo",
+          "name": "군포시",
+          "coordinates": { "lat": 37.34261, "lng": 126.92149 }
+        },
+        {
+          "id": "gimpo",
+          "name": "김포시",
+          "coordinates": { "lat": 37.59417, "lng": 126.7425 }
+        },
+        {
+          "id": "namyangju",
+          "name": "남양주시",
+          "coordinates": { "lat": 37.65217, "lng": 127.2401 }
+        },
+        {
+          "id": "dongducheon",
+          "name": "동두천시",
+          "coordinates": { "lat": 37.91889, "lng": 127.06897 }
+        },
+        {
+          "id": "bucheon",
+          "name": "부천시",
+          "coordinates": { "lat": 37.49889, "lng": 126.78306 }
+        },
+        {
+          "id": "seongnam",
+          "name": "성남시",
+          "coordinates": { "lat": 37.41875, "lng": 127.12877 }
+        },
+        {
+          "id": "suwon",
+          "name": "수원시",
+          "coordinates": { "lat": 37.28586, "lng": 127.00993 }
+        },
+        {
+          "id": "siheung",
+          "name": "시흥시",
+          "coordinates": { "lat": 37.39067, "lng": 126.7888 }
+        },
+        {
+          "id": "ansan",
+          "name": "안산시",
+          "coordinates": { "lat": 37.31693, "lng": 126.83048 }
+        },
+        {
+          "id": "anseong",
+          "name": "안성시",
+          "coordinates": { "lat": 37.03789, "lng": 127.30057 }
+        },
+        {
+          "id": "anyang",
+          "name": "안양시",
+          "coordinates": { "lat": 37.3925, "lng": 126.92694 }
+        },
+        {
+          "id": "yangju",
+          "name": "양주시",
+          "coordinates": { "lat": 37.81732, "lng": 127.046 }
+        },
+        {
+          "id": "yangpyeong",
+          "name": "양평군",
+          "coordinates": { "lat": 37.4888, "lng": 127.49222 }
+        },
+        {
+          "id": "yeoju",
+          "name": "여주시",
+          "coordinates": { "lat": 37.29562, "lng": 127.63668 }
+        },
+        {
+          "id": "yeoncheon",
+          "name": "연천군",
+          "coordinates": { "lat": 38.09404, "lng": 127.07577 }
+        },
+        {
+          "id": "osan",
+          "name": "오산시",
+          "coordinates": { "lat": 37.15222, "lng": 127.07056 }
+        },
+        {
+          "id": "yongin",
+          "name": "용인시",
+          "coordinates": { "lat": 37.23825, "lng": 127.17795 }
+        },
+        {
+          "id": "uiwang",
+          "name": "의왕시",
+          "coordinates": { "lat": 37.345, "lng": 126.97575 }
+        },
+        {
+          "id": "uijeongbu",
+          "name": "의정부시",
+          "coordinates": { "lat": 37.73865, "lng": 127.0477 }
+        },
+        {
+          "id": "icheon",
+          "name": "이천시",
+          "coordinates": { "lat": 37.27917, "lng": 127.4425 }
+        },
+        {
+          "id": "paju",
+          "name": "파주시",
+          "coordinates": { "lat": 37.75952, "lng": 126.77772 }
+        },
+        {
+          "id": "pyeongtaek",
+          "name": "평택시",
+          "coordinates": { "lat": 36.99472, "lng": 127.08889 }
+        },
+        {
+          "id": "pocheon",
+          "name": "포천시",
+          "coordinates": { "lat": 37.8937, "lng": 127.20028 }
+        },
+        {
+          "id": "hanam",
+          "name": "하남시",
+          "coordinates": { "lat": 37.53895, "lng": 127.2125 }
+        },
+        {
+          "id": "hwaseong",
+          "name": "화성시",
+          "coordinates": { "lat": 37.20025, "lng": 126.82909 }
+        }
       ]
     },
     {
       "id": "gangwon",
       "name": "강원",
+      "coordinates": {
+        "lat": 37.8228,
+        "lng": 128.1555
+      },
       "districts": [
-        { "id": "gangneung", "name": "강릉시" },
-        { "id": "goseong", "name": "고성군" },
-        { "id": "donghae", "name": "동해시" },
-        { "id": "samcheok", "name": "삼척시" },
-        { "id": "sokcho", "name": "속초시" },
-        { "id": "yanggu", "name": "양구군" },
-        { "id": "yangyang", "name": "양양군" },
-        { "id": "yeongwol", "name": "영월군" },
-        { "id": "wonju", "name": "원주시" },
-        { "id": "inje", "name": "인제군" },
-        { "id": "jeongseon", "name": "정선군" },
-        { "id": "cheorwon", "name": "철원군" },
-        { "id": "chuncheon", "name": "춘천시" },
-        { "id": "taebaek", "name": "태백시" },
-        { "id": "pyeongchang", "name": "평창군" },
-        { "id": "hongcheon", "name": "홍천군" },
-        { "id": "hwacheon", "name": "화천군" },
-        { "id": "hoengseong", "name": "횡성군" }
+        {
+          "id": "gangneung",
+          "name": "강릉시",
+          "coordinates": { "lat": 37.7519, "lng": 128.87825 }
+        },
+        {
+          "id": "goseong",
+          "name": "고성군",
+          "coordinates": { "lat": 38.37945, "lng": 128.46755 }
+        },
+        {
+          "id": "donghae",
+          "name": "동해시",
+          "coordinates": { "lat": 37.52345, "lng": 129.11357 }
+        },
+        {
+          "id": "samcheok",
+          "name": "삼척시",
+          "coordinates": { "lat": 37.45013, "lng": 129.16626 }
+        },
+        {
+          "id": "sokcho",
+          "name": "속초시",
+          "coordinates": { "lat": 38.20725, "lng": 128.59275 }
+        },
+        {
+          "id": "yanggu",
+          "name": "양구군",
+          "coordinates": { "lat": 38.10583, "lng": 127.98944 }
+        },
+        {
+          "id": "yangyang",
+          "name": "양양군",
+          "coordinates": { "lat": 38.06215, "lng": 128.61471 }
+        },
+        {
+          "id": "yeongwol",
+          "name": "영월군",
+          "coordinates": { "lat": 37.1833, "lng": 128.4615 }
+        },
+        {
+          "id": "wonju",
+          "name": "원주시",
+          "coordinates": { "lat": 37.32104, "lng": 127.92132 }
+        },
+        {
+          "id": "inje",
+          "name": "인제군",
+          "coordinates": { "lat": 38.04416, "lng": 128.27876 }
+        },
+        {
+          "id": "jeongseon",
+          "name": "정선군",
+          "coordinates": { "lat": 37.38911, "lng": 128.72995 }
+        },
+        {
+          "id": "cheorwon",
+          "name": "철원군",
+          "coordinates": { "lat": 38.24391, "lng": 127.44522 }
+        },
+        {
+          "id": "chuncheon",
+          "name": "춘천시",
+          "coordinates": { "lat": 37.88048, "lng": 127.72776 }
+        },
+        {
+          "id": "taebaek",
+          "name": "태백시",
+          "coordinates": { "lat": 37.1652, "lng": 128.9857 }
+        },
+        {
+          "id": "pyeongchang",
+          "name": "평창군",
+          "coordinates": { "lat": 37.37028, "lng": 128.39306 }
+        },
+        {
+          "id": "hongcheon",
+          "name": "홍천군",
+          "coordinates": { "lat": 37.6918, "lng": 127.8857 }
+        },
+        {
+          "id": "hwacheon",
+          "name": "화천군",
+          "coordinates": { "lat": 38.14212, "lng": 127.67615 }
+        },
+        {
+          "id": "hoengseong",
+          "name": "횡성군",
+          "coordinates": { "lat": 37.48817, "lng": 127.9857 }
+        }
       ]
     },
     {
       "id": "chungbuk",
       "name": "충북",
+      "coordinates": {
+        "lat": 36.8,
+        "lng": 127.7
+      },
       "districts": [
-        { "id": "goesan", "name": "괴산군" },
-        { "id": "danyang", "name": "단양군" },
-        { "id": "boeun", "name": "보은군" },
-        { "id": "yeongdong", "name": "영동군" },
-        { "id": "okcheon", "name": "옥천군" },
-        { "id": "eumseong", "name": "음성군" },
-        { "id": "jecheon", "name": "제천시" },
-        { "id": "jeungpyeong", "name": "증평군" },
-        { "id": "jincheon", "name": "진천군" },
-        { "id": "cheongju", "name": "청주시" },
-        { "id": "chungju", "name": "충주시" }
+        {
+          "id": "goesan",
+          "name": "괴산군",
+          "coordinates": { "lat": 36.77179, "lng": 127.81426 }
+        },
+        {
+          "id": "danyang",
+          "name": "단양군",
+          "coordinates": { "lat": 36.98615, "lng": 128.36945 }
+        },
+        {
+          "id": "boeun",
+          "name": "보은군",
+          "coordinates": { "lat": 36.49489, "lng": 127.72865 }
+        },
+        {
+          "id": "yeongdong",
+          "name": "영동군",
+          "coordinates": { "lat": 36.1645, "lng": 127.79018 }
+        },
+        {
+          "id": "okcheon",
+          "name": "옥천군",
+          "coordinates": { "lat": 36.3012, "lng": 127.568 }
+        },
+        {
+          "id": "eumseong",
+          "name": "음성군",
+          "coordinates": { "lat": 36.92602, "lng": 127.6807 }
+        },
+        {
+          "id": "jecheon",
+          "name": "제천시",
+          "coordinates": { "lat": 37.06206, "lng": 128.14065 }
+        },
+        {
+          "id": "jeungpyeong",
+          "name": "증평군",
+          "coordinates": { "lat": 36.78377, "lng": 127.59858 }
+        },
+        {
+          "id": "jincheon",
+          "name": "진천군",
+          "coordinates": { "lat": 36.85667, "lng": 127.44333 }
+        },
+        {
+          "id": "cheongju",
+          "name": "청주시",
+          "coordinates": { "lat": 36.63722, "lng": 127.48972 }
+        },
+        {
+          "id": "chungju",
+          "name": "충주시",
+          "coordinates": { "lat": 37.01791, "lng": 127.87713 }
+        }
       ]
     },
     {
       "id": "chungnam",
       "name": "충남",
+      "coordinates": {
+        "lat": 36.5184,
+        "lng": 126.8
+      },
       "districts": [
-        { "id": "gyeryong", "name": "계룡시" },
-        { "id": "gongju", "name": "공주시" },
-        { "id": "geumsan", "name": "금산군" },
-        { "id": "nonsan", "name": "논산시" },
-        { "id": "dangjin", "name": "당진시" },
-        { "id": "boryeong", "name": "보령시" },
-        { "id": "buyeo", "name": "부여군" },
-        { "id": "seosan", "name": "서산시" },
-        { "id": "seocheon", "name": "서천군" },
-        { "id": "asan", "name": "아산시" },
-        { "id": "yesan", "name": "예산군" },
-        { "id": "cheonan", "name": "천안시" },
-        { "id": "cheongyang", "name": "청양군" },
-        { "id": "taean", "name": "태안군" },
-        { "id": "hongseong", "name": "홍성군" }
+        {
+          "id": "gyeryong",
+          "name": "계룡시",
+          "coordinates": { "lat": 36.29304, "lng": 127.22575 }
+        },
+        {
+          "id": "gongju",
+          "name": "공주시",
+          "coordinates": { "lat": 36.45556, "lng": 127.12472 }
+        },
+        {
+          "id": "geumsan",
+          "name": "금산군",
+          "coordinates": { "lat": 36.13381, "lng": 127.48062 }
+        },
+        {
+          "id": "nonsan",
+          "name": "논산시",
+          "coordinates": { "lat": 36.19774, "lng": 127.12143 }
+        },
+        {
+          "id": "dangjin",
+          "name": "당진시",
+          "coordinates": { "lat": 36.91667, "lng": 126.66667 }
+        },
+        {
+          "id": "boryeong",
+          "name": "보령시",
+          "coordinates": { "lat": 36.35649, "lng": 126.59444 }
+        },
+        {
+          "id": "buyeo",
+          "name": "부여군",
+          "coordinates": { "lat": 36.26257, "lng": 126.85802 }
+        },
+        {
+          "id": "seosan",
+          "name": "서산시",
+          "coordinates": { "lat": 36.78518, "lng": 126.46568 }
+        },
+        {
+          "id": "seocheon",
+          "name": "서천군",
+          "coordinates": { "lat": 36.1082, "lng": 126.69722 }
+        },
+        {
+          "id": "asan",
+          "name": "아산시",
+          "coordinates": { "lat": 36.78361, "lng": 127.00417 }
+        },
+        {
+          "id": "yesan",
+          "name": "예산군",
+          "coordinates": { "lat": 36.68218, "lng": 126.79592 }
+        },
+        {
+          "id": "cheonan",
+          "name": "천안시",
+          "coordinates": { "lat": 36.80488, "lng": 127.19431 }
+        },
+        {
+          "id": "cheongyang",
+          "name": "청양군",
+          "coordinates": { "lat": 36.44586, "lng": 126.84288 }
+        },
+        {
+          "id": "taean",
+          "name": "태안군",
+          "coordinates": { "lat": 36.70036, "lng": 126.28391 }
+        },
+        {
+          "id": "hongseong",
+          "name": "홍성군",
+          "coordinates": { "lat": 36.56705, "lng": 126.62626 }
+        }
       ]
     },
     {
       "id": "jeonbuk",
       "name": "전북",
+      "coordinates": {
+        "lat": 35.7175,
+        "lng": 127.153
+      },
       "districts": [
-        { "id": "gochang", "name": "고창군" },
-        { "id": "gunsan", "name": "군산시" },
-        { "id": "gimje", "name": "김제시" },
-        { "id": "namwon", "name": "남원시" },
-        { "id": "muju", "name": "무주군" },
-        { "id": "buan", "name": "부안군" },
-        { "id": "sunchang", "name": "순창군" },
-        { "id": "wanju", "name": "완주군" },
-        { "id": "iksan", "name": "익산시" },
-        { "id": "imsil", "name": "임실군" },
-        { "id": "jangsu", "name": "장수군" },
-        { "id": "jeonju", "name": "전주시" },
-        { "id": "jeongeup", "name": "정읍시" },
-        { "id": "jinan", "name": "진안군" }
+        {
+          "id": "gochang",
+          "name": "고창군",
+          "coordinates": { "lat": 35.43483, "lng": 126.70047 }
+        },
+        {
+          "id": "gunsan",
+          "name": "군산시",
+          "coordinates": { "lat": 35.93583, "lng": 126.68338 }
+        },
+        {
+          "id": "gimje",
+          "name": "김제시",
+          "coordinates": { "lat": 35.80701, "lng": 126.90755 }
+        },
+        {
+          "id": "namwon",
+          "name": "남원시",
+          "coordinates": { "lat": 35.42966, "lng": 127.43208 }
+        },
+        {
+          "id": "muju",
+          "name": "무주군",
+          "coordinates": { "lat": 35.93172, "lng": 127.71118 }
+        },
+        {
+          "id": "buan",
+          "name": "부안군",
+          "coordinates": { "lat": 35.7, "lng": 126.66667 }
+        },
+        {
+          "id": "sunchang",
+          "name": "순창군",
+          "coordinates": { "lat": 35.41667, "lng": 127.16667 }
+        },
+        {
+          "id": "wanju",
+          "name": "완주군",
+          "coordinates": { "lat": 35.84509, "lng": 127.14752 }
+        },
+        {
+          "id": "iksan",
+          "name": "익산시",
+          "coordinates": { "lat": 35.94389, "lng": 126.95444 }
+        },
+        {
+          "id": "imsil",
+          "name": "임실군",
+          "coordinates": { "lat": 35.6066, "lng": 127.2301 }
+        },
+        {
+          "id": "jangsu",
+          "name": "장수군",
+          "coordinates": { "lat": 35.66667, "lng": 127.53333 }
+        },
+        {
+          "id": "jeonju",
+          "name": "전주시",
+          "coordinates": { "lat": 35.82194, "lng": 127.14889 }
+        },
+        {
+          "id": "jeongeup",
+          "name": "정읍시",
+          "coordinates": { "lat": 35.6, "lng": 126.91667 }
+        },
+        {
+          "id": "jinan",
+          "name": "진안군",
+          "coordinates": { "lat": 35.8216, "lng": 127.41183 }
+        }
       ]
     },
     {
       "id": "jeonnam",
       "name": "전남",
+      "coordinates": {
+        "lat": 34.8679,
+        "lng": 126.991
+      },
       "districts": [
-        { "id": "gangjin", "name": "강진군" },
-        { "id": "goheung", "name": "고흥군" },
-        { "id": "gokseong", "name": "곡성군" },
-        { "id": "gwangyang", "name": "광양시" },
-        { "id": "naju", "name": "나주시" },
-        { "id": "damyang", "name": "담양군" },
-        { "id": "mokpo", "name": "목포시" },
-        { "id": "muan", "name": "무안군" },
-        { "id": "boseong", "name": "보성군" },
-        { "id": "suncheon", "name": "순천시" },
-        { "id": "sinan", "name": "신안군" },
-        { "id": "yeosu", "name": "여수시" },
-        { "id": "yeonggwang", "name": "영광군" },
-        { "id": "yeongam", "name": "영암군" },
-        { "id": "wando", "name": "완도군" },
-        { "id": "jangheung", "name": "장흥군" },
-        { "id": "jindo", "name": "진도군" },
-        { "id": "hampyeong", "name": "함평군" },
-        { "id": "haenam", "name": "해남군" },
-        { "id": "hwasun", "name": "화순군" }
+        {
+          "id": "gangjin",
+          "name": "강진군",
+          "coordinates": { "lat": 34.61787, "lng": 126.76758 }
+        },
+        {
+          "id": "goheung",
+          "name": "고흥군",
+          "coordinates": { "lat": 34.58333, "lng": 127.33333 }
+        },
+        {
+          "id": "gokseong",
+          "name": "곡성군",
+          "coordinates": { "lat": 35.21449, "lng": 127.2628 }
+        },
+        {
+          "id": "gwangyang",
+          "name": "광양시",
+          "coordinates": { "lat": 35.02926, "lng": 127.64882 }
+        },
+        {
+          "id": "naju",
+          "name": "나주시",
+          "coordinates": { "lat": 35.05683, "lng": 126.67362 }
+        },
+        {
+          "id": "damyang",
+          "name": "담양군",
+          "coordinates": { "lat": 35.33976, "lng": 126.99125 }
+        },
+        {
+          "id": "mokpo",
+          "name": "목포시",
+          "coordinates": { "lat": 34.80826, "lng": 126.3942 }
+        },
+        {
+          "id": "muan",
+          "name": "무안군",
+          "coordinates": { "lat": 34.95642, "lng": 126.44041 }
+        },
+        {
+          "id": "boseong",
+          "name": "보성군",
+          "coordinates": { "lat": 34.81426, "lng": 127.15765 }
+        },
+        {
+          "id": "suncheon",
+          "name": "순천시",
+          "coordinates": { "lat": 34.98951, "lng": 127.39551 }
+        },
+        {
+          "id": "sinan",
+          "name": "신안군",
+          "coordinates": { "lat": 34.8262, "lng": 126.10863 }
+        },
+        {
+          "id": "yeosu",
+          "name": "여수시",
+          "coordinates": { "lat": 34.77647, "lng": 127.64253 }
+        },
+        {
+          "id": "yeonggwang",
+          "name": "영광군",
+          "coordinates": { "lat": 35.28711, "lng": 126.43616 }
+        },
+        {
+          "id": "yeongam",
+          "name": "영암군",
+          "coordinates": { "lat": 34.7979, "lng": 126.62651 }
+        },
+        {
+          "id": "wando",
+          "name": "완도군",
+          "coordinates": { "lat": 34.31182, "lng": 126.73845 }
+        },
+        {
+          "id": "jangheung",
+          "name": "장흥군",
+          "coordinates": { "lat": 34.66667, "lng": 126.91667 }
+        },
+        {
+          "id": "jindo",
+          "name": "진도군",
+          "coordinates": { "lat": 34.41018, "lng": 126.1688 }
+        },
+        {
+          "id": "hampyeong",
+          "name": "함평군",
+          "coordinates": { "lat": 35.11641, "lng": 126.53221 }
+        },
+        {
+          "id": "haenam",
+          "name": "해남군",
+          "coordinates": { "lat": 34.54047, "lng": 126.5187 }
+        },
+        {
+          "id": "hwasun",
+          "name": "화순군",
+          "coordinates": { "lat": 35.00843, "lng": 127.02576 }
+        }
       ]
     },
     {
       "id": "gyeongbuk",
       "name": "경북",
+      "coordinates": {
+        "lat": 36.4919,
+        "lng": 128.8889
+      },
       "districts": [
-        { "id": "gyeongsan", "name": "경산시" },
-        { "id": "gyeongju", "name": "경주시" },
-        { "id": "goryeong", "name": "고령군" },
-        { "id": "gumi", "name": "구미시" },
-        { "id": "gunwi", "name": "군위군" },
-        { "id": "gimcheon", "name": "김천시" },
-        { "id": "mungyeong", "name": "문경시" },
-        { "id": "bonghwa", "name": "봉화군" },
-        { "id": "sangju", "name": "상주시" },
-        { "id": "seongju", "name": "성주군" },
-        { "id": "andong", "name": "안동시" },
-        { "id": "yeongdeok", "name": "영덕군" },
-        { "id": "yeongju", "name": "영주시" },
-        { "id": "yeongyang", "name": "영양군" },
-        { "id": "yeongcheon", "name": "영천시" },
-        { "id": "yecheon", "name": "예천군" },
-        { "id": "ulleung", "name": "울릉군" },
-        { "id": "uljin", "name": "울진군" },
-        { "id": "uiseong", "name": "의성군" },
-        { "id": "cheongdo", "name": "청도군" },
-        { "id": "cheongsong", "name": "청송군" },
-        { "id": "chilgok", "name": "칠곡군" },
-        { "id": "pohang", "name": "포항시" }
+        {
+          "id": "gyeongsan",
+          "name": "경산시",
+          "coordinates": { "lat": 35.83333, "lng": 128.8 }
+        },
+        {
+          "id": "gyeongju",
+          "name": "경주시",
+          "coordinates": { "lat": 35.84278, "lng": 129.21167 }
+        },
+        {
+          "id": "goryeong",
+          "name": "고령군",
+          "coordinates": { "lat": 35.74959, "lng": 128.29707 }
+        },
+        {
+          "id": "gumi",
+          "name": "구미시",
+          "coordinates": { "lat": 36.21009, "lng": 128.35442 }
+        },
+        {
+          "id": "gunwi",
+          "name": "군위군",
+          "coordinates": { "lat": 36.16995, "lng": 128.64705 }
+        },
+        {
+          "id": "gimcheon",
+          "name": "김천시",
+          "coordinates": { "lat": 36.14481, "lng": 128.11157 }
+        },
+        {
+          "id": "mungyeong",
+          "name": "문경시",
+          "coordinates": { "lat": 36.59458, "lng": 128.19946 }
+        },
+        {
+          "id": "bonghwa",
+          "name": "봉화군",
+          "coordinates": { "lat": 36.88951, "lng": 128.73573 }
+        },
+        {
+          "id": "sangju",
+          "name": "상주시",
+          "coordinates": { "lat": 36.41667, "lng": 128.16667 }
+        },
+        {
+          "id": "seongju",
+          "name": "성주군",
+          "coordinates": { "lat": 35.91888, "lng": 128.28838 }
+        },
+        {
+          "id": "andong",
+          "name": "안동시",
+          "coordinates": { "lat": 36.56636, "lng": 128.72275 }
+        },
+        {
+          "id": "yeongdeok",
+          "name": "영덕군",
+          "coordinates": { "lat": 36.48125, "lng": 129.31078 }
+        },
+        {
+          "id": "yeongju",
+          "name": "영주시",
+          "coordinates": { "lat": 36.87459, "lng": 128.58631 }
+        },
+        {
+          "id": "yeongyang",
+          "name": "영양군",
+          "coordinates": { "lat": 36.69592, "lng": 129.14196 }
+        },
+        {
+          "id": "yeongcheon",
+          "name": "영천시",
+          "coordinates": { "lat": 36, "lng": 129 }
+        },
+        {
+          "id": "yecheon",
+          "name": "예천군",
+          "coordinates": { "lat": 36.65272, "lng": 128.43007 }
+        },
+        {
+          "id": "ulleung",
+          "name": "울릉군",
+          "coordinates": { "lat": 37.50442, "lng": 130.86084 }
+        },
+        {
+          "id": "uljin",
+          "name": "울진군",
+          "coordinates": { "lat": 36.91968, "lng": 129.31966 }
+        },
+        {
+          "id": "uiseong",
+          "name": "의성군",
+          "coordinates": { "lat": 36.36122, "lng": 128.61517 }
+        },
+        {
+          "id": "cheongdo",
+          "name": "청도군",
+          "coordinates": { "lat": 35.67166, "lng": 128.78509 }
+        },
+        {
+          "id": "cheongsong",
+          "name": "청송군",
+          "coordinates": { "lat": 36.43288, "lng": 129.05159 }
+        },
+        {
+          "id": "chilgok",
+          "name": "칠곡군",
+          "coordinates": { "lat": 36.01512, "lng": 128.46138 }
+        },
+        {
+          "id": "pohang",
+          "name": "포항시",
+          "coordinates": { "lat": 36.08333, "lng": 129.36667 }
+        }
       ]
     },
     {
       "id": "gyeongnam",
       "name": "경남",
+      "coordinates": {
+        "lat": 35.4606,
+        "lng": 128.2132
+      },
       "districts": [
-        { "id": "geoje", "name": "거제시" },
-        { "id": "geochang", "name": "거창군" },
-        { "id": "goseong", "name": "고성군" },
-        { "id": "gimhae", "name": "김해시" },
-        { "id": "namhae", "name": "남해군" },
-        { "id": "miryang", "name": "밀양시" },
-        { "id": "sacheon", "name": "사천시" },
-        { "id": "sancheong", "name": "산청군" },
-        { "id": "yangsan", "name": "양산시" },
-        { "id": "uiryeong", "name": "의령군" },
-        { "id": "jinju", "name": "진주시" },
-        { "id": "changnyeong", "name": "창녕군" },
-        { "id": "changwon", "name": "창원시" },
-        { "id": "tongyeong", "name": "통영시" },
-        { "id": "hadong", "name": "하동군" },
-        { "id": "haman", "name": "함안군" },
-        { "id": "hamyang", "name": "함양군" },
-        { "id": "hapcheon", "name": "합천군" }
+        {
+          "id": "geoje",
+          "name": "거제시",
+          "coordinates": { "lat": 34.9, "lng": 128.66666 }
+        },
+        {
+          "id": "geochang",
+          "name": "거창군",
+          "coordinates": { "lat": 35.68735, "lng": 127.91142 }
+        },
+        {
+          "id": "goseong",
+          "name": "고성군",
+          "coordinates": { "lat": 35.01478, "lng": 128.28244 }
+        },
+        {
+          "id": "gimhae",
+          "name": "김해시",
+          "coordinates": { "lat": 35.25, "lng": 128.86667 }
+        },
+        {
+          "id": "namhae",
+          "name": "남해군",
+          "coordinates": { "lat": 34.80433, "lng": 127.92708 }
+        },
+        {
+          "id": "miryang",
+          "name": "밀양시",
+          "coordinates": { "lat": 35.49333, "lng": 128.74889 }
+        },
+        {
+          "id": "sacheon",
+          "name": "사천시",
+          "coordinates": { "lat": 35.00385, "lng": 128.06857 }
+        },
+        {
+          "id": "sancheong",
+          "name": "산청군",
+          "coordinates": { "lat": 35.36625, "lng": 127.87065 }
+        },
+        {
+          "id": "yangsan",
+          "name": "양산시",
+          "coordinates": { "lat": 35.39866, "lng": 129.03612 }
+        },
+        {
+          "id": "uiryeong",
+          "name": "의령군",
+          "coordinates": { "lat": 35.3923, "lng": 128.26917 }
+        },
+        {
+          "id": "jinju",
+          "name": "진주시",
+          "coordinates": { "lat": 35.20445, "lng": 128.12408 }
+        },
+        {
+          "id": "changnyeong",
+          "name": "창녕군",
+          "coordinates": { "lat": 35.50822, "lng": 128.4902 }
+        },
+        {
+          "id": "changwon",
+          "name": "창원시",
+          "coordinates": { "lat": 35.27533, "lng": 128.65152 }
+        },
+        {
+          "id": "tongyeong",
+          "name": "통영시",
+          "coordinates": { "lat": 34.8736, "lng": 128.39709 }
+        },
+        {
+          "id": "hadong",
+          "name": "하동군",
+          "coordinates": { "lat": 35.13628, "lng": 127.77291 }
+        },
+        {
+          "id": "haman",
+          "name": "함안군",
+          "coordinates": { "lat": 35.29117, "lng": 128.4297 }
+        },
+        {
+          "id": "hamyang",
+          "name": "함양군",
+          "coordinates": { "lat": 35.55233, "lng": 127.71196 }
+        },
+        {
+          "id": "hapcheon",
+          "name": "합천군",
+          "coordinates": { "lat": 35.5741, "lng": 128.13841 }
+        }
       ]
     },
     {
       "id": "jeju",
       "name": "제주",
+      "coordinates": {
+        "lat": 33.4996,
+        "lng": 126.5312
+      },
       "districts": [
-        { "id": "seogwipo", "name": "서귀포시" },
-        { "id": "jeju", "name": "제주시" }
+        {
+          "id": "seogwipo",
+          "name": "서귀포시",
+          "coordinates": { "lat": 33.29307, "lng": 126.49748 }
+        },
+        {
+          "id": "jeju",
+          "name": "제주시",
+          "coordinates": { "lat": 33.50972, "lng": 126.52194 }
+        }
       ]
     }
   ],
-
   "popularRegions": [
     {
       "provinceId": "jeju",
       "provinceName": "제주",
       "districtId": "jeju",
-      "districtName": "제주시"
+      "districtName": "제주시",
+      "coordinates": { "lat": 33.50972, "lng": 126.52194 }
     },
     {
       "provinceId": "busan",
       "provinceName": "부산",
       "districtId": "haeundae",
-      "districtName": "해운대구"
+      "districtName": "해운대구",
+      "coordinates": { "lat": 35.16665, "lng": 129.16792 }
     },
     {
       "provinceId": "gangwon",
       "provinceName": "강원",
       "districtId": "pyeongchang",
-      "districtName": "평창군"
+      "districtName": "평창군",
+      "coordinates": { "lat": 37.37028, "lng": 128.39306 }
     },
     {
       "provinceId": "gyeonggi",
       "provinceName": "경기",
       "districtId": "gapyeong",
-      "districtName": "가평군"
+      "districtName": "가평군",
+      "coordinates": { "lat": 37.8308, "lng": 127.51522 }
     },
     {
       "provinceId": "jeonnam",
       "provinceName": "전남",
       "districtId": "yeosu",
-      "districtName": "여수시"
+      "districtName": "여수시",
+      "coordinates": { "lat": 34.77647, "lng": 127.64253 }
     },
     {
       "provinceId": "gyeongbuk",
       "provinceName": "경북",
       "districtId": "gyeongju",
-      "districtName": "경주시"
+      "districtName": "경주시",
+      "coordinates": { "lat": 35.84278, "lng": 129.21167 }
     }
   ]
 }
