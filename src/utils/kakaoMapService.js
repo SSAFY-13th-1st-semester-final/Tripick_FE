@@ -370,11 +370,6 @@ class KakaoMapService {
         zIndex: 1,
       });
 
-      // 경로 구간에 호버 이벤트 추가 (leg 데이터가 있는 경우만)
-      if (legData) {
-        this.addRouteSegmentHoverEvents(polyline, legData, color, day, i);
-      }
-
       // 방향 화살표 추가
       this.addDirectionArrow(startPoint, endPoint, color, day);
 
@@ -387,38 +382,138 @@ class KakaoMapService {
   }
 
   /**
-   * 개별 경로 구간에 방향 화살표 추가
+   * 두 지점 간의 bearing(방위각) 계산
+   * @param {Object} start 시작점 (lat, lng)
+   * @param {Object} end 끝점 (lat, lng)
+   * @returns {number} bearing (0-360도)
+   */
+  calculateBearing(start, end) {
+    const startLat = start.getLat() * (Math.PI / 180);
+    const startLng = start.getLng() * (Math.PI / 180);
+    const endLat = end.getLat() * (Math.PI / 180);
+    const endLng = end.getLng() * (Math.PI / 180);
+
+    const deltaLng = endLng - startLng;
+
+    const y = Math.sin(deltaLng) * Math.cos(endLat);
+    const x =
+      Math.cos(startLat) * Math.sin(endLat) -
+      Math.sin(startLat) * Math.cos(endLat) * Math.cos(deltaLng);
+
+    let bearing = Math.atan2(y, x) * (180 / Math.PI);
+
+    // 0-360도로 정규화
+    bearing = (bearing + 360) % 360;
+
+    return bearing;
+  }
+
+  /**
+   * 두 지점 간의 거리 계산 (미터)
+   * @param {Object} start 시작점
+   * @param {Object} end 끝점
+   * @returns {number} 거리 (미터)
+   */
+  calculateDistance(start, end) {
+    const R = 6371000; // 지구 반지름 (미터)
+    const lat1 = start.getLat() * (Math.PI / 180);
+    const lat2 = end.getLat() * (Math.PI / 180);
+    const deltaLat = (end.getLat() - start.getLat()) * (Math.PI / 180);
+    const deltaLng = (end.getLng() - start.getLng()) * (Math.PI / 180);
+
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  /**
+   * 회전된 심플한 화살표 SVG 생성 (꼬리없는 삼각형 화살표)
+   * @param {number} angle 회전 각도 (도)
+   * @param {string} color 색상
+   * @returns {string} 회전된 SVG 문자열
+   */
+  createRotatedArrowSVG(angle, color) {
+    const centerX = 15;
+    const centerY = 15;
+    const radian = (angle * Math.PI) / 180;
+
+    // 심플한 삼각형 화살표 점들 (위쪽을 향하는 화살표)
+    const originalPoints = [
+      [15, 5], // 화살표 끝 (위)
+      [22, 15], // 오른쪽 끝
+      [18, 15], // 오른쪽 안쪽
+      [18, 20], // 오른쪽 아래 (약간의 꼬리)
+      [12, 20], // 왼쪽 아래 (약간의 꼬리)
+      [12, 15], // 왼쪽 안쪽
+      [8, 15], // 왼쪽 끝
+    ];
+
+    // 각 점을 회전
+    const rotatedPoints = originalPoints.map(([x, y]) => {
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const rotatedX =
+        centerX + (dx * Math.cos(radian) - dy * Math.sin(radian));
+      const rotatedY =
+        centerY + (dx * Math.sin(radian) + dy * Math.cos(radian));
+      return [rotatedX.toFixed(2), rotatedY.toFixed(2)];
+    });
+
+    // SVG path 생성
+    const pathData = `M ${rotatedPoints[0].join(" ")} L ${rotatedPoints
+      .slice(1)
+      .map((p) => p.join(" "))
+      .join(" L ")} Z`;
+
+    return `
+      <svg width="45" height="45" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+        <path d="${pathData}" 
+              fill="${color}" 
+              stroke="white" 
+              stroke-width="2"
+              stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  /**
+   * 개별 경로 구간에 방향 화살표 추가 (수학적 회전 방식)
    */
   addDirectionArrow(start, end, color, day) {
+    // 두 지점 간의 실제 거리 계산
+    const distance = this.calculateDistance(start, end);
+
+    // 거리가 너무 짧으면 화살표 생략 (100미터 미만)
+    if (distance < 100) return;
+
+    // bearing(방위각) 계산
+    const bearing = this.calculateBearing(start, end);
+
     // 중점 계산
     const midLat = (start.getLat() + end.getLat()) / 2;
     const midLng = (start.getLng() + end.getLng()) / 2;
 
-    // 방향 각도 계산
-    const angle =
-      (Math.atan2(
-        end.getLng() - start.getLng(),
-        end.getLat() - start.getLat()
-      ) *
-        180) /
-      Math.PI;
+    // 수학적으로 회전된 심플한 화살표 SVG 생성
+    const rotatedArrowSVG = this.createRotatedArrowSVG(bearing, color);
 
-    // 화살표 커스텀 오버레이
     const arrowContent = `
       <div style="
-        width: 24px; 
-        height: 24px; 
-        transform: rotate(${angle}deg);
+        width: 32px; 
+        height: 32px; 
         display: flex;
         align-items: center;
         justify-content: center;
-        color: ${color};
-        font-size: 18px;
-        font-weight: bold;
-        text-shadow: 2px 2px 4px rgba(255,255,255,0.9), -1px -1px 2px rgba(0,0,0,0.3);
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         pointer-events: none;
-      ">▲</div>
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+      ">
+        ${rotatedArrowSVG}
+      </div>
     `;
 
     const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -434,50 +529,6 @@ class KakaoMapService {
       this.routeOverlays.set(day, []);
     }
     this.routeOverlays.get(day).push(customOverlay);
-  }
-
-  /**
-   * 경로 구간에 호버 이벤트 추가
-   */
-  addRouteSegmentHoverEvents(polyline, legData, color, day, segmentIndex) {
-    let hoverOverlay = null;
-
-    // 마우스 오버 이벤트
-    window.kakao.maps.event.addListener(polyline, "mouseover", (mouseEvent) => {
-      // 호버 툴팁 생성
-      if (!hoverOverlay) {
-        const content = infoWindowRenderer.createRouteHoverContent(
-          legData,
-          color,
-          day,
-          segmentIndex
-        );
-
-        hoverOverlay = new window.kakao.maps.CustomOverlay({
-          map: this.map,
-          position: mouseEvent.latLng,
-          content: content,
-          xAnchor: 0.5,
-          yAnchor: 1.2,
-          zIndex: 1000,
-        });
-      }
-    });
-
-    // 마우스 아웃 이벤트
-    window.kakao.maps.event.addListener(polyline, "mouseout", () => {
-      if (hoverOverlay) {
-        hoverOverlay.setMap(null);
-        hoverOverlay = null;
-      }
-    });
-
-    // 마우스 이동 이벤트
-    window.kakao.maps.event.addListener(polyline, "mousemove", (mouseEvent) => {
-      if (hoverOverlay) {
-        hoverOverlay.setPosition(mouseEvent.latLng);
-      }
-    });
   }
 
   /**
