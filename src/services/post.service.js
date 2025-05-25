@@ -187,6 +187,33 @@ export class PostService {
   }
 
   /**
+   * 내 여행 기록 전체 조회
+   * @param {Object} params - 페이징 파라미터
+   * @param {number} params.page - 페이지 번호 (0부터 시작)
+   * @param {number} params.size - 페이지 크기
+   * @return {Promise} - 나의 여행 기록 전체 조회 (페이징)
+   */
+  async getAllMyTripHistory(params = {}) {
+    try {
+      // 기본값 설정
+      const { page = 0, size = 10 } = params;
+
+      // URL 파라미터 구성
+      const queryParams = new URLSearchParams();
+      queryParams.append("page", page.toString());
+      queryParams.append("size", size.toString());
+
+      const response = await ApiService.authGet(
+        `/trip/history?${queryParams.toString()}`
+      );
+
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
    * 게시글 세 줄 요약 AI 호출 요청
    *
    * @param {Number} postId - 요약을 원하는 게시글 Id

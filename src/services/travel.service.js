@@ -206,6 +206,20 @@ class TravelService {
       return result;
     } catch (error) {}
   }
+
+  /**
+   * AI 여행 일정 평가 (하나의 일차에 대한 평가 요청)
+   * @return {Promise} - 여행일정 평가 정보 응답
+   */
+  async requestAiTripEvaluation() {
+    try {
+      const response = await ApiService.authPost("/chatbot/trip/evaluate");
+
+      return response;
+    } catch (error) {
+      console.error("여행 일정 평가 에러 : ", error);
+    }
+  }
 }
 
 const travelService = new TravelService();
