@@ -28,6 +28,33 @@
       <span class="btn-text">임시저장</span>
     </button>
 
+    <!-- AI 평가 버튼 -->
+    <button
+      class="action-btn glass-btn"
+      @click="$emit('toggle-ai-evaluation')"
+      :class="{ active: isAiEvaluationVisible }"
+      title="AI 일정 평가"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 12l2 2 4-4"></path>
+        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
+        <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
+        <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"></path>
+        <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"></path>
+      </svg>
+      <span class="btn-text">AI 평가</span>
+    </button>
+
     <!-- 경로최적화 버튼 -->
     <button
       class="action-btn glass-btn"
@@ -126,9 +153,15 @@ import { useNotificationStore } from "@/stores/notification";
 defineProps({
   isTemporarySaved: Boolean,
   isTemporarySaving: Boolean,
+  isAiEvaluationVisible: Boolean,
 });
 
-defineEmits(["temporary-save", "optimize-paths", "save-trip"]);
+defineEmits([
+  "temporary-save",
+  "optimize-paths",
+  "save-trip",
+  "toggle-ai-evaluation",
+]);
 
 const isFullscreen = ref(false);
 const notificationStore = useNotificationStore();
@@ -238,6 +271,16 @@ onBeforeUnmount(() => {
 
     &:hover {
       background: rgba($success-color, 0.2);
+    }
+  }
+
+  &.active {
+    background: rgba($accent-color, 0.2);
+    color: $accent-color;
+    border: 1px solid rgba($accent-color, 0.4);
+
+    &:hover {
+      background: rgba($accent-color, 0.3);
     }
   }
 }

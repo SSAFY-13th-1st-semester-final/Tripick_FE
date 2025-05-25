@@ -154,9 +154,19 @@
         v-if="hasTripInfo"
         :is-temporary-saved="isTemporarySaved"
         :is-temporary-saving="isTemporarySaving"
+        :is-ai-evaluation-visible="isAiEvaluationVisible"
         @temporary-save="handleTemporarySave"
         @optimize-paths="handleGetOptimalPaths"
         @save-trip="handleSaveUserTrip"
+        @toggle-ai-evaluation="toggleAiEvaluation"
+      />
+
+      <!-- AI 여행 일정 평가 카드 -->
+      <AiTripEvaluationCard
+        v-if="isAiEvaluationVisible && hasTripInfo"
+        ref="aiEvaluationCardRef"
+        :initial-position="aiCardPosition"
+        @evaluation-requested="handleAiEvaluationRequest"
       />
     </template>
   </div>
@@ -180,6 +190,7 @@ import PlaceSearch from "@/components/travel/PlaceSearch.vue";
 import TripSchedule from "@/components/travel/TripSchedule.vue";
 import KakaoMap from "@/components/common/utils/KakaoMap.vue";
 import MapActionBar from "@/components/common/shared/MapActionBar.vue";
+import AiTripEvaluationCard from "@/components/travel/AiTripEvaluationCard.vue";
 import travelService from "@/services/travel.service";
 
 // 스토어
@@ -196,6 +207,11 @@ const isTemporarySaving = ref(false);
 const activeMobileTab = ref("search");
 const isSearchPanelCollapsed = ref(false);
 const isSchedulePanelCollapsed = ref(false);
+const isAiEvaluationVisible = ref(false);
+const aiCardPosition = ref({ x: 100, y: 100 });
+
+// AI 평가 카드 참조
+const aiEvaluationCardRef = ref(null);
 
 // 계산된 속성
 const hasTripInfo = computed(() => {
@@ -394,6 +410,85 @@ const toggleSearchPanel = () => {
 
 const toggleSchedulePanel = () => {
   isSchedulePanelCollapsed.value = !isSchedulePanelCollapsed.value;
+};
+
+const toggleAiEvaluation = () => {
+  isAiEvaluationVisible.value = !isAiEvaluationVisible.value;
+
+  if (isAiEvaluationVisible.value) {
+    // AI 카드를 화면 중앙 근처에 배치
+    aiCardPosition.value = {
+      x: Math.max(50, (window.innerWidth - 320) / 2 - 100),
+      y: Math.max(50, (window.innerHeight - 400) / 2),
+    };
+    notificationStore.showInfo("AI 일정 평가 카드가 활성화되었습니다.");
+  } else {
+    notificationStore.showInfo("AI 일정 평가 카드가 비활성화되었습니다.");
+  }
+};
+
+const handleAiEvaluationRequest = async ({ dayIndex }) => {
+  if (!aiEvaluationCardRef.value) return;
+
+  // 로딩 상태 설정
+  aiEvaluationCardRef.value.setLoading(true);
+
+  try {
+    // 선택된 일차에 장소가 있는지 확인
+    const dayItinerary = travelStore.itinerary[dayIndex] || [];
+    const places = dayItinerary.filter((place) => place && place.id != null);
+
+    if (places.length === 0) {
+      aiEvaluationCardRef.value.setEvaluationError(
+        "선택한 일차에 평가할 장소가 없습니다."
+      );
+      notificationStore.showWarning(
+        "해당 일차에 장소를 추가한 후 평가를 요청해주세요."
+      );
+      return;
+    }
+
+    notificationStore.showInfo(
+      `${dayIndex + 1}일차 일정에 대한 AI 평가를 요청합니다...`
+    );
+
+    // AI 평가 API 호출
+    const response = await useTravelService.requestAiTripEvaluation({
+      dayIndex,
+    });
+
+    // 응답 처리
+    if (response && response.data && response.data.data) {
+      aiEvaluationCardRef.value.setEvaluationData(response.data.data);
+      notificationStore.showSuccess(
+        `${dayIndex + 1}일차 AI 평가가 완료되었습니다!`
+      );
+    } else {
+      aiEvaluationCardRef.value.setEvaluationError(
+        "평가 데이터를 가져올 수 없습니다."
+      );
+      notificationStore.showError("AI 평가 생성에 실패했습니다.");
+    }
+  } catch (err) {
+    // 오류 처리
+    let errorMessage = "AI 평가 서비스 오류가 발생했습니다.";
+
+    if (err.response && err.response.status === 401) {
+      errorMessage = "세션이 만료되었습니다. 다시 로그인해주세요.";
+    } else if (err.response && err.response.status === 403) {
+      errorMessage = "AI 평가 서비스 이용 권한이 없습니다.";
+    } else if (err.response && err.response.status === 429) {
+      errorMessage = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
+    } else if (err.response && err.response.status >= 500) {
+      errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    }
+
+    aiEvaluationCardRef.value.setEvaluationError(errorMessage);
+    notificationStore.showError(errorMessage, {
+      duration: 5000,
+      closable: true,
+    });
+  }
 };
 
 const editTripInfo = () => {
