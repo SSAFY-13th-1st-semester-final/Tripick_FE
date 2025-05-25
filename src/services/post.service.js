@@ -214,24 +214,6 @@ export class PostService {
   }
 
   /**
-   * 게시글 세 줄 요약 AI 호출 요청
-   *
-   * @param {Number} postId - 요약을 원하는 게시글 Id
-   * @return {Promise} - 게시글 요약 프롬프트 답변
-   */
-  async getPostSummary(postId) {
-    try {
-      const response = await ApiService.authGet(
-        `/chatbot/post/${postId}/summary`
-      );
-
-      return response;
-    } catch (error) {
-      console.error("ai 요약 호출 에러 : ", error);
-    }
-  }
-
-  /**
    * 특정 게시글 좋아요 누름 여부 확인 요청
    *
    */

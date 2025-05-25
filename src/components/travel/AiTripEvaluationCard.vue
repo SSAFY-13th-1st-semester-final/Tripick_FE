@@ -304,20 +304,19 @@ const requestEvaluation = async () => {
 
   if (isLoading.value) return;
 
+  // 즉시 로딩 상태 설정
   isLoading.value = true;
   error.value = null;
 
   try {
-    // 부모 컴포넌트에 평가 요청 이벤트 emit
-    await emit("evaluation-requested", {
-      dayIndex: parseInt(selectedDay.value),
-    });
+    // 부모 컴포넌트에 평가 요청 이벤트 emit (await 제거)
+    emit("evaluation-requested", { dayIndex: parseInt(selectedDay.value) });
   } catch (err) {
     error.value = "평가 생성 중 오류가 발생했습니다.";
     notificationStore.showError("AI 평가 서비스 오류가 발생했습니다.");
-  } finally {
     isLoading.value = false;
   }
+  // finally 블록 제거 - 부모에서 setLoading으로 관리
 };
 
 // 평가 데이터 설정 (부모 컴포넌트에서 호출)

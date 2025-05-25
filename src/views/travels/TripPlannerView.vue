@@ -184,6 +184,7 @@ import {
 import { onBeforeRouteLeave } from "vue-router";
 import { useTravelStore } from "@/stores/travel";
 import useTravelService from "@/services/travel.service.js";
+import AiService from "@/services/ai.service.js";
 import { useNotificationStore } from "@/stores/notification";
 import { storeToRefs } from "pinia";
 import PlaceSearch from "@/components/travel/PlaceSearch.vue";
@@ -453,7 +454,7 @@ const handleAiEvaluationRequest = async ({ dayIndex }) => {
     );
 
     // AI 평가 API 호출
-    const response = await useTravelService.requestAiTripEvaluation({
+    const response = await AiService.requestAiTripEvaluation({
       dayIndex,
     });
 

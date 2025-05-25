@@ -223,21 +223,19 @@ const notificationStore = useNotificationStore();
 const requestSummary = async () => {
   if (isLoading.value) return;
 
+  // 즉시 로딩 상태 설정
   isLoading.value = true;
   error.value = null;
 
   try {
-    // 부모 컴포넌트에 요약 요청 이벤트 emit
-    const response = await emit("summary-requested", props.postId);
-
-    // 실제 API 호출은 부모 컴포넌트에서 처리하고 결과를 받아옴
-    // 이 부분은 부모에서 setSummaryData 메소드를 통해 데이터를 설정받음
+    // emit은 await하지 않음
+    emit("summary-requested", props.postId);
   } catch (err) {
     error.value = "요약 생성 중 오류가 발생했습니다.";
     notificationStore.showError("AI 요약 서비스 오류가 발생했습니다.");
-  } finally {
     isLoading.value = false;
   }
+  // finally 블록 제거
 };
 
 // 요약 데이터 설정 (부모 컴포넌트에서 호출)
