@@ -8,9 +8,9 @@
       </div>
     </div>
 
-    <!-- 메인 컨텐츠 - 데이터 로딩 완료 후 렌더링 -->
+    <!-- 메인 컨텐츠 -->
     <template v-else>
-      <!-- 전체 화면 차지하는 카카오맵 -->
+      <!-- 전체 화면 카카오맵 -->
       <div class="map-container">
         <KakaoMap
           v-if="isMapReady"
@@ -22,94 +22,7 @@
         />
       </div>
 
-      <!-- 액션 버튼 (플로팅) -->
-      <div class="trip-actions-floating" v-if="hasTripInfo">
-        <button class="glass-btn" @click="editTripInfo">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-            ></path>
-            <path
-              d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-            ></path>
-          </svg>
-          <span class="btn-text">여행 정보 수정</span>
-        </button>
-        <button
-          class="glass-btn primary"
-          @click="handleTemporarySave"
-          :disabled="isTemporarySaving"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-            ></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          <span class="btn-text">{{
-            isTemporarySaved ? "임시저장됨" : "임시저장"
-          }}</span>
-        </button>
-        <button class="glass-btn primary" @click="handleGetOptimalPaths">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-          </svg>
-          <span class="btn-text">경로최적화</span>
-        </button>
-        <button class="glass-btn primary" @click="handleSaveUserTrip">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-            ></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          <span class="btn-text">저장하기</span>
-        </button>
-      </div>
-
-      <!-- 두 개의 패널 (검색 / 일정) -->
+      <!-- 데스크탑 패널 (검색 / 일정) -->
       <div class="panels-container">
         <!-- 장소 검색 패널 -->
         <div
@@ -235,6 +148,16 @@
           </div>
         </div>
       </div>
+
+      <!-- 하단 액션 툴바 -->
+      <MapActionBar
+        v-if="hasTripInfo"
+        :is-temporary-saved="isTemporarySaved"
+        :is-temporary-saving="isTemporarySaving"
+        @temporary-save="handleTemporarySave"
+        @optimize-paths="handleGetOptimalPaths"
+        @save-trip="handleSaveUserTrip"
+      />
     </template>
   </div>
 </template>
@@ -256,26 +179,21 @@ import { storeToRefs } from "pinia";
 import PlaceSearch from "@/components/travel/PlaceSearch.vue";
 import TripSchedule from "@/components/travel/TripSchedule.vue";
 import KakaoMap from "@/components/common/utils/KakaoMap.vue";
+import MapActionBar from "@/components/common/shared/MapActionBar.vue";
 import travelService from "@/services/travel.service";
 
 // 스토어
 const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
-
-// 스토어에서 상태 가져오기
 const { tripInfo, isTemporarySaved } = storeToRefs(travelStore);
 
-// 로딩 및 준비 상태
+// 상태 관리
 const isLoading = ref(true);
 const isMapReady = ref(false);
 const isComponentsReady = ref(false);
 const mapKey = ref(0);
 const isTemporarySaving = ref(false);
-
-// 탭 상태 (모바일)
 const activeMobileTab = ref("search");
-
-// 패널 접기/펴기 상태
 const isSearchPanelCollapsed = ref(false);
 const isSchedulePanelCollapsed = ref(false);
 
@@ -286,16 +204,14 @@ const hasTripInfo = computed(() => {
   );
 });
 
-// ===== 세션 관리 기능 =====
+// ===== 라이프사이클 관리 =====
 
-// 다른 페이지로 이동 시 세션 정리
+// 페이지 이동 시 세션 정리
 onBeforeRouteLeave(async (to, from, next) => {
   try {
-    // 현재 여행 계획이 있는지 확인
     const hasTripData = travelStore.hasTripData;
 
     if (hasTripData) {
-      // 사용자에게 확인 요청
       const shouldSave = confirm(
         "현재 작업 중인 여행 계획이 있습니다.\n\n" +
           "확인: 임시 저장하고 나가기\n" +
@@ -303,7 +219,6 @@ onBeforeRouteLeave(async (to, from, next) => {
       );
 
       if (shouldSave) {
-        // localStorage에 임시 저장
         const saveResult = travelStore.saveTripToLocalStorage();
         if (saveResult.success) {
           notificationStore.showSuccess("여행 계획이 임시 저장되었습니다.");
@@ -313,41 +228,32 @@ onBeforeRouteLeave(async (to, from, next) => {
       }
     }
 
-    // 세션 스토리지의 newTripInfo 삭제
     travelStore.clearNewTripFromSession();
     travelStore.resetTrip();
-
-    // 페이지 이동 허용
     next();
   } catch (error) {
     notificationStore.showError("페이지 이동 중 오류가 발생했습니다.");
-
-    // 오류가 발생해도 이동은 허용
     travelStore.clearNewTripFromSession();
     next();
   }
 });
 
-// 컴포넌트 해제 시 세션 정리
+// 컴포넌트 해제 시 정리
 onBeforeUnmount(() => {
-  // 비상 정리 (만약 onBeforeRouteLeave가 실행되지 않은 경우)
   travelStore.clearNewTripFromSession();
   travelStore.resetTrip();
 });
 
 // 브라우저 창 닫기/새로고침 처리
 const handleBeforeUnload = (event) => {
-  // 현재 여행 계획이 있으면 localStorage에 자동 저장
   if (travelStore.hasTripData) {
     travelStore.saveTripToLocalStorage();
     travelStore.resetTrip();
   }
 
-  // 세션 스토리지 정리
   travelStore.clearNewTripFromSession();
   travelStore.resetTrip();
 
-  // 브라우저에 확인 메시지 표시 (데이터가 있는 경우에만)
   if (travelStore.hasTripData) {
     event.preventDefault();
     event.returnValue = "작업 중인 여행 계획이 있습니다. 정말 나가시겠습니까?";
@@ -355,25 +261,23 @@ const handleBeforeUnload = (event) => {
   }
 };
 
-// 브라우저 이벤트 리스너 등록/해제
 onMounted(() => {
   window.addEventListener("beforeunload", handleBeforeUnload);
+  initializeComponent();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
 });
 
-// ===== 기존 기능들 =====
+// ===== 초기화 및 맵 관리 =====
 
-// 초기화 함수 - sessionStorage vs localStorage 처리
 const initializeComponent = async () => {
   isLoading.value = true;
 
   try {
     const result = await travelStore.initializeTripPlannerView();
 
-    // 초기화 결과에 따른 알림
     switch (result) {
       case "new":
         notificationStore.showSuccess("새로운 여행 계획을 시작합니다.");
@@ -393,13 +297,8 @@ const initializeComponent = async () => {
         break;
     }
 
-    // DOM 업데이트 대기
     await nextTick();
-
-    // 맵 준비 상태 활성화
     isMapReady.value = true;
-
-    // 다른 컴포넌트들 준비 완료
     await nextTick();
     isComponentsReady.value = true;
   } catch (error) {
@@ -409,9 +308,8 @@ const initializeComponent = async () => {
   }
 };
 
-// 맵 준비 완료 이벤트 핸들러
 const onMapReady = () => {
-  // 맵이 준비된 후 추가 작업이 필요하면 여기서 수행
+  // 맵 준비 완료 후 추가 작업 필요 시 처리
 };
 
 // 여행 정보 변경 감지하여 맵 리렌더링
@@ -426,13 +324,8 @@ watch(
   { deep: true }
 );
 
-// 여행 정보 수정
-const editTripInfo = () => {
-  // TODO: 여행 정보 편집 모달 구현
-  notificationStore.showInfo("여행 정보 편집 기능은 준비 중입니다.");
-};
+// ===== 액션 핸들러 =====
 
-// 경로 최적화 요청
 const handleGetOptimalPaths = async () => {
   if (!travelStore.hasTripData) {
     notificationStore.showWarning("여행 계획 데이터가 없습니다.");
@@ -455,7 +348,6 @@ const handleGetOptimalPaths = async () => {
   }
 };
 
-// 임시저장 - sessionStorage에서 localStorage로 이동
 const handleTemporarySave = async () => {
   if (!travelStore.hasTripData) {
     notificationStore.showWarning("저장할 여행 데이터가 없습니다.");
@@ -465,7 +357,6 @@ const handleTemporarySave = async () => {
   isTemporarySaving.value = true;
 
   try {
-    // sessionStorage의 데이터를 localStorage로 이동
     const result = travelStore.moveNewTripToLocalStorage();
 
     if (result.success) {
@@ -480,7 +371,6 @@ const handleTemporarySave = async () => {
   }
 };
 
-// 여행 저장하기 (API 호출)
 const handleSaveUserTrip = async () => {
   if (!travelStore.hasTripData) {
     notificationStore.showWarning("저장할 여행 데이터가 없습니다.");
@@ -496,7 +386,8 @@ const handleSaveUserTrip = async () => {
   }
 };
 
-// 패널 접기/펴기
+// ===== UI 컨트롤 =====
+
 const toggleSearchPanel = () => {
   isSearchPanelCollapsed.value = !isSearchPanelCollapsed.value;
 };
@@ -505,12 +396,11 @@ const toggleSchedulePanel = () => {
   isSchedulePanelCollapsed.value = !isSchedulePanelCollapsed.value;
 };
 
-// 컴포넌트 마운트 시 초기화
-onMounted(() => {
-  initializeComponent();
-});
+const editTripInfo = () => {
+  notificationStore.showInfo("여행 정보 편집 기능은 준비 중입니다.");
+};
 
-// 개발용 디버그 기능 (개발 모드에서만)
+// 개발용 디버그 (개발 모드에서만)
 if (process.env.NODE_ENV === "development") {
   window.tripPlannerDebug = {
     manualCleanup: () => {
@@ -587,7 +477,7 @@ if (process.env.NODE_ENV === "development") {
   }
 }
 
-/* 지도 컨테이너 (전체 화면) */
+/* 지도 컨테이너 */
 .map-container {
   position: absolute;
   top: 0;
@@ -595,41 +485,26 @@ if (process.env.NODE_ENV === "development") {
   width: 100%;
   height: 100%;
   z-index: 1;
-}
 
-/* 플로팅 액션 버튼 */
-.trip-actions-floating {
-  position: absolute;
-  top: $spacing-md;
-  right: $spacing-md;
-  z-index: 10;
-  display: flex;
-  gap: $spacing-sm;
+  // 지도 호버 애니메이션 강제 제거
+  * {
+    transform: none !important;
+    transition: none !important;
+  }
 
-  button {
-    display: flex;
-    align-items: center;
-    gap: $spacing-xs;
+  // KakaoMap 컴포넌트의 호버 효과 제거
+  :deep(.glass-card) {
+    transform: none !important;
+    transition: none !important;
 
-    svg {
-      color: inherit;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    @media (max-width: $breakpoint-md) {
-      padding: $spacing-xs $spacing-sm;
-
-      .btn-text {
-        display: none;
-      }
+    &:hover {
+      transform: none !important;
+      box-shadow: inherit !important;
     }
   }
 }
 
+/* 데스크탑 패널 컨테이너 */
 .panels-container {
   position: absolute;
   top: 50%;
@@ -667,14 +542,12 @@ if (process.env.NODE_ENV === "development") {
   }
 }
 
-/* 검색 패널 */
 .search-panel {
   margin-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
-/* 일정 패널 */
 .schedule-panel {
   margin-left: $spacing-sm;
   border-top-left-radius: 12px;
@@ -706,7 +579,6 @@ if (process.env.NODE_ENV === "development") {
   transition: opacity $transition-normal;
 }
 
-/* 패널 접기/펴기 버튼 */
 .panel-toggle {
   width: 28px;
   height: 28px;
@@ -730,14 +602,18 @@ if (process.env.NODE_ENV === "development") {
   display: none;
   position: fixed;
   left: 0;
-  right: 0;
-  bottom: 0;
+  right: 80px; /* 우측에 MapActionBar 공간 확보 */
+  bottom: $spacing-md;
   z-index: 3;
   border-radius: 16px 16px 0 0;
-  height: 60vh;
+  height: calc(60vh - 40px);
 
   @media (max-width: $breakpoint-lg) {
     display: block;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    right: 70px; /* 모바일에서는 조금 더 좁게 */
   }
 }
 
@@ -804,10 +680,6 @@ if (process.env.NODE_ENV === "development") {
 .tab-content {
   padding: $spacing-md;
   overflow-y: auto;
-  height: calc(60vh - 90px);
-}
-
-.tab-pane {
-  height: 100%;
+  height: calc(60vh - 130px);
 }
 </style>
