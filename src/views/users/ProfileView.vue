@@ -2,7 +2,7 @@
   <div class="profile-page">
     <h1 class="profile-title">마이 페이지</h1>
 
-    <!-- 메인 컨텐츠 영역 - 수평 배치 -->
+    <!-- 메인 컨텐츠 영역 - 3컬럼 수평 배치 -->
     <div class="profile-main-content">
       <!-- 유저 프로필 컴포넌트 -->
       <div class="profile-section">
@@ -31,6 +31,18 @@
           @deletePosts="handleDeletePosts"
         />
       </div>
+
+      <!-- 내 여행 기록 리스트 컴포넌트 -->
+      <div class="trip-history-section">
+        <MyTripHistoryList
+          :trips="myTrips"
+          :loading="isTripHistoryLoading"
+          :hasMore="hasMoreTrips"
+          :totalElements="totalTripElements"
+          @loadMore="loadMoreTrips"
+          @tripClicked="handleTripClicked"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -42,9 +54,11 @@ import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import AuthService from "@/services/auth.service";
 import PostService from "@/services/post.service";
+import travelService from "@/services/travel.service";
 import apiClient from "@/services/api.service";
 import UserProfile from "@/components/user/UserProfile.vue";
 import MyPostsList from "@/components/user/MyPostsList.vue";
+import MyTripHistoryList from "@/components/user/MyTripHistoryList.vue";
 import {
   isValidEmail,
   isValidPhoneNumber,
@@ -72,6 +86,15 @@ const currentPage = ref(0);
 const pageSize = ref(10); // 페이지당 게시글 수
 const totalPages = ref(0);
 const totalElements = ref(0);
+
+// 여행 기록 관련 상태
+const myTrips = ref([]);
+const isTripHistoryLoading = ref(false);
+const hasMoreTrips = ref(true);
+const currentTripPage = ref(0);
+const tripPageSize = ref(10); // 페이지당 여행 기록 수
+const totalTripPages = ref(0);
+const totalTripElements = ref(0);
 
 // 편집을 위한 데이터
 const editData = reactive({
@@ -101,14 +124,14 @@ const fetchUserData = async () => {
 // 내 게시글 불러오기
 const fetchMyPosts = async (page = 0, reset = false) => {
   if (isPostsLoading.value) return;
-  
+
   isPostsLoading.value = true;
 
   try {
     // 페이징 파라미터 설정
     const params = {
       page: page,
-      size: pageSize.value
+      size: pageSize.value,
     };
 
     const response = await PostService.getAllMyPosts(params);
@@ -127,8 +150,8 @@ const fetchMyPosts = async (page = 0, reset = false) => {
       currentPage.value = postsData.number || 0;
       totalPages.value = postsData.totalPages || 0;
       totalElements.value = postsData.totalElements || 0;
-      hasMorePosts.value = !postsData.last && (currentPage.value + 1 < totalPages.value);
-      
+      hasMorePosts.value =
+        !postsData.last && currentPage.value + 1 < totalPages.value;
     }
   } catch (error) {
     // 에러 메시지 세분화
@@ -149,9 +172,9 @@ const fetchMyPosts = async (page = 0, reset = false) => {
           break;
       }
     }
-    
+
     notificationStore.showError(errorMessage);
-    
+
     // 첫 페이지 로딩 실패 시에만 hasMore를 false로 설정
     if (page === 0) {
       hasMorePosts.value = false;
@@ -161,10 +184,96 @@ const fetchMyPosts = async (page = 0, reset = false) => {
   }
 };
 
+// 내 여행 기록 불러오기
+const fetchMyTripHistory = async (page = 0, reset = false) => {
+  if (isTripHistoryLoading.value) return;
+
+  isTripHistoryLoading.value = true;
+
+  try {
+    // 페이징 파라미터 설정
+    const params = {
+      page: page,
+      size: tripPageSize.value,
+    };
+
+    const response = await PostService.getAllMyTripHistory(params);
+
+    if (response && response.data && response.data.data) {
+      const tripData = response.data.data;
+      const newTrips = tripData.content || [];
+
+      if (reset || page === 0) {
+        myTrips.value = newTrips;
+      } else {
+        myTrips.value.push(...newTrips);
+      }
+
+      // 페이지 정보 업데이트
+      currentTripPage.value = tripData.number || 0;
+      totalTripPages.value = tripData.totalPages || 0;
+      totalTripElements.value = tripData.totalElements || 0;
+      hasMoreTrips.value =
+        !tripData.last && currentTripPage.value + 1 < totalTripPages.value;
+    }
+  } catch (error) {
+    // 에러 메시지 세분화
+    let errorMessage = "여행 기록을 불러오는데 실패했습니다.";
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          errorMessage = "로그인이 필요합니다.";
+          break;
+        case 403:
+          errorMessage = "여행 기록에 접근할 권한이 없습니다.";
+          break;
+        case 404:
+          errorMessage = "요청한 페이지를 찾을 수 없습니다.";
+          break;
+        case 500:
+          errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+          break;
+      }
+    }
+
+    notificationStore.showError(errorMessage);
+
+    // 첫 페이지 로딩 실패 시에만 hasMore를 false로 설정
+    if (page === 0) {
+      hasMoreTrips.value = false;
+    }
+  } finally {
+    isTripHistoryLoading.value = false;
+  }
+};
+
 // 더 많은 게시글 로드 (무한스크롤용)
 const loadMorePosts = () => {
   if (hasMorePosts.value && !isPostsLoading.value) {
     fetchMyPosts(currentPage.value + 1);
+  }
+};
+
+// 더 많은 여행 기록 로드 (무한스크롤용)
+const loadMoreTrips = () => {
+  if (hasMoreTrips.value && !isTripHistoryLoading.value) {
+    fetchMyTripHistory(currentTripPage.value + 1);
+  }
+};
+
+// 여행 기록 클릭 처리
+const handleTripClicked = async (tripId) => {
+  try {
+    const result = await travelService.searchTripInfo(tripId);
+
+    if (result.success) {
+      router.push({ name: "travel-planner" });
+    } else {
+      notificationStore.showError("여행 정보를 불러오는데 실패했습니다.");
+    }
+  } catch (error) {
+    console.error("여행 지도 이동 실패 : ", error);
+    notificationStore.showError("여행 지도로 이동하는 중 오류가 발생했습니다.");
   }
 };
 
@@ -208,7 +317,8 @@ const validateForm = (data) => {
   }
 
   if (data.phoneNumber && !isValidPhoneNumber(data.phoneNumber)) {
-    newErrors.phoneNumber = "올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)";
+    newErrors.phoneNumber =
+      "올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)";
   }
 
   Object.keys(errors).forEach((key) => delete errors[key]);
@@ -280,47 +390,51 @@ const handleDeletePosts = async (postIds) => {
   }
 
   // 삭제 확인 다이얼로그
-  const confirmMessage = postIds.length === 1 
-    ? "이 게시글을 삭제하시겠습니까?"
-    : `선택된 ${postIds.length}개의 게시글을 삭제하시겠습니까?`;
-    
+  const confirmMessage =
+    postIds.length === 1
+      ? "이 게시글을 삭제하시겠습니까?"
+      : `선택된 ${postIds.length}개의 게시글을 삭제하시겠습니까?`;
+
   if (!window.confirm(confirmMessage)) {
     return;
   }
 
   try {
     // 모든 게시글 삭제 요청을 병렬로 처리
-    const deletePromises = postIds.map(postId => 
+    const deletePromises = postIds.map((postId) =>
       PostService.deletePost(postId)
         .then(() => ({ postId, success: true }))
-        .catch(error => ({ postId, success: false, error }))
+        .catch((error) => ({ postId, success: false, error }))
     );
 
     // 모든 요청이 완료될 때까지 대기 (일부 실패해도 계속 진행)
     const results = await Promise.allSettled(deletePromises);
-    
+
     // 성공한 삭제 결과들 추출
     const successfulDeletes = results
-      .filter(result => result.status === 'fulfilled' && result.value.success)
-      .map(result => result.value.postId);
-    
+      .filter((result) => result.status === "fulfilled" && result.value.success)
+      .map((result) => result.value.postId);
+
     const failedDeletes = results
-      .filter(result => result.status === 'fulfilled' && !result.value.success)
-      .map(result => result.value.postId);
+      .filter(
+        (result) => result.status === "fulfilled" && !result.value.success
+      )
+      .map((result) => result.value.postId);
 
     // 성공한 게시글들을 목록에서 제거
     if (successfulDeletes.length > 0) {
       myPosts.value = myPosts.value.filter(
-        post => !successfulDeletes.includes(post.postId)
+        (post) => !successfulDeletes.includes(post.postId)
       );
     }
 
     // 결과에 따른 알림 메시지
     if (successfulDeletes.length === postIds.length) {
       // 모든 게시글이 성공적으로 삭제됨
-      const message = postIds.length === 1 
-        ? "게시글이 성공적으로 삭제되었습니다."
-        : `${successfulDeletes.length}개의 게시글이 성공적으로 삭제되었습니다.`;
+      const message =
+        postIds.length === 1
+          ? "게시글이 성공적으로 삭제되었습니다."
+          : `${successfulDeletes.length}개의 게시글이 성공적으로 삭제되었습니다.`;
       notificationStore.showSuccess(message);
     } else if (successfulDeletes.length > 0) {
       // 일부만 성공
@@ -329,9 +443,10 @@ const handleDeletePosts = async (postIds) => {
       );
     } else {
       // 모든 게시글 삭제 실패
-      const message = postIds.length === 1 
-        ? "게시글 삭제에 실패했습니다."
-        : "선택된 게시글 삭제에 실패했습니다.";
+      const message =
+        postIds.length === 1
+          ? "게시글 삭제에 실패했습니다."
+          : "선택된 게시글 삭제에 실패했습니다.";
       notificationStore.showError(message);
     }
 
@@ -342,7 +457,6 @@ const handleDeletePosts = async (postIds) => {
       currentPage.value = 0;
       await fetchMyPosts(0, true);
     }
-
   } catch (error) {
     notificationStore.showError("게시글 삭제 중 오류가 발생했습니다.");
   }
@@ -394,7 +508,8 @@ const deleteAccount = async () => {
 onMounted(async () => {
   await Promise.all([
     fetchUserData(),
-    fetchMyPosts(0, true)
+    fetchMyPosts(0, true),
+    fetchMyTripHistory(0, true),
   ]);
 });
 </script>
@@ -408,7 +523,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 1400px;
+  max-width: 2400px;
   margin: 0 auto;
 }
 
@@ -426,96 +541,103 @@ onMounted(async () => {
 }
 
 .profile-main-content {
-  display: flex;
+  display: grid;
+  grid-template-columns: 300px 1fr 1fr;
   gap: $spacing-xl;
   width: 100%;
   align-items: flex-start;
 
   @media (max-width: $breakpoint-lg) {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+  }
+}
+
+.profile-main-content {
+  display: grid;
+  grid-template-columns: 600px 1fr 1fr;
+  gap: $spacing-xl;
+  width: 100%;
+  align-items: flex-start;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
     gap: $spacing-lg;
   }
 }
 
 .profile-section {
-  flex: 0 0 45%;
-  min-width: 400px;
-  height: 450px; // 높이 감소
+  width: 100%;
+  height: 500px; // 다른 두 컴포넌트와 동일한 높이 지정
 
   @media (max-width: $breakpoint-lg) {
-    flex: none;
-    width: 100%;
-    min-width: unset;
+    max-width: 800px;
+    margin: 0 auto;
     height: auto; // 모바일에서는 자동 높이
   }
 
   @media (max-width: $breakpoint-md) {
-    min-width: unset;
+    height: auto; // 작은 화면에서는 자동 높이
   }
 
-  // UserProfile 컴포넌트 스타일 오버라이드 (새로운 구조에 맞춤)
+  // UserProfile 컴포넌트 스타일 오버라이드
   :deep(.user-profile-container) {
     padding: 0;
     margin: 0;
-    height: 100%;
     max-width: none;
-
-    @media (max-width: $breakpoint-lg) {
-      height: auto;
-    }
+    height: 100%; // 부모 높이에 맞춤
   }
 
   :deep(.user-profile) {
-    height: 100%;
+    height: 100%; // 부모 높이에 맞춤
+    display: flex;
+    flex-direction: column;
 
     @media (max-width: $breakpoint-lg) {
-      height: auto;
+      height: auto; // 모바일에서는 자동 높이
     }
   }
 }
 
-.posts-section {
-  flex: 1;
-  min-width: 500px;
-  height: 450px; // 프로필 섹션과 동일한 높이
+.posts-section,
+.trip-history-section {
+  width: 100%;
+  min-width: 0; // flexbox 오버플로우 방지
+  height: 500px;
 
   @media (max-width: $breakpoint-lg) {
-    min-width: unset;
-    width: 100%;
-    height: auto; // 모바일에서는 자동 높이
+    height: 450px;
   }
 
-  // MyPostsList 컴포넌트 스타일 오버라이드
-  :deep(.my-posts-container) {
+  @media (max-width: $breakpoint-md) {
+    height: 400px;
+  }
+
+  // 자식 컴포넌트 스타일 오버라이드
+  :deep(.my-posts-container),
+  :deep(.my-trip-history-container) {
     padding: 0;
     margin: 0;
     height: 100%;
-
-    @media (max-width: $breakpoint-lg) {
-      height: auto;
-    }
   }
 
-  :deep(.my-posts) {
+  :deep(.my-posts),
+  :deep(.my-trip-history) {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: $spacing-md; // 패딩 줄임
+    padding: $spacing-lg;
 
-    @media (max-width: $breakpoint-lg) {
-      height: auto;
-      padding: $spacing-lg; // 모바일에서는 조금 더 여유있게
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-md;
     }
   }
 
-  :deep(.my-posts__list) {
+  :deep(.my-posts__list),
+  :deep(.my-trip-history__list) {
     flex: 1;
-    max-height: none; // 기존 max-height 제거
     height: 100%;
-
-    @media (max-width: $breakpoint-lg) {
-      height: 70vh; // 모바일에서는 뷰포트 높이 기준
-    }
+    overflow-y: auto;
   }
 }
 
@@ -527,8 +649,16 @@ onMounted(async () => {
 }
 
 @media (max-width: $breakpoint-md) {
-  .profile-main-content {
-    gap: $spacing-md;
+  .posts-section,
+  .trip-history-section {
+    height: 350px;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .posts-section,
+  .trip-history-section {
+    height: 300px;
   }
 }
 </style>

@@ -7,11 +7,21 @@
         <div class="my-posts__actions">
           <button
             class="action-icon check-icon"
-            :class="{ 'active': isSelectMode }"
+            :class="{ active: isSelectMode }"
             @click="toggleSelectMode"
             title="선택 모드"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="20,6 9,17 4,12"></polyline>
             </svg>
           </button>
@@ -21,9 +31,21 @@
             @click="deleteSelectedPosts"
             :title="`선택된 ${selectedPosts.length}개 게시글 삭제`"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="3,6 5,6 21,6"></polyline>
-              <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+              <path
+                d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"
+              ></path>
               <line x1="10" y1="11" x2="10" y2="17"></line>
               <line x1="14" y1="11" x2="14" y2="17"></line>
             </svg>
@@ -39,10 +61,10 @@
           :class="[
             'post-card',
             'glass-card',
-            { 
+            {
               'post-card--selected': isSelected(post.postId),
-              'post-card--selectable': isSelectMode
-            }
+              'post-card--selectable': isSelectMode,
+            },
           ]"
           @click="handlePostClick(post.postId)"
         >
@@ -53,38 +75,79 @@
                 <span class="post-card__board-type">{{ post.boardType }}</span>
                 <h4 class="post-card__title">{{ post.title }}</h4>
               </div>
-              
+
               <div class="post-card__description-row">
-                <p class="post-card__description">{{ post.description || '내용 없음' }}</p>
+                <p class="post-card__description">
+                  {{ post.description || "내용 없음" }}
+                </p>
               </div>
             </div>
 
             <div class="post-card__footer">
               <div class="post-card__meta">
-                <span class="post-card__date">{{ formatDate(post.createdAt) }}</span>
-                <span v-if="post.createdAt !== post.updatedAt" class="post-card__updated">
+                <span class="post-card__date">{{
+                  formatDate(post.createdAt)
+                }}</span>
+                <span
+                  v-if="post.createdAt !== post.updatedAt"
+                  class="post-card__updated"
+                >
                   (수정: {{ formatDate(post.updatedAt) }})
                 </span>
               </div>
-              
+
               <div class="post-card__stats">
                 <div class="stat-item">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                    ></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                   <span>{{ formatCount(post.viewCount) }}</span>
                 </div>
-                
+
                 <div class="stat-item">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    ></path>
                   </svg>
                   <span>{{ formatCount(post.likeCount) }}</span>
                 </div>
-                
+
                 <div class="stat-item">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
                     <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
                   </svg>
                   <span>{{ formatCount(post.commentCount) }}</span>
@@ -95,8 +158,22 @@
 
           <!-- 선택 모드일 때 체크 표시 -->
           <div v-if="isSelectMode" class="post-card__check">
-            <div class="check-circle" :class="{ 'checked': isSelected(post.postId) }">
-              <svg v-if="isSelected(post.postId)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <div
+              class="check-circle"
+              :class="{ checked: isSelected(post.postId) }"
+            >
+              <svg
+                v-if="isSelected(post.postId)"
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="20,6 9,17 4,12"></polyline>
               </svg>
             </div>
@@ -104,26 +181,50 @@
         </div>
 
         <!-- 로딩 상태 -->
-        <div v-if="props.loading && props.posts.length === 0" class="loading-container">
+        <div
+          v-if="props.loading && props.posts.length === 0"
+          class="loading-container"
+        >
           <div class="loading-spinner"></div>
           <p>게시글을 불러오는 중...</p>
         </div>
 
         <!-- 무한스크롤 로딩 (하단에 더 보기) -->
-        <div v-if="props.loading && props.posts.length > 0" class="loading-more">
+        <div
+          v-if="props.loading && props.posts.length > 0"
+          class="loading-more"
+        >
           <div class="loading-spinner-small"></div>
           <p>더 많은 게시글을 불러오는 중...</p>
         </div>
 
         <!-- 더 이상 데이터가 없을 때 -->
-        <div v-if="!props.hasMore && props.posts.length > 0" class="no-more-data">
+        <div
+          v-if="!props.hasMore && props.posts.length > 0"
+          class="no-more-data"
+        >
           <p>모든 게시글을 불러왔습니다.</p>
         </div>
 
         <!-- 게시글이 없을 때 -->
-        <div v-if="!props.loading && props.posts.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <div
+          v-if="!props.loading && props.posts.length === 0"
+          class="empty-state"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            ></path>
             <polyline points="14,2 14,8 20,8"></polyline>
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
@@ -141,140 +242,151 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useNotificationStore } from '@/stores/notification'
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+import { useRouter } from "vue-router";
+import { useNotificationStore } from "@/stores/notification";
 
 // Props 정의
 const props = defineProps({
   posts: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   hasMore: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
 // 이벤트 정의
-const emit = defineEmits(['loadMore', 'deletePost', 'deletePosts'])
+const emit = defineEmits(["loadMore", "deletePost", "deletePosts"]);
 
-// 스토어
-const notificationStore = useNotificationStore()
+// 라우터 및 스토어
+const router = useRouter();
+const notificationStore = useNotificationStore();
 
 // 내부 상태 관리
-const selectedPosts = ref([])
-const isSelectMode = ref(false)
+const selectedPosts = ref([]);
+const isSelectMode = ref(false);
 
 // DOM 참조
-const postsContainer = ref(null)
-const infiniteScrollTrigger = ref(null)
+const postsContainer = ref(null);
+const infiniteScrollTrigger = ref(null);
 
 // Intersection Observer
-let observer = null
+let observer = null;
 
 // 선택 모드 관련
 const toggleSelectMode = () => {
-  isSelectMode.value = !isSelectMode.value
+  isSelectMode.value = !isSelectMode.value;
   if (!isSelectMode.value) {
-    selectedPosts.value = []
+    selectedPosts.value = [];
   }
-}
+};
 
 // 게시글 선택 관련
 const isSelected = (postId) => {
-  return selectedPosts.value.includes(postId)
-}
+  return selectedPosts.value.includes(postId);
+};
 
 const toggleSelect = (postId) => {
-  const index = selectedPosts.value.indexOf(postId)
+  const index = selectedPosts.value.indexOf(postId);
   if (index > -1) {
-    selectedPosts.value.splice(index, 1)
+    selectedPosts.value.splice(index, 1);
   } else {
-    selectedPosts.value.push(postId)
+    selectedPosts.value.push(postId);
   }
-}
+};
+
+// 게시글로 이동
+const navigateToPost = (postId) => {
+  router.push({ name: "post-detail", params: { id: postId } });
+};
 
 const handlePostClick = (postId) => {
   if (isSelectMode.value) {
-    toggleSelect(postId)
+    // 선택 모드일 때는 선택/해제
+    toggleSelect(postId);
+  } else {
+    // 선택 모드가 아닐 때는 게시글 상세 페이지로 이동
+    navigateToPost(postId);
   }
-}
+};
 
 // 날짜 포맷팅
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInHours = (now - date) / (1000 * 60 * 60)
-  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = (now - date) / (1000 * 60 * 60);
+
   if (diffInHours < 24) {
-    return `${Math.floor(diffInHours)}시간 전`
+    return `${Math.floor(diffInHours)}시간 전`;
   } else if (diffInHours < 24 * 7) {
-    return `${Math.floor(diffInHours / 24)}일 전`
+    return `${Math.floor(diffInHours / 24)}일 전`;
   } else {
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
-}
+};
 
 // 숫자 포맷팅
 const formatCount = (count) => {
   if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}k`
+    return `${(count / 1000).toFixed(1)}k`;
   }
-  return count.toString()
-}
+  return count.toString();
+};
 
 // 무한 스크롤 설정
 const setupInfiniteScroll = () => {
-  if (!infiniteScrollTrigger.value) return
-  
+  if (!infiniteScrollTrigger.value) return;
+
   observer = new IntersectionObserver(
     (entries) => {
-      const target = entries[0]
+      const target = entries[0];
       if (target.isIntersecting && props.hasMore && !props.loading) {
         setTimeout(() => {
           if (props.hasMore && !props.loading) {
-            emit('loadMore')
+            emit("loadMore");
           }
-        }, 100)
+        }, 100);
       }
     },
     {
-      rootMargin: '50px',
-      threshold: 0.1
+      rootMargin: "50px",
+      threshold: 0.1,
     }
-  )
-  
-  observer.observe(infiniteScrollTrigger.value)
-}
+  );
+
+  observer.observe(infiniteScrollTrigger.value);
+};
 
 // 삭제 관련 함수들
 const deleteSelectedPosts = () => {
-  if (selectedPosts.value.length === 0) return
-  emit('deletePosts', [...selectedPosts.value])
-  selectedPosts.value = []
-  isSelectMode.value = false
-}
+  if (selectedPosts.value.length === 0) return;
+  emit("deletePosts", [...selectedPosts.value]);
+  selectedPosts.value = [];
+  isSelectMode.value = false;
+};
 
 // 라이프사이클
 onMounted(async () => {
-  await nextTick()
-  setupInfiniteScroll()
-})
+  await nextTick();
+  setupInfiniteScroll();
+});
 
 onUnmounted(() => {
   if (observer) {
-    observer.disconnect()
+    observer.disconnect();
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>
@@ -342,6 +454,7 @@ onUnmounted(() => {
   border-radius: 8px;
   transition: all $transition-fast;
   border: 2px solid transparent;
+  cursor: pointer; // 항상 클릭 가능하도록 표시
 
   &:hover {
     transform: translateY(-1px);
