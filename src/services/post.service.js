@@ -246,6 +246,90 @@ export class PostService {
       console.error("좋아요 취소하기 요청 에러 : ", error);
     }
   }
+
+  /**
+   * 게시글 댓글 조회
+   * @param {number} postId - 게시글 ID
+   * @param {Object} params - 페이징 파라미터
+   * @param {number} params.page - 페이지 번호 (0부터 시작)
+   * @param {number} params.size - 페이지 크기
+   * @return {Promise} - 댓글 목록 (페이징)
+   */
+  async getComments(postId, params = {}) {
+    try {
+      const { page = 0, size = 10 } = params;
+
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+      });
+
+      const response = await ApiService.authGet(
+        `/posts/${postId}/comment?${queryParams.toString()}`
+      );
+
+      return response;
+    } catch (error) {
+      console.error("댓글 조회 에러:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 게시글 댓글 수정
+   * @param {postId} postId - 게시글 ID
+   * @param {commentId} commentId - 댓글 ID
+   * @return {Promise} - 댓글 수정 응답
+   */
+  async updateComment(postId, commentId, commentData) {
+    try {
+      const response = await ApiService.authPut(
+        `/posts/${postId}/comment/${commentId}`,
+        commentData
+      );
+      return response;
+    } catch (error) {
+      console.error("댓글 수정 에러 : ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 게시글 댓글 삭제
+   * @param {postId} postId - 게시글 ID
+   * @param {commentId} commentId - 댓글 ID
+   * @return {Promise} - 댓글 수정 응답
+   */
+  async deleteComment(postId, commentId) {
+    try {
+      const response = await ApiService.authDelete(
+        `/posts/${postId}/comment/${commentId}`
+      );
+      return response;
+    } catch (error) {
+      console.error("댓글 삭제 에러 : ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 게시글 댓글 작성
+   * @param {number} postId - 게시글 ID
+   * @param {Object} commentData - 댓글 데이터 (parentId, content 포함)
+   * @return {Promise} - 댓글 작성 응답
+   */
+  async createComment(postId, commentData) {
+    try {
+      const response = await ApiService.authPost(
+        `/posts/${postId}/comment`,
+        commentData
+      );
+      return response;
+    } catch (error) {
+      console.error("댓글 작성 에러 : ", error);
+      throw error;
+    }
+  }
 }
 
 export default new PostService();

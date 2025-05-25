@@ -157,15 +157,15 @@ const getRegionCoordinates = (region) => {
   if (!province) return null;
 
   // district가 지정되어 있으면 district 좌표, 없으면 province 좌표 사용
-  if (districtName) {
-    const district = province.districts.find((d) => d.name === districtName);
-    if (district && district.coordinates) {
-      return {
-        lat: district.coordinates.lat,
-        lng: district.coordinates.lng,
-      };
-    }
-  }
+  // if (districtName) {
+  //   const district = province.districts.find((d) => d.name === districtName);
+  //   if (district && district.coordinates) {
+  //     return {
+  //       lat: district.coordinates.lat,
+  //       lng: district.coordinates.lng,
+  //     };
+  //   }
+  // }
 
   // district가 없거나 찾지 못했으면 province 좌표 사용
   if (province.coordinates) {
