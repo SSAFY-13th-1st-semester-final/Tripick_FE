@@ -14,8 +14,9 @@
 
     <template v-else>
       <div class="post-detail__layout">
-        <!-- 메인 게시글 영역 -->
+        <!-- 1열: 게시글 + 댓글 영역 -->
         <div class="post-detail__main">
+          <!-- 게시글 영역 -->
           <div class="post-detail__card glass-card">
             <div class="post-detail__header">
               <div class="post-detail__actions">
@@ -183,10 +184,13 @@
             </div>
           </div>
 
-          <!-- 댓글 섹션 추가 예정 -->
+          <!-- 댓글 영역 -->
+          <div class="post-detail__comments">
+            <PostComments :post-id="post.postId" />
+          </div>
         </div>
 
-        <!-- AI 요약 사이드바 영역 -->
+        <!-- 2열: AI 요약 영역 -->
         <div class="post-detail__sidebar">
           <AiPostSummaryCard
             ref="summaryCardRef"
@@ -208,6 +212,7 @@ import PostService from "@/services/post.service";
 import AiService from "@/services/ai.service";
 import AppButton from "@/components/common/shared/AppButton.vue";
 import AiPostSummaryCard from "@/components/posts/AiPostSummaryCard.vue";
+import PostComments from "@/components/posts/PostComments.vue";
 
 // 라우터 및 스토어
 const route = useRoute();
@@ -438,11 +443,11 @@ const formatCount = (count) => {
 const formatDate = (dateString) => {
   if (!dateString) return "";
 
-  // UTC 기준 날짜 → 한국 시간으로 변환
-  const date = new Date(dateString);
-  const utcToKst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  // UTC 기준 날짜 → 한국 시간으로 변환 (+9시간)
+  const utcDate = new Date(dateString);
+  const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
 
-  return utcToKst.toLocaleDateString("ko-KR", {
+  return kstDate.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -491,9 +496,16 @@ onMounted(loadPost);
 
   &__layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 400px;
     gap: $spacing-xl;
     align-items: start;
+    max-width: 1800px;
+    margin: 0 auto;
+
+    @media (max-width: $breakpoint-xl) {
+      grid-template-columns: 1fr 360px;
+      gap: $spacing-lg;
+    }
 
     @media (max-width: $breakpoint-lg) {
       grid-template-columns: 1fr;
@@ -502,16 +514,24 @@ onMounted(loadPost);
   }
 
   &__main {
-    min-width: 0; // 그리드 오버플로우 방지
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+
+    @media (max-width: $breakpoint-lg) {
+      gap: $spacing-lg;
+    }
   }
 
   &__sidebar {
+    min-width: 0;
     position: sticky;
     top: $spacing-xl;
 
     @media (max-width: $breakpoint-lg) {
       position: static;
-      order: -1; // 모바일에서는 상단에 배치
+      order: 2;
     }
   }
 
@@ -788,6 +808,14 @@ onMounted(loadPost);
 
     &__stats {
       justify-content: center;
+    }
+
+    &__sidebar {
+      gap: $spacing-lg;
+    }
+
+    &__comments {
+      margin-top: $spacing-md; // 모바일에서는 더 작은 간격
     }
   }
 }
