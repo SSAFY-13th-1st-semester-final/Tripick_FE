@@ -56,9 +56,10 @@
                 class="post-form__select glass-input"
                 :class="{ 'is-invalid': !!errors.boardType }"
               >
-                <option value="GENERAL_FORUM">일반 게시판</option>
+                <option value="GENERAL_FORUM">자유게시판</option>
                 <option value="NOTICE">공지사항</option>
-                <option value="QNA_FORUM">Q&A 게시판</option>
+                <option value="QNA_FORUM">Q&A</option>
+                <option value="TRIP_FORUM">여행 후기</option>
               </select>
               <div class="post-form__select-arrow">
                 <svg
@@ -314,7 +315,9 @@ const validateForm = () => {
   if (!isRequired(formData.boardType)) {
     newErrors.boardType = "게시판 유형을 선택해주세요.";
   } else if (
-    !["GENERAL_FORUM", "NOTICE", "QNA_FORUM"].includes(formData.boardType)
+    !["GENERAL_FORUM", "NOTICE", "QNA_FORUM", "TRIP_FORUM"].includes(
+      formData.boardType
+    )
   ) {
     newErrors.boardType = "유효하지 않은 게시판 유형입니다.";
   }

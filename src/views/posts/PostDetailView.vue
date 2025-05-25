@@ -13,172 +13,188 @@
     </div>
 
     <template v-else>
-      <div class="post-detail__card glass-card">
-        <div class="post-detail__header">
-          <div class="post-detail__actions">
-            <AppButton
-              @click="navigateToList"
-              variant="ghost"
-              size="sm"
-              class="back-btn"
-            >
-              <i class="fas fa-arrow-left"></i>
-              목록으로
-            </AppButton>
+      <div class="post-detail__layout">
+        <!-- 메인 게시글 영역 -->
+        <div class="post-detail__main">
+          <div class="post-detail__card glass-card">
+            <div class="post-detail__header">
+              <div class="post-detail__actions">
+                <AppButton
+                  @click="navigateToList"
+                  variant="ghost"
+                  size="sm"
+                  class="back-btn"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                  목록으로
+                </AppButton>
 
-            <div v-if="isAuthorOrAdmin" class="post-detail__author-actions">
-              <AppButton @click="editPost" variant="outline" size="sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="post-detail__icon"
-                >
-                  <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  ></path>
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                  ></path>
-                </svg>
-                수정
-              </AppButton>
-              <AppButton
-                @click="confirmDelete"
-                variant="outline"
-                size="sm"
-                class="delete-btn"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="post-detail__icon"
-                >
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path
-                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  ></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-                삭제
-              </AppButton>
+                <div v-if="isAuthorOrAdmin" class="post-detail__author-actions">
+                  <AppButton @click="editPost" variant="outline" size="sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="post-detail__icon"
+                    >
+                      <path
+                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                      ></path>
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                      ></path>
+                    </svg>
+                    수정
+                  </AppButton>
+                  <AppButton
+                    @click="confirmDelete"
+                    variant="outline"
+                    size="sm"
+                    class="delete-btn"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="post-detail__icon"
+                    >
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    삭제
+                  </AppButton>
+                </div>
+              </div>
+
+              <h1 class="post-detail__title">{{ post.title }}</h1>
+
+              <div class="post-detail__meta">
+                <div class="post-detail__author">
+                  <div class="post-detail__author-image">
+                    <img
+                      :src="post.profileImageUrl || '/default-profile.jpg'"
+                      :alt="post.nickname"
+                      @error="handleProfileError"
+                    />
+                  </div>
+                  <div class="post-detail__author-info">
+                    <span class="post-detail__author-name">{{
+                      post.nickname
+                    }}</span>
+                    <span class="post-detail__date">{{
+                      formatDate(post.createdAt)
+                    }}</span>
+                  </div>
+                </div>
+
+                <div class="post-detail__stats">
+                  <span class="post-detail__stat">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="post-detail__icon"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    {{ formatCount(post.viewCount) }}
+                  </span>
+                  <span class="post-detail__stat">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="post-detail__icon"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      ></path>
+                    </svg>
+                    {{ formatCount(post.likeCount) }}
+                  </span>
+                  <span class="post-detail__stat">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="post-detail__icon"
+                    >
+                      <path
+                        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                      ></path>
+                    </svg>
+                    {{ formatCount(post.commentCount) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="post.thumbNail" class="post-detail__thumbnail">
+              <img
+                :src="post.thumbNail"
+                :alt="post.title"
+                @error="handleImageError"
+              />
+            </div>
+
+            <div class="post-detail__content">
+              <div v-if="post.description" class="post-detail__description">
+                {{ post.description }}
+              </div>
+
+              <div class="post-detail__body" v-html="post.content"></div>
             </div>
           </div>
 
-          <h1 class="post-detail__title">{{ post.title }}</h1>
-
-          <div class="post-detail__meta">
-            <div class="post-detail__author">
-              <div class="post-detail__author-image">
-                <img
-                  :src="post.profileImageUrl || '/default-profile.jpg'"
-                  :alt="post.nickname"
-                  @error="handleProfileError"
-                />
-              </div>
-              <div class="post-detail__author-info">
-                <span class="post-detail__author-name">{{
-                  post.nickname
-                }}</span>
-                <span class="post-detail__date">{{
-                  formatDate(post.createdAt)
-                }}</span>
-              </div>
-            </div>
-
-            <div class="post-detail__stats">
-              <span class="post-detail__stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="post-detail__icon"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                {{ formatCount(post.viewCount) }}
-              </span>
-              <span class="post-detail__stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="post-detail__icon"
-                >
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                  ></path>
-                </svg>
-                {{ formatCount(post.likeCount) }}
-              </span>
-              <span class="post-detail__stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="post-detail__icon"
-                >
-                  <path
-                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                  ></path>
-                </svg>
-                {{ formatCount(post.commentCount) }}
-              </span>
-            </div>
-          </div>
+          <!-- 댓글 섹션 추가 예정 -->
         </div>
 
-        <div v-if="post.thumbNail" class="post-detail__thumbnail">
-          <img
-            :src="post.thumbNail"
-            :alt="post.title"
-            @error="handleImageError"
+        <!-- AI 요약 사이드바 영역 -->
+        <div class="post-detail__sidebar">
+          <AiPostSummaryCard
+            ref="summaryCardRef"
+            :post-id="post.postId"
+            @summary-requested="handleSummaryRequest"
           />
         </div>
-
-        <div class="post-detail__content">
-          <div v-if="post.description" class="post-detail__description">
-            {{ post.description }}
-          </div>
-
-          <div class="post-detail__body" v-html="post.content"></div>
-        </div>
       </div>
-
-      <!-- 댓글 섹션 추가 예정 -->
     </template>
   </div>
 </template>
@@ -190,6 +206,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import PostService from "@/services/post.service";
 import AppButton from "@/components/common/shared/AppButton.vue";
+import AiPostSummaryCard from "@/components/posts/AiPostSummaryCard.vue";
 
 // 라우터 및 스토어
 const route = useRoute();
@@ -201,6 +218,9 @@ const notificationStore = useNotificationStore();
 const post = ref({});
 const isLoading = ref(true);
 const error = ref(null);
+
+// AI 요약 관련 참조
+const summaryCardRef = ref(null);
 
 // 현재 사용자가 작성자인지 또는 관리자인지 확인
 const isAuthorOrAdmin = computed(() => {
@@ -267,6 +287,61 @@ const loadPost = async () => {
     }
   } finally {
     isLoading.value = false;
+  }
+};
+
+// AI 요약 요청 처리
+const handleSummaryRequest = async (postId) => {
+  if (!summaryCardRef.value) return;
+
+  // 로딩 상태 설정
+  summaryCardRef.value.setLoading(true);
+
+  try {
+    // 인증 상태 확인
+    if (!authStore.isAuthenticated) {
+      notificationStore.showWarning(
+        "AI 요약 서비스를 사용하려면 로그인이 필요합니다."
+      );
+      summaryCardRef.value.setSummaryError("로그인이 필요한 서비스입니다.");
+      return;
+    }
+
+    // 토큰 갱신
+    await authStore.refreshUserData();
+
+    // AI 요약 API 호출
+    const response = await PostService.getPostSummary(postId);
+
+    // 응답 처리
+    if (response && response.data && response.data.data) {
+      summaryCardRef.value.setSummaryData(response.data.data);
+      notificationStore.showSuccess("AI 요약이 생성되었습니다!");
+    } else {
+      summaryCardRef.value.setSummaryError("요약 데이터를 가져올 수 없습니다.");
+      notificationStore.showError("AI 요약 생성에 실패했습니다.");
+    }
+  } catch (err) {
+    // 오류 처리
+    let errorMessage = "AI 요약 서비스 오류가 발생했습니다.";
+
+    if (err.response && err.response.status === 401) {
+      errorMessage = "세션이 만료되었습니다. 다시 로그인해주세요.";
+      authStore.logout();
+      router.push({ name: "login", query: { redirect: route.fullPath } });
+    } else if (err.response && err.response.status === 403) {
+      errorMessage = "AI 요약 서비스 이용 권한이 없습니다.";
+    } else if (err.response && err.response.status === 429) {
+      errorMessage = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
+    } else if (err.response && err.response.status >= 500) {
+      errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    }
+
+    summaryCardRef.value.setSummaryError(errorMessage);
+    notificationStore.showError(errorMessage, {
+      duration: 5000,
+      closable: true,
+    });
   }
 };
 
@@ -375,7 +450,6 @@ const formatDate = (dateString) => {
   });
 };
 
-
 // 이미지 오류 처리
 const handleImageError = (event) => {
   event.target.src = "/default-thumbnail.jpg";
@@ -395,7 +469,7 @@ onMounted(loadPost);
 @use "@/assets/styles/glassmorphism" as *;
 
 .post-detail {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: $spacing-lg;
 
@@ -411,6 +485,32 @@ onMounted(loadPost);
     p {
       margin: $spacing-md 0;
       color: rgba($primary-color, 0.7);
+    }
+  }
+
+  &__layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: $spacing-xl;
+    align-items: start;
+
+    @media (max-width: $breakpoint-lg) {
+      grid-template-columns: 1fr;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__main {
+    min-width: 0; // 그리드 오버플로우 방지
+  }
+
+  &__sidebar {
+    position: sticky;
+    top: $spacing-xl;
+
+    @media (max-width: $breakpoint-lg) {
+      position: static;
+      order: -1; // 모바일에서는 상단에 배치
     }
   }
 
@@ -441,6 +541,10 @@ onMounted(loadPost);
     color: $primary-color;
     margin: 0 0 $spacing-lg;
     line-height: 1.4;
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 1.5rem;
+    }
   }
 
   &__meta {
@@ -489,6 +593,10 @@ onMounted(loadPost);
     display: flex;
     align-items: center;
     gap: $spacing-md;
+
+    @media (max-width: $breakpoint-sm) {
+      gap: $spacing-sm;
+    }
   }
 
   &__stat {
@@ -514,6 +622,17 @@ onMounted(loadPost);
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(31, 38, 135, 0.15);
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      padding: $spacing-xs;
+      font-size: 0.8rem;
+
+      .post-detail__icon {
+        margin-right: 2px;
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 
@@ -638,6 +757,37 @@ onMounted(loadPost);
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+// 모바일 최적화
+@media (max-width: $breakpoint-md) {
+  .post-detail {
+    padding: $spacing-md;
+
+    &__card {
+      padding: $spacing-lg;
+    }
+
+    &__actions {
+      flex-direction: column;
+      gap: $spacing-sm;
+      align-items: stretch;
+    }
+
+    &__author-actions {
+      justify-content: center;
+    }
+
+    &__meta {
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-sm;
+    }
+
+    &__stats {
+      justify-content: center;
+    }
   }
 }
 </style>
