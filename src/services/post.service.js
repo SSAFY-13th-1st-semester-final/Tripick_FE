@@ -185,6 +185,58 @@ export class PostService {
       throw error;
     }
   }
+
+  /**
+   * 게시글 세 줄 요약 AI 호출 요청
+   *
+   * @param {Number} postId - 요약을 원하는 게시글 Id
+   * @return {Promise} - 게시글 요약 프롬프트 답변
+   */
+  async getPostSummary(postId) {
+    try {
+      const response = await ApiService.authGet(
+        `/chatbot/post/${postId}/summary`
+      );
+
+      return response;
+    } catch (error) {
+      console.error("ai 요약 호출 에러 : ", error);
+    }
+  }
+
+  /**
+   * 특정 게시글 좋아요 누름 여부 확인 요청
+   *
+   */
+
+  /**
+   * 특정 게시글 좋아요 누르기 요청
+   * @param {Number} postId - 좋아요를 누를 게시글 id
+   * @return {Promise} - 요청 성공 응답
+   */
+  async likePost(postId) {
+    try {
+      const response = await ApiService.authPost(`/posts/${postId}/likes`);
+
+      return response;
+    } catch (error) {
+      console.error("좋아요 표시하기 요청 에러 : ", error);
+    }
+  }
+
+  /**
+   * 특정 게시글 좋아요 취소하기 요청
+   *
+   */
+  async unlikePost(postId) {
+    try {
+      const response = await ApiService.authDelete(`/posts/${postId}/likes`);
+
+      return response;
+    } catch (error) {
+      console.error("좋아요 취소하기 요청 에러 : ", error);
+    }
+  }
 }
 
 export default new PostService();
