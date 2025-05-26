@@ -40,7 +40,7 @@
           >아이디를 잊으셨나요?</router-link
         >
         <span class="login-form__divider">|</span>
-        <router-link to="/auth/forgot-password" class="login-form__help-link"
+        <router-link to="/auth/email-verification" class="login-form__help-link"
           >비밀번호를 잊으셨나요?</router-link
         >
       </div>
