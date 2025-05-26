@@ -1,14 +1,21 @@
 <template>
   <!-- 개발 환경에서만 렌더링 -->
   <div v-if="isDev">
-    <!-- 개발자 패널 -->
+    <!-- 배경 오버레이 (패널이 열려있을 때) -->
+    <div
+      v-if="showDevPanel || showMemberList"
+      class="panel-backdrop"
+      @click="closeAllPanels"
+    ></div>
+
+    <!-- 관리자 패널 -->
     <div
       v-if="showDevPanel"
-      class="dev-panel glass-card"
+      class="admin-panel glass-card"
       :class="{ collapsed: isDevPanelCollapsed }"
     >
-      <div class="dev-panel-header" @click="toggleDevPanel">
-        <h4>🛠️ 개발자 패널</h4>
+      <div class="admin-panel-header" @click="toggleDevPanel">
+        <h4>🛠️ 관리자도구</h4>
         <button class="collapse-btn">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +34,7 @@
         </button>
       </div>
 
-      <div v-if="!isDevPanelCollapsed" class="dev-panel-content">
+      <div v-if="!isDevPanelCollapsed" class="admin-panel-content">
         <!-- 인증 상태 -->
         <div class="status-section">
           <h5>🔐 인증 상태</h5>
@@ -75,8 +82,19 @@
           </div>
         </div>
 
+        <!-- 관리자 기능 -->
+        <div class="status-section">
+          <h5>👥 회원 관리</h5>
+          <div class="status-item">
+            <span>회원 목록:</span>
+            <span :class="{ active: showMemberList }">
+              {{ showMemberList ? "열림" : "닫힘" }}
+            </span>
+          </div>
+        </div>
+
         <!-- 컨트롤 버튼들 -->
-        <div class="dev-controls">
+        <div class="admin-controls">
           <button
             @click="forceTokenCheck"
             class="glass-btn"
@@ -85,49 +103,83 @@
             토큰 체크
           </button>
           <button @click="showApiStatus" class="glass-btn">API 상태</button>
+          <button
+            @click="toggleMemberList"
+            class="glass-btn"
+            :disabled="!isAuthenticated"
+          >
+            {{ showMemberList ? "회원목록 닫기" : "전체조회" }}
+          </button>
           <button @click="clearDevPanel" class="glass-btn">콘솔 클리어</button>
         </div>
       </div>
     </div>
 
-    <!-- 개발자 패널 토글 버튼 -->
+    <!-- 관리자도구 토글 버튼 -->
     <button
       @click="toggleDevPanelVisibility"
-      class="dev-toggle glass-btn"
-      :title="showDevPanel ? '개발자 패널 숨기기' : '개발자 패널 보이기'"
+      class="admin-toggle glass-btn"
+      :title="showDevPanel ? '관리자도구 숨기기' : '관리자도구 보이기'"
     >
       🛠️
     </button>
+
+    <!-- 회원 관리 컴포넌트 -->
+    <AdminMemberList
+      :show-member-list="showMemberList"
+      @close="closeMemberList"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import authService from "@/services/auth.service";
 import { useNotificationStore } from "@/stores/notification";
 import TokenMonitorService from "@/services/token-monitor.service";
 import ApiService from "@/services/api.service";
+import AdminMemberList from "@/components/common/utils/AdminMemberList.vue";
 
 // 환경 확인
 const isDev = import.meta.env.DEV;
 
 // 스토어 접근
 const authStore = useAuthStore();
-// const authService = useAuthService();
 const notificationStore = useNotificationStore();
 const { isAuthenticated } = storeToRefs(authStore);
 
-// 개발자 패널 상태
+// 관리자 패널 상태
 const showDevPanel = ref(false);
 const isDevPanelCollapsed = ref(false);
 const tokenStatus = ref({});
 const apiStatus = ref({});
+const showMemberList = ref(false);
 
 // 상태 업데이트 타이머
 let statusUpdateTimer = null;
 let keyboardCleanup = null;
+
+// body 스크롤 제어
+const controlBodyScroll = (disable) => {
+  if (disable) {
+    // 스크롤 차단
+    document.body.classList.add("no-scroll");
+  } else {
+    // 스크롤 허용
+    document.body.classList.remove("no-scroll");
+  }
+};
+
+// 패널 상태 감시 및 스크롤 제어
+const hasOpenPanels = computed(
+  () => showDevPanel.value || showMemberList.value
+);
+
+watch(hasOpenPanels, (newValue) => {
+  controlBodyScroll(newValue);
+});
 
 // 계산된 속성
 const formatTime = computed(() => (seconds) => {
@@ -174,6 +226,31 @@ const toggleDevPanelVisibility = () => {
       clearInterval(statusUpdateTimer);
       statusUpdateTimer = null;
     }
+    // 관리자 패널이 닫히면 회원 목록도 닫기
+    showMemberList.value = false;
+  }
+};
+
+const toggleMemberList = () => {
+  if (!isAuthenticated.value) {
+    notificationStore.showWarning("로그인이 필요합니다.");
+    return;
+  }
+
+  showMemberList.value = !showMemberList.value;
+};
+
+const closeMemberList = () => {
+  showMemberList.value = false;
+};
+
+const closeAllPanels = () => {
+  showDevPanel.value = false;
+  showMemberList.value = false;
+
+  if (statusUpdateTimer) {
+    clearInterval(statusUpdateTimer);
+    statusUpdateTimer = null;
   }
 };
 
@@ -181,8 +258,10 @@ const forceTokenCheck = async () => {
   try {
     await TokenMonitorService.forceCheck();
     updateDevPanelStatus();
+    notificationStore.showSuccess("토큰 상태를 확인했습니다.");
   } catch (error) {
     console.error("❌ 토큰 확인 중 오류:", error);
+    notificationStore.showError("토큰 확인 중 오류가 발생했습니다.");
   }
 };
 
@@ -190,23 +269,38 @@ const showApiStatus = () => {
   try {
     const status = ApiService.getStatus();
     console.table(status);
+    notificationStore.showInfo("API 상태가 콘솔에 출력되었습니다.");
   } catch (error) {
     console.error("❌ API 상태 조회 실패:", error);
+    notificationStore.showError("API 상태 조회에 실패했습니다.");
   }
 };
 
 const clearDevPanel = () => {
   console.clear();
+  notificationStore.showInfo("콘솔이 클리어되었습니다.");
 };
 
 const setupKeyboardShortcuts = () => {
   if (!isDev) return;
 
   const handleKeydown = (e) => {
-    // Ctrl + Shift + D: 개발자 패널 토글
+    // ESC: 모든 패널 닫기
+    if (e.key === "Escape" && hasOpenPanels.value) {
+      e.preventDefault();
+      closeAllPanels();
+    }
+
+    // Ctrl + Shift + D: 관리자도구 패널 토글
     if (e.ctrlKey && e.shiftKey && e.key === "D") {
       e.preventDefault();
       toggleDevPanelVisibility();
+    }
+
+    // Ctrl + Shift + M: 회원 목록 토글
+    if (e.ctrlKey && e.shiftKey && e.key === "M" && isAuthenticated.value) {
+      e.preventDefault();
+      toggleMemberList();
     }
 
     // Ctrl + Shift + T: 토큰 강제 체크
@@ -234,7 +328,7 @@ const setupGlobalObjects = () => {
   if (!isDev) return;
 
   // 전역 접근 객체 설정
-  window.__VUE_APP__ = {
+  window.__VUE_ADMIN__ = {
     authStore,
     notificationStore,
     TokenMonitorService,
@@ -244,6 +338,9 @@ const setupGlobalObjects = () => {
       forceTokenCheck,
       showApiStatus,
       toggleDevPanel: toggleDevPanelVisibility,
+      toggleMemberList,
+      clearDevPanel,
+      closeAllPanels,
     },
   };
 };
@@ -257,6 +354,14 @@ onMounted(() => {
 
   // 전역 객체 설정
   setupGlobalObjects();
+
+  console.log("🛠️ 관리자도구가 활성화되었습니다.");
+  console.log("키보드 단축키:");
+  console.log("  Ctrl + Shift + D: 관리자도구 토글");
+  console.log("  Ctrl + Shift + M: 회원 목록 토글");
+  console.log("  Ctrl + Shift + T: 토큰 강제 체크");
+  console.log("  Ctrl + Shift + C: 콘솔 클리어");
+  console.log("  ESC: 모든 패널 닫기");
 });
 
 onBeforeUnmount(() => {
@@ -270,14 +375,31 @@ onBeforeUnmount(() => {
   if (keyboardCleanup) {
     keyboardCleanup();
   }
+
+  // 스크롤 복원
+  controlBodyScroll(false);
 });
 </script>
 
 <style lang="scss" scoped>
 @use "@/assets/styles" as *;
 
-/* 개발자 패널 */
-.dev-panel {
+/* 배경 오버레이 */
+.panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: $z-index-modal-backdrop;
+  cursor: pointer;
+}
+
+/* 관리자 패널 */
+.admin-panel {
   position: fixed;
   top: $spacing-md;
   left: $spacing-md;
@@ -288,13 +410,13 @@ onBeforeUnmount(() => {
   transition: all $transition-normal;
 
   &.collapsed {
-    .dev-panel-content {
+    .admin-panel-content {
       display: none;
     }
   }
 }
 
-.dev-panel-header {
+.admin-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -331,7 +453,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.dev-panel-content {
+.admin-panel-content {
   padding: $spacing-sm 0;
 }
 
@@ -384,7 +506,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.dev-controls {
+.admin-controls {
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
@@ -400,8 +522,8 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 개발자 패널 토글 버튼 */
-.dev-toggle {
+/* 관리자도구 토글 버튼 */
+.admin-toggle {
   position: fixed;
   bottom: $spacing-md;
   left: $spacing-md;
@@ -422,7 +544,7 @@ onBeforeUnmount(() => {
 
 /* 모바일 대응 */
 @media (max-width: $breakpoint-md) {
-  .dev-panel {
+  .admin-panel {
     top: $spacing-sm;
     left: $spacing-sm;
     right: $spacing-sm;
@@ -430,14 +552,14 @@ onBeforeUnmount(() => {
     max-height: 50vh;
   }
 
-  .dev-toggle {
+  .admin-toggle {
     bottom: $spacing-sm;
     left: $spacing-sm;
   }
 }
 
 /* 스크롤바 스타일링 */
-.dev-panel {
+.admin-panel {
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -454,5 +576,15 @@ onBeforeUnmount(() => {
   &::-webkit-scrollbar-thumb:hover {
     background: rgba($primary-color, 0.4);
   }
+}
+</style>
+
+<style lang="scss">
+/* 전역 스타일 - body 스크롤 제어 */
+body.no-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 </style>
