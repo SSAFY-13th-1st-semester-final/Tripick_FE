@@ -6,9 +6,8 @@ export class BoardService {
    * @returns {Promise} - 게시판 종류 목록 응답
    */
   getBoards() {
-    return ApiService.authGet('/board');
+    return ApiService.publicGet("/board");
   }
-  
 }
 
-export default new BoardService()
+export default new BoardService();

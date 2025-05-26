@@ -7,186 +7,38 @@
 
     <div v-else-if="error" class="post-detail__error">
       <p>{{ error }}</p>
-      <AppButton @click="navigateToList" variant="outline"
-        >게시판으로 돌아가기</AppButton
-      >
+      <AppButton @click="navigateToList" variant="outline">
+        게시판으로 돌아가기
+      </AppButton>
     </div>
 
     <template v-else>
       <div class="post-detail__layout">
         <!-- 1열: 게시글 + 댓글 영역 -->
         <div class="post-detail__main">
-          <!-- 게시글 영역 -->
-          <div class="post-detail__card glass-card">
-            <div class="post-detail__header">
-              <div class="post-detail__actions">
-                <AppButton
-                  @click="navigateToList"
-                  variant="ghost"
-                  size="sm"
-                  class="back-btn"
-                >
-                  <i class="fas fa-arrow-left"></i>
-                  목록으로
-                </AppButton>
-
-                <div v-if="isAuthorOrAdmin" class="post-detail__author-actions">
-                  <AppButton @click="editPost" variant="outline" size="sm">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="post-detail__icon"
-                    >
-                      <path
-                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                      ></path>
-                      <path
-                        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                      ></path>
-                    </svg>
-                    수정
-                  </AppButton>
-                  <AppButton
-                    @click="confirmDelete"
-                    variant="outline"
-                    size="sm"
-                    class="delete-btn"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="post-detail__icon"
-                    >
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path
-                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                      ></path>
-                      <line x1="10" y1="11" x2="10" y2="17"></line>
-                      <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                    삭제
-                  </AppButton>
-                </div>
-              </div>
-
-              <h1 class="post-detail__title">{{ post.title }}</h1>
-
-              <div class="post-detail__meta">
-                <div class="post-detail__author">
-                  <div class="post-detail__author-image">
-                    <img
-                      :src="post.profileImageUrl || '/default-profile.jpg'"
-                      :alt="post.nickname"
-                      @error="handleProfileError"
-                    />
-                  </div>
-                  <div class="post-detail__author-info">
-                    <span class="post-detail__author-name">{{
-                      post.nickname
-                    }}</span>
-                    <span class="post-detail__date">{{
-                      formatDate(post.createdAt)
-                    }}</span>
-                  </div>
-                </div>
-
-                <div class="post-detail__stats">
-                  <span class="post-detail__stat">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="post-detail__icon"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    {{ formatCount(post.viewCount) }}
-                  </span>
-                  <span class="post-detail__stat">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="post-detail__icon"
-                    >
-                      <path
-                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                      ></path>
-                    </svg>
-                    {{ formatCount(post.likeCount) }}
-                  </span>
-                  <span class="post-detail__stat">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="post-detail__icon"
-                    >
-                      <path
-                        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                      ></path>
-                    </svg>
-                    {{ formatCount(post.commentCount) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="post.thumbNail" class="post-detail__thumbnail">
-              <img
-                :src="post.thumbNail"
-                :alt="post.title"
-                @error="handleImageError"
-              />
-            </div>
-
-            <div class="post-detail__content">
-              <div v-if="post.description" class="post-detail__description">
-                {{ post.description }}
-              </div>
-
-              <div class="post-detail__body" v-html="post.content"></div>
-            </div>
-          </div>
+          <!-- 게시글 영역 - PostContent 컴포넌트 사용 -->
+          <PostContent
+            :post="post"
+            :is-liked="isLiked"
+            :is-like-loading="isLikeLoading"
+            :is-authenticated="authStore.isAuthenticated"
+            :current-user="authStore.currentUser"
+            :is-admin="authStore.isAdmin"
+            @navigate-to-list="navigateToList"
+            @edit-post="editPost"
+            @confirm-delete="confirmDelete"
+            @toggle-like="toggleLike"
+            @image-error="handleImageError"
+            @profile-error="handleProfileError"
+          />
 
           <!-- 댓글 영역 -->
           <div class="post-detail__comments">
-            <PostComments :post-id="post.postId" />
+            <PostComments
+              :post-id="post.postId"
+              @comment-posted="handleCommentPosted"
+              @comment-changed="handleCommentChanged"
+            />
           </div>
         </div>
 
@@ -204,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
@@ -213,6 +65,7 @@ import AiService from "@/services/ai.service";
 import AppButton from "@/components/common/shared/AppButton.vue";
 import AiPostSummaryCard from "@/components/posts/AiPostSummaryCard.vue";
 import PostComments from "@/components/posts/PostComments.vue";
+import PostContent from "@/components/posts/PostContent.vue";
 
 // 라우터 및 스토어
 const route = useRoute();
@@ -225,22 +78,12 @@ const post = ref({});
 const isLoading = ref(true);
 const error = ref(null);
 
+// 좋아요 관련 상태
+const isLiked = ref(false);
+const isLikeLoading = ref(false);
+
 // AI 요약 관련 참조
 const summaryCardRef = ref(null);
-
-// 현재 사용자가 작성자인지 또는 관리자인지 확인
-const isAuthorOrAdmin = computed(() => {
-  if (!post.value) return false;
-  if (!authStore.isAuthenticated) return false;
-
-  // 관리자인 경우 항상 수정/삭제 가능
-  if (authStore.isAdmin) return true;
-
-  // 작성자인 경우 수정/삭제 가능
-  return (
-    authStore.currentUser && post.value.memberId === authStore.currentUser.id
-  );
-});
 
 // 게시글 로드
 const loadPost = async () => {
@@ -256,43 +99,123 @@ const loadPost = async () => {
   error.value = null;
 
   try {
-    // 로그인 상태 확인 및 토큰 갱신 (필요한 경우)
-    if (authStore.isAuthenticated) {
-      await authStore.refreshUserData();
-    }
-
+    // 1. 게시글 기본 정보 조회 (인증 불필요)
     const response = await PostService.getPostById(postId);
 
-    // 응답 구조 확인 및 수정
     if (response && response.data) {
-      // API 응답이 중첩된 data 객체 없이 바로 게시글 데이터인 경우
       post.value = response.data;
-    } else if (response && response.data && response.data.data) {
-      // API 응답이 data.data 구조인 경우
-      post.value = response.data.data;
     } else {
-      error.value = "게시글을 불러올 수 없습니다.";
+      throw new Error("게시글 데이터를 찾을 수 없습니다.");
+    }
+
+    // 2. 로그인된 사용자인 경우 좋아요 여부 확인 (인증 필요)
+    if (authStore.isAuthenticated) {
+      await checkLikeStatus(postId);
     }
   } catch (err) {
-    // 콘솔 로그 대신 디버깅 정보를 저장
-    notificationStore.showError("게시글 로드 오류가 발생했습니다.", {
-      duration: 5000,
-    });
+    console.error("게시글 로드 오류:", err);
 
-    // 인증 관련 오류 처리
-    if (err.response && err.response.status === 401) {
-      error.value = "로그인이 필요하거나 세션이 만료되었습니다.";
-      // 인증 만료된 경우 재로그인 필요
-      if (authStore.isAuthenticated) {
-        authStore.logout();
-      }
-    } else if (err.response && err.response.status === 403) {
-      error.value = "접근 권한이 없습니다.";
+    // 게시글 조회는 인증 불필요하므로 일반적인 에러만 처리
+    if (err.response && err.response.status === 404) {
+      error.value = "존재하지 않는 게시글입니다.";
+    } else if (err.response && err.response.status === 500) {
+      error.value = "서버 오류가 발생했습니다.";
     } else {
       error.value = "게시글을 불러오는 중 오류가 발생했습니다.";
     }
+
+    notificationStore.showError(error.value, { duration: 5000 });
   } finally {
     isLoading.value = false;
+  }
+};
+
+// 좋아요 상태 확인
+const checkLikeStatus = async (postId) => {
+  try {
+    const response = await PostService.checkPostLiked(postId);
+
+    if (response && response.data && response.data.data) {
+      isLiked.value = response.data.data.isLiked;
+    }
+
+    console.log(response.data.data.isLiked);
+  } catch (error) {
+    console.error("좋아요 상태 확인 실패:", error);
+    isLiked.value = false;
+
+    if (error.response && error.response.status === 401) {
+      // 인증 오류는 조용히 처리 (로그인하지 않은 상태에서 정상)
+      console.log("로그인되지 않은 사용자입니다.");
+    }
+  }
+};
+
+// 좋아요 토글
+const toggleLike = async () => {
+  if (!authStore.isAuthenticated) {
+    notificationStore.showWarning("로그인이 필요한 기능입니다.");
+    return;
+  }
+
+  console.log("초기 좋아요 상태 : ", isLiked.value);
+
+  const postId = parseInt(route.params.id);
+  if (isNaN(postId)) return;
+
+  isLikeLoading.value = true;
+
+  try {
+    let response;
+
+    if (isLiked.value) {
+      response = await PostService.unlikePost(postId);
+    } else {
+      response = await PostService.likePost(postId);
+    }
+
+    if (
+      response &&
+      (response.data.status === 200 || response.data.status === 201)
+    ) {
+      isLiked.value = !isLiked.value;
+      console.log("수정 후 좋아요 상태 : ", isLiked.value);
+
+      // 좋아요 수 업데이트
+      if (
+        response.data &&
+        response.data.data &&
+        response.data.data.likeCount !== undefined
+      ) {
+        console.log(post.value.likeCount);
+        console.log(response.data.data.likeCount);
+        post.value.likeCount = response.data.data.likeCount;
+      } else {
+        if (post.value.likeCount !== undefined) {
+          post.value.likeCount += isLiked.value ? 1 : -1;
+        }
+      }
+
+      const message = isLiked.value
+        ? "좋아요를 눌렀습니다."
+        : "좋아요를 취소했습니다.";
+      notificationStore.showSuccess(message, { duration: 2000 });
+    }
+  } catch (error) {
+    console.error("좋아요 토글 오류:", error);
+
+    if (error.response && error.response.status === 401) {
+      notificationStore.showError("로그인이 필요하거나 세션이 만료되었습니다.");
+      authStore.logout();
+    } else if (error.response && error.response.status === 403) {
+      notificationStore.showError("이 작업을 수행할 권한이 없습니다.");
+    } else if (error.response && error.response.status === 404) {
+      notificationStore.showError("게시글을 찾을 수 없습니다.");
+    } else {
+      notificationStore.showError("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  } finally {
+    isLikeLoading.value = false;
   }
 };
 
@@ -351,6 +274,48 @@ const handleSummaryRequest = async (postId) => {
   }
 };
 
+// 댓글 작성/변경 이벤트 처리 - 게시글 새로고침
+const handleCommentPosted = async (eventData) => {
+  console.log("댓글 작성 이벤트:", eventData);
+  // 게시글 데이터 새로고침 (댓글 수 업데이트를 위해)
+  await refreshPostData();
+};
+
+const handleCommentChanged = async (eventData) => {
+  console.log("댓글 변경 이벤트:", eventData);
+  // 게시글 데이터 새로고침 (댓글 수 업데이트를 위해)
+  await refreshPostData();
+};
+
+// 게시글 데이터만 새로고침하는 함수 (로딩 상태 없이)
+const refreshPostData = async () => {
+  const postId = parseInt(route.params.id);
+  if (isNaN(postId)) return;
+
+  try {
+    // 게시글 기본 정보만 조회 (로딩 UI 없이)
+    const response = await PostService.getPostById(postId);
+
+    if (response && response.data) {
+      // 기존 게시글 데이터 업데이트 (댓글 수 등)
+      post.value = {
+        ...post.value,
+        ...response.data,
+        // 댓글 수가 변경되었을 수 있으므로 업데이트
+        commentCount: response.data.commentCount || post.value.commentCount,
+      };
+
+      console.log(
+        "게시글 데이터 새로고침 완료 - 댓글 수:",
+        post.value.commentCount
+      );
+    }
+  } catch (err) {
+    console.error("게시글 새로고침 오류:", err);
+    // 에러가 발생해도 사용자에게 알리지 않음 (백그라운드 업데이트)
+  }
+};
+
 // 목록으로 이동
 const navigateToList = () => {
   router.push({ name: "posts-list" });
@@ -366,7 +331,11 @@ const editPost = () => {
   }
 
   // 권한 확인 (작성자 또는 관리자)
-  if (!isAuthorOrAdmin.value) {
+  const isAuthorOrAdmin =
+    authStore.isAdmin ||
+    (authStore.currentUser && post.value.memberId === authStore.currentUser.id);
+
+  if (!isAuthorOrAdmin) {
     notificationStore.showError("게시글을 수정할 권한이 없습니다.");
     return;
   }
@@ -392,7 +361,12 @@ const deletePost = async () => {
     }
 
     // 권한 확인
-    if (!isAuthorOrAdmin.value) {
+    const isAuthorOrAdmin =
+      authStore.isAdmin ||
+      (authStore.currentUser &&
+        post.value.memberId === authStore.currentUser.id);
+
+    if (!isAuthorOrAdmin) {
       notificationStore.showError("게시글 삭제 권한이 없습니다.");
       return;
     }
@@ -404,8 +378,6 @@ const deletePost = async () => {
     notificationStore.showSuccess("게시글이 삭제되었습니다.");
     navigateToList();
   } catch (err) {
-    // 에러 로그 대신 알림으로 처리
-
     // 오류 응답에 따른 분기 처리
     if (err.response && err.response.status === 401) {
       notificationStore.showError(
@@ -427,44 +399,14 @@ const deletePost = async () => {
   }
 };
 
-// 수 포맷팅 (예: 1000 -> 1k)
-const formatCount = (count) => {
-  if (!count && count !== 0) return "0";
-
-  if (count >= 1000000) {
-    return (count / 1000000).toFixed(1) + "M";
-  } else if (count >= 1000) {
-    return (count / 1000).toFixed(1) + "k";
-  }
-
-  return count.toString();
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-
-  // UTC 기준 날짜 → 한국 시간으로 변환 (+9시간)
-  const utcDate = new Date(dateString);
-  const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-
-  return kstDate.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 // 이미지 오류 처리
 const handleImageError = (event) => {
-  event.target.src = "/default-thumbnail.jpg";
   notificationStore.showInfo("썸네일 이미지를 불러올 수 없습니다.");
 };
 
 // 프로필 이미지 오류 처리
 const handleProfileError = (event) => {
-  event.target.src = "/default-profile.jpg";
+  // 프로필 이미지 오류는 조용히 처리
 };
 
 // 컴포넌트 마운트 시 게시글 로드
@@ -472,7 +414,7 @@ onMounted(loadPost);
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/styles/glassmorphism" as *;
+@use "@/assets/styles" as *;
 
 .post-detail {
   max-width: 1400px;
@@ -535,234 +477,12 @@ onMounted(loadPost);
     }
   }
 
-  &__card {
-    padding: $spacing-xl;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-lg;
-  }
-
-  &__header {
-    margin-bottom: $spacing-sm;
-  }
-
-  &__actions {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: $spacing-lg;
-  }
-
-  &__author-actions {
-    display: flex;
-    gap: $spacing-sm;
-  }
-
-  &__title {
-    font-size: 1.8rem;
-    color: $primary-color;
-    margin: 0 0 $spacing-lg;
-    line-height: 1.4;
+  &__comments {
+    margin-top: $spacing-lg;
 
     @media (max-width: $breakpoint-md) {
-      font-size: 1.5rem;
+      margin-top: $spacing-md;
     }
-  }
-
-  &__meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: $spacing-md;
-  }
-
-  &__author {
-    display: flex;
-    align-items: center;
-  }
-
-  &__author-image {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-right: $spacing-sm;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  &__author-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__author-name {
-    font-weight: $font-weight-medium;
-    color: $primary-color;
-  }
-
-  &__date {
-    font-size: 0.8rem;
-    color: rgba($primary-color, 0.6);
-  }
-
-  &__stats {
-    display: flex;
-    align-items: center;
-    gap: $spacing-md;
-
-    @media (max-width: $breakpoint-sm) {
-      gap: $spacing-sm;
-    }
-  }
-
-  &__stat {
-    display: flex;
-    align-items: center;
-    color: rgba($primary-color, 0.7);
-    font-size: 0.9rem;
-    transition: $transition-fast;
-    padding: $spacing-xs $spacing-sm;
-    border-radius: 16px;
-    background-color: rgba($white, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba($white, 0.18);
-    box-shadow: 0 2px 8px rgba(31, 38, 135, 0.1);
-
-    .post-detail__icon {
-      margin-right: $spacing-xs;
-      width: 16px;
-      height: 16px;
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(31, 38, 135, 0.15);
-    }
-
-    @media (max-width: $breakpoint-sm) {
-      padding: $spacing-xs;
-      font-size: 0.8rem;
-
-      .post-detail__icon {
-        margin-right: 2px;
-        width: 14px;
-        height: 14px;
-      }
-    }
-  }
-
-  &__thumbnail {
-    margin-bottom: $spacing-md;
-    overflow: hidden;
-    border-radius: 8px;
-
-    img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-  }
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-lg;
-  }
-
-  &__description {
-    font-size: 1.1rem;
-    color: rgba($primary-color, 0.8);
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-lg;
-    border-bottom: 1px solid rgba($primary-color, 0.1);
-  }
-
-  &__body {
-    line-height: 1.6;
-    color: $primary-color;
-
-    ::v-deep(img) {
-      max-width: 100%;
-      height: auto;
-    }
-
-    ::v-deep(a) {
-      color: $accent-color;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
-    ::v-deep(h1),
-    ::v-deep(h2),
-    ::v-deep(h3),
-    ::v-deep(h4),
-    ::v-deep(h5),
-    ::v-deep(h6) {
-      margin-top: $spacing-xl;
-      margin-bottom: $spacing-md;
-      color: $primary-color;
-    }
-
-    ::v-deep(p) {
-      margin-bottom: $spacing-lg;
-    }
-
-    ::v-deep(ul),
-    ::v-deep(ol) {
-      margin-bottom: $spacing-lg;
-      padding-left: $spacing-xl;
-    }
-
-    ::v-deep(blockquote) {
-      margin: $spacing-lg 0;
-      padding: $spacing-md $spacing-lg;
-      border-left: 4px solid $accent-color;
-      background-color: rgba($accent-color, 0.05);
-      font-style: italic;
-    }
-
-    ::v-deep(pre) {
-      background: rgba($primary-color, 0.05);
-      padding: $spacing-md;
-      border-radius: 4px;
-      overflow-x: auto;
-      margin-bottom: $spacing-lg;
-    }
-
-    ::v-deep(code) {
-      font-family: monospace;
-      background: rgba($primary-color, 0.05);
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-  }
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-
-  .post-detail__icon {
-    margin-right: $spacing-xs;
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.delete-btn {
-  color: $error-color;
-
-  &:hover {
-    background-color: rgba($error-color, 0.1);
   }
 }
 
@@ -786,36 +506,8 @@ onMounted(loadPost);
   .post-detail {
     padding: $spacing-md;
 
-    &__card {
-      padding: $spacing-lg;
-    }
-
-    &__actions {
-      flex-direction: column;
-      gap: $spacing-sm;
-      align-items: stretch;
-    }
-
-    &__author-actions {
-      justify-content: center;
-    }
-
-    &__meta {
-      flex-direction: column;
-      align-items: stretch;
-      gap: $spacing-sm;
-    }
-
-    &__stats {
-      justify-content: center;
-    }
-
     &__sidebar {
       gap: $spacing-lg;
-    }
-
-    &__comments {
-      margin-top: $spacing-md; // 모바일에서는 더 작은 간격
     }
   }
 }

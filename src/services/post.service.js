@@ -214,9 +214,20 @@ export class PostService {
   }
 
   /**
-   * 특정 게시글 좋아요 누름 여부 확인 요청
-   *
+   * 특정 게시글 좋아요 누름 여부 확인 요청 (수정됨)
+   * @param {Number} postId - 좋아요 여부를 확인할 게시글 ID
+   * @return {Promise<Object>} - 좋아요 여부 응답 객체
    */
+  async checkPostLiked(postId) {
+    try {
+      // 인증이 필요한 요청이므로 authGet 사용
+      const response = await ApiService.authGet(`/posts/${postId}/likes`);
+      return response;
+    } catch (error) {
+      console.error("좋아요 여부 확인 실패:", error);
+      throw error;
+    }
+  }
 
   /**
    * 특정 게시글 좋아요 누르기 요청
@@ -264,7 +275,7 @@ export class PostService {
         size: size.toString(),
       });
 
-      const response = await ApiService.authGet(
+      const response = await ApiService.publicGet(
         `/posts/${postId}/comment?${queryParams.toString()}`
       );
 
