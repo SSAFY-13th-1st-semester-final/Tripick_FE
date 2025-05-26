@@ -24,6 +24,7 @@ const ForgotPasswordView = () => import("@/views/auth/ForgotPasswordView.vue");
 const ForgotUsernameView = () => import("@/views/auth/ForgotUsernameView.vue");
 const ResetPasswordView = () => import("@/views/auth/ResetPasswordView.vue");
 const ChangePasswordView = () => import("@/views/auth/ChangePasswordView.vue");
+const EmailVerification = () => import("@/views/auth/EmailVerification.vue");
 
 /**
  * 게시글 관련 뷰 컴포넌트들
@@ -173,12 +174,22 @@ const routes = [
         },
       },
       {
+        path: "email-verification",
+        name: "email-verification",
+        component: EmailVerification,
+        props: true,
+        meta: {
+          guest: true,
+          title: "비밀번호 재설정",
+        },
+      },
+      {
         path: "change-password/:email?",
         name: "change-password",
         component: ChangePasswordView,
         props: true,
         meta: {
-          requiresAuth: true,
+          // requiresAuth: true,
           title: "비밀번호 재설정",
         },
       },
@@ -252,6 +263,7 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
     } catch (error) {
+      console.error("인증페이지 오류: ", error);
       next({ name: "home" });
       return;
     }
