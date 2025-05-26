@@ -236,7 +236,8 @@ const isAuthorOrAdmin = computed(() => {
   if (!authStore.isAuthenticated) return false;
   if (authStore.isAdmin) return true;
   return (
-    authStore.currentUser && props.comment.writerId === authStore.currentUser.id
+    !!authStore.currentUser &&
+    props.comment.writerId === Number(authStore.currentUser.id)
   );
 });
 

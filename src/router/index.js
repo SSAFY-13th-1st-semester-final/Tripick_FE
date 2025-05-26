@@ -96,6 +96,7 @@ const routes = [
         name: "posts-list",
         component: PostsListView,
         meta: {
+          requiresAuth: false,
           title: "게시글 목록",
           saveScrollPosition: true,
         },
