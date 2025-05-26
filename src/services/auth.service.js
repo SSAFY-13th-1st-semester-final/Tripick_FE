@@ -19,11 +19,13 @@ class AuthService {
 
       TokenService.useRememberMe(rememberMe);
 
-      if (rememberMe.value) {
-        localStorage.setItem("rememberMe", "true");
-      } else {
-        localStorage.removeItem("rememberMe");
-      }
+      // if (rememberMe.value) {
+      //   localStorage.setItem("rememberMe", "true");
+      // } else {
+      //   localStorage.removeItem("rememberMe");
+      // }
+
+      localStorage.setItem("rememberMe", rememberMe.value);
 
       // 토큰 저장
       TokenService.setToken(accessToken);

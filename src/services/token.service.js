@@ -5,7 +5,11 @@ const REFRESH_TOKEN_KEY = "refreshToken"; // Refresh Token 저장 키
 const DECODED_TOKEN_KEY = "decodedToken"; // 디코딩된 Access Token 저장 키
 
 const TokenService = {
-  _rememberMe: true, // 기본값
+  // localStorage에서 초기값 로드 (문자열 → boolean 변환, 기본값 true)
+  _rememberMe: (() => {
+    const saved = localStorage.getItem("rememberMe");
+    return saved !== null ? JSON.parse(saved) : true;
+  })(),
 
   /**
    * rememberMe 상태에 따라 사용할 저장소 반환
@@ -28,6 +32,10 @@ const TokenService = {
   },
 
   getToken() {
+    console.log(
+      "token.service >> getToken >> ",
+      this.getStorage().getItem(TOKEN_KEY)
+    );
     return this.getStorage().getItem(TOKEN_KEY);
   },
 
