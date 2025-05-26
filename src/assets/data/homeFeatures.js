@@ -2,19 +2,19 @@
 export const homeFeatures = [
   {
     id: 1,
-    icon: "🔍",
-    title: "맞춤형 여행 검색",
-    description: "취향과 예산에 맞는 완벽한 여행 계획을 찾아보세요.",
+    iconImage: "/src/assets/data/images/ai-icon.png",
+    title: "스마트 AI 여행 일정 솔루션",
+    description: "나의 여행 계획을 AI와 함께 스마트하게 관리하세요.",
   },
   {
     id: 2,
-    icon: "💎",
-    title: "특별한 경험",
-    description: "현지 문화를 체험할 수 있는 특별한 여행 경험을 제공합니다.",
+    iconImage: "/src/assets/data/images/history-icon.png",
+    title: "나만의 여행, 함께 나누는 기쁨",
+    description: "찰나의 순간을 기록하고, 공유해보세요.",
   },
   {
     id: 3,
-    icon: "📱",
+    iconImage: "/src/assets/data/images/mobile-icon.png",
     title: "모바일 최적화",
     description: "언제 어디서나 모바일로 여행 정보를 확인하고 예약하세요.",
   },

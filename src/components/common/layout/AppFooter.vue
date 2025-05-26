@@ -3,10 +3,11 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-section">
-          <h3 class="footer-title">Trapick</h3>
+          <h3 class="footer-title">Trip<span class="accent-char">!</span>ck</h3>
           <p class="footer-description">
-            최고의 여행 경험을 위한 당신의 파트너.<br />
-            글래스모피즘 디자인으로 더 세련되고 직관적인 여행 앱을 만나보세요.
+            당신의 여행, 당신만의 방식으로.<br />
+            AI가 돕고, 기록이 이어지는 스마트 여행 플랫폼.<br />
+            일정 생성, AI 평가, 후기 탐색, 경로 최적화까지 모두 한 곳에서.
           </p>
         </div>
 
@@ -19,8 +20,16 @@
                 >여행 목록</router-link
               >
             </li>
-            <li><router-link to="/auth/login">로그인</router-link></li>
-            <li><router-link to="/auth/signup">회원가입</router-link></li>
+            <!-- 인증되지 않은 상태 -->
+            <template v-if="!isAuthenticated">
+              <li><router-link to="/auth/login">로그인</router-link></li>
+              <li><router-link to="/auth/signup">회원가입</router-link></li>
+            </template>
+            <!-- 인증된 상태 -->
+            <template v-else>
+              <li><router-link to="/profile">마이페이지</router-link></li>
+              <li><a href="#" @click.prevent="logout">로그아웃</a></li>
+            </template>
           </ul>
         </div>
 
@@ -45,7 +54,10 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} Trap!ck. All rights reserved.</p>
+        <p>
+          &copy; {{ currentYear }} Trip<span class="accent-char">!</span>ck. All
+          rights reserved.
+        </p>
       </div>
     </div>
   </footer>
@@ -53,12 +65,27 @@
 
 <script setup>
 import { computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 
-// 현재 년도 계산
+const authStore = useAuthStore();
+
 const currentYear = computed(() => new Date().getFullYear());
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+// 로그아웃 함수
+const logout = async () => {
+  try {
+    authStore.logout();
+  } catch (error) {
+    // 오류가 발생해도 로컬 상태는 정리
+    authStore.logout();
+  }
+};
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/styles" as *;
+
 .footer {
   background: rgba($white, 0.5);
   backdrop-filter: blur(10px);
@@ -93,6 +120,10 @@ const currentYear = computed(() => new Date().getFullYear());
   position: relative;
   display: inline-block;
 
+  .accent-char {
+    color: $accent-color; // 느낌표만 파란색으로
+  }
+
   &::after {
     content: "";
     position: absolute;
@@ -126,6 +157,7 @@ const currentYear = computed(() => new Date().getFullYear());
     color: $primary-color;
     text-decoration: none;
     transition: color $transition-fast;
+    cursor: pointer;
 
     &:hover {
       color: $accent-color;
@@ -143,6 +175,10 @@ const currentYear = computed(() => new Date().getFullYear());
     color: $dark-gray;
     font-size: 0.875rem;
     margin: 0;
+
+    .accent-char {
+      color: $accent-color; // 푸터 하단의 느낌표도 파란색으로
+    }
   }
 }
 </style>

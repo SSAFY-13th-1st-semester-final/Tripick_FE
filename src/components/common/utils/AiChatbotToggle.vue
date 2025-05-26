@@ -7,25 +7,15 @@
       :class="{ active: isChatbotVisible }"
       title="AI 여행 상담사"
     >
-      <svg
+      <!-- AI 아이콘 (챗봇 닫혀있을 때) -->
+      <img
         v-if="!isChatbotVisible"
-        xmlns="http://www.w3.org/2000/svg"
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="toggle-icon"
-      >
-        <path d="M9 12l2 2 4-4"></path>
-        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
-        <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
-        <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"></path>
-        <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"></path>
-      </svg>
+        src="/src/assets/data/images/ai-icon.png"
+        alt="AI"
+        class="toggle-icon ai-icon"
+      />
+
+      <!-- 닫기 아이콘 (챗봇 열려있을 때) -->
       <svg
         v-else
         xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +27,7 @@
         stroke-width="3"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="toggle-icon"
+        class="toggle-icon close-icon"
       >
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -180,13 +170,6 @@ onUnmounted(() => {
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
 
-  // 아이콘이 확실히 보이도록 z-index 추가
-  .toggle-icon {
-    position: relative;
-    z-index: 10;
-    color: inherit;
-  }
-
   &:hover {
     transform: scale(1.1) translateY(-2px);
     box-shadow: $shadow-xl;
@@ -194,7 +177,7 @@ onUnmounted(() => {
     color: $white; // 호버 시 흰 아이콘
     border-color: rgba($accent-color, 0.8);
 
-    .toggle-icon {
+    .close-icon {
       color: $white;
     }
   }
@@ -208,14 +191,14 @@ onUnmounted(() => {
     color: $white;
     border-color: rgba($error-color, 0.8);
 
-    .toggle-icon {
+    .close-icon {
       color: $white;
     }
 
     &:hover {
       background: rgba($error-color, 1);
 
-      .toggle-icon {
+      .close-icon {
         color: $white;
       }
     }
@@ -228,13 +211,24 @@ onUnmounted(() => {
 }
 
 .toggle-icon {
-  width: 28px !important; // 아이콘 크기 증가 및 강제 적용
-  height: 28px !important;
+  position: relative;
+  z-index: 10;
   transition: all $transition-fast;
-  stroke-width: 2.5; // 아이콘을 더 굵게
-  display: block !important;
-  min-width: 28px;
-  min-height: 28px;
+
+  // AI 아이콘 (PNG 이미지)
+  &.ai-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
+  // 닫기 아이콘 (SVG)
+  &.close-icon {
+    width: 32px;
+    height: 32px;
+    stroke-width: 3;
+    color: inherit;
+  }
 }
 
 .notification-badge {
@@ -288,9 +282,16 @@ onUnmounted(() => {
     height: 48px;
 
     .toggle-icon {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.5;
+      &.ai-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      &.close-icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2.5;
+      }
     }
   }
 

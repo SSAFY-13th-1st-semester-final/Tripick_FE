@@ -81,7 +81,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import AuthService from "@/services/Auth.service";
+import AuthService from "@/services/auth.service";
 import AppInput from "@/components/common/shared/AppInput.vue";
 import AppButton from "@/components/common/shared/AppButton.vue";
 import PasswordInput from "@/components/common/shared/PasswordInput.vue";

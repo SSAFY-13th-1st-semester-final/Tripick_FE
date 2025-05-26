@@ -20,10 +20,6 @@
   </div>
 </template>
 
-<script setup>
-// Composition API를 사용한 AuthLayout 컴포넌트
-</script>
-
 <style lang="scss" scoped>
 @use "@/assets/styles/glassmorphism" as *;
 
