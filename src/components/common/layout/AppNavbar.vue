@@ -22,7 +22,7 @@
                 class="navbar-menu-link"
                 href="#"
               >
-                여행 계획
+                여행계획
               </a>
             </li>
             <li class="navbar-menu-item">
@@ -40,7 +40,7 @@
                   to="/profile"
                   active-class="router-link-active"
                   class="navbar-menu-link"
-                  >내 프로필</router-link
+                  >마이페이지</router-link
                 >
               </li>
               <li class="navbar-menu-item">

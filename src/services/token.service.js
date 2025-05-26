@@ -32,10 +32,6 @@ const TokenService = {
   },
 
   getToken() {
-    console.log(
-      "token.service >> getToken >> ",
-      this.getStorage().getItem(TOKEN_KEY)
-    );
     return this.getStorage().getItem(TOKEN_KEY);
   },
 
