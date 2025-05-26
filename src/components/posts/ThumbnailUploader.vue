@@ -185,7 +185,7 @@ const props = defineProps({
   },
   acceptedTypes: {
     type: Array,
-    default: () => ["image/jpeg", "image/png", "image/jpg"],
+    default: () => ["image/jpeg", "image/png", "image/jpg", "image/gif"],
   },
 });
 

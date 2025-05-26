@@ -35,7 +35,6 @@ export const useAuthStore = defineStore("auth", {
      */
     setRememberMe(value) {
       this.rememberMeChecked = value;
-
       localStorage.setItem("rememberMe", value);
     },
 
@@ -58,7 +57,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const response = await AuthService.login(credentials, rememberMe);
 
-        // 로그인 성공 후 사용자 정보 설정
+        // 로그인 성공 후 사용자 정보 설정 (이미 서버에서 조회된 정보 포함)
         this.user = AuthService.getStoredUser();
         this.isAuthenticated = true;
 
@@ -134,7 +133,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     /**
-     * 사용자 정보 갱신
+     * 사용자 정보 갱신 (프로필 수정 후 등에 사용)
      */
     async refreshUserData() {
       if (!this.isAuthenticated) return;
@@ -143,8 +142,31 @@ export const useAuthStore = defineStore("auth", {
         const response = await AuthService.getCurrentUser();
 
         if (response.data && response.data.data) {
-          this.user = response.data.data;
-          localStorage.setItem("user", JSON.stringify(response.data.data));
+          // 기존 저장된 사용자 정보 가져오기
+          const rememberMe = localStorage.getItem("rememberMe") === "true";
+          const storage = rememberMe ? localStorage : sessionStorage;
+          const existingUserStr = storage.getItem("user");
+
+          let existingUser = {};
+          if (existingUserStr) {
+            try {
+              existingUser = JSON.parse(existingUserStr);
+            } catch (e) {
+              console.error("JSON 파싱 오류:", e);
+            }
+          }
+
+          // 새 데이터 병합 (서버 데이터가 우선)
+          const updatedUser = {
+            ...existingUser, // 기존 토큰 정보 등 유지
+            ...response.data.data, // 서버에서 가져온 최신 정보가 우선 적용됨
+          };
+
+          // 업데이트된 정보 저장
+          storage.setItem("user", JSON.stringify(updatedUser));
+
+          // 스토어 상태 업데이트
+          this.user = updatedUser;
         }
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -163,15 +185,24 @@ export const useAuthStore = defineStore("auth", {
       const token = TokenService.getToken();
       const user = AuthService.getStoredUser();
 
-      if (token && user) {
+      if (token && user && TokenService.isTokenValid()) {
         this.isAuthenticated = true;
         this.user = user;
 
-        // 새로고침 등으로 앱이 다시 로드되었을 때 사용자 정보 갱신
-        this.refreshUserData();
+        // 토큰이 유효하고 저장된 사용자 정보가 기본 정보만 있는 경우에만 갱신
+        // (id, role, tokenExpires만 있고 다른 상세 정보가 없는 경우)
+        const hasDetailedInfo = user.email || user.username || user.name;
+        if (!hasDetailedInfo) {
+          this.refreshUserData();
+        }
       } else {
         this.isAuthenticated = false;
         this.user = null;
+
+        // 토큰이 만료되었거나 유효하지 않은 경우 정리
+        if (token && !TokenService.isTokenValid()) {
+          AuthService.clearAuthData();
+        }
       }
     },
   },

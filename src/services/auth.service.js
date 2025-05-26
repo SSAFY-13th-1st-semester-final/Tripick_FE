@@ -29,22 +29,37 @@ class AuthService {
       TokenService.setToken(accessToken);
       if (refreshToken) TokenService.setRefreshToken(refreshToken);
 
-      // Access Token 디코딩 후 사용자 정보 추출
+      // Access Token 디코딩 후 기본 정보 추출
       const decoded = TokenService.getDecodedToken();
       const userId = decoded?.sub || decoded?.user_id || decoded?.userId;
       const userRole = decoded?.role || decoded?.authorities?.[0] || "USER";
 
-      // 기본 사용자 정보 저장 (임시)
+      // 기본 사용자 정보 생성
       const basicUserInfo = {
         id: userId,
         role: userRole,
         tokenExpires: decoded?.exp ? new Date(decoded.exp * 1000) : null,
       };
 
-      if (rememberMe.value) {
-        localStorage.setItem("user", JSON.stringify(basicUserInfo));
-      } else {
-        sessionStorage.setItem("user", JSON.stringify(basicUserInfo));
+      try {
+        // 로그인 성공 후 바로 사용자 정보 조회
+        const userResponse = await this.getCurrentUser();
+
+        // 서버에서 조회한 사용자 정보와 토큰 정보 병합
+        const fullUserInfo = {
+          ...basicUserInfo, // 토큰에서 추출한 기본 정보
+          ...userResponse.data.data, // 서버에서 조회한 상세 정보 (우선적용)
+        };
+
+        // 병합된 사용자 정보 저장
+        const storage = rememberMe.value ? localStorage : sessionStorage;
+        storage.setItem("user", JSON.stringify(fullUserInfo));
+      } catch (userError) {
+        console.warn("사용자 정보 조회 실패, 기본 정보만 저장:", userError);
+
+        // 사용자 정보 조회 실패시 기본 정보만 저장
+        const storage = rememberMe.value ? localStorage : sessionStorage;
+        storage.setItem("user", JSON.stringify(basicUserInfo));
       }
 
       return response;
@@ -120,11 +135,14 @@ class AuthService {
 
   // 로컬 스토리지에서 사용자 정보 가져오기
   getStoredUser() {
-    const userStr = localStorage.getItem("user");
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+    const storage = rememberMe ? localStorage : sessionStorage;
+    const userStr = storage.getItem("user");
+
     try {
       return userStr ? JSON.parse(userStr) : null;
     } catch {
-      localStorage.removeItem("user");
+      storage.removeItem("user");
       return null;
     }
   }
@@ -134,25 +152,25 @@ class AuthService {
     return !!TokenService.getToken();
   }
 
-  // 토큰이 유효한지 확인 (만료 여부 포함)
-  isTokenValid() {
-    return TokenService.isTokenValid();
-  }
+  // // 토큰이 유효한지 확인 (만료 여부 포함)
+  // isTokenValid() {
+  //   return TokenService.isTokenValid();
+  // }
 
-  // 토큰 만료 시간 반환
-  getTokenExpiration() {
-    return TokenService.getTokenExpiration();
-  }
+  // // 토큰 만료 시간 반환
+  // getTokenExpiration() {
+  //   return TokenService.getTokenExpiration();
+  // }
 
-  // 토큰 남은 시간 반환 (초 단위)
-  getTokenRemainingTime() {
-    return TokenService.getTokenRemainingTime();
-  }
+  // // 토큰 남은 시간 반환 (초 단위)
+  // getTokenRemainingTime() {
+  //   return TokenService.getTokenRemainingTime();
+  // }
 
-  // 디코딩된 토큰 반환
-  getDecodedToken() {
-    return TokenService.getDecodedToken();
-  }
+  // // 디코딩된 토큰 반환
+  // getDecodedToken() {
+  //   return TokenService.getDecodedToken();
+  // }
 
   /**
    * 비밀번호 찾기 - 이메일로 인증코드 전송 요청 - 인증 불필요
