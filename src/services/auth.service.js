@@ -175,7 +175,7 @@ class AuthService {
   // }
 
   /**
-   * 비밀번호 찾기 - 이메일로 인증코드 전송 요청 - 인증 불필요
+   * 이메일로 인증코드 전송 요청 - 인증 불필요
    * @param {string} email - 사용자 이메일
    * @returns {Promise}
    */
@@ -196,7 +196,7 @@ class AuthService {
   }
 
   /**
-   * 비밀번호 찾기 - 인증코드 검증 요청 - 인증 불필요
+   * 인증코드 검증 요청 - 인증 불필요
    * @param {object} verificationData - { email, code }
    * @returns {Promise}
    */
