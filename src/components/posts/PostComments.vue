@@ -117,6 +117,9 @@ const props = defineProps({
   },
 });
 
+// Emits 정의 - 댓글 관련 이벤트 추가
+const emit = defineEmits(["comment-posted", "comment-changed"]);
+
 // 라우터 및 스토어
 const router = useRouter();
 const route = useRoute();
@@ -161,17 +164,6 @@ const flattenReplies = (children) => {
 
   flatten(children);
   return flattened;
-};
-
-// 총 댓글 수 계산 (재귀적으로 모든 깊이 포함)
-const calculateTotalComments = (commentList) => {
-  let total = commentList.length;
-  commentList.forEach((comment) => {
-    if (comment.children && comment.children.length > 0) {
-      total += calculateTotalComments(comment.children);
-    }
-  });
-  return total;
 };
 
 // 댓글 목록 로드
@@ -332,7 +324,7 @@ const setupInfiniteScroll = () => {
   observer.value.observe(infiniteScrollTrigger.value);
 };
 
-// 댓글 생성 처리
+// 댓글 생성 처리 - 상위 컴포넌트에 이벤트 전달 추가
 const handleCommentCreated = async (newComment) => {
   notificationStore.showSuccess("댓글이 작성되었습니다.");
   await loadComments(0, false);
@@ -343,24 +335,54 @@ const handleCommentCreated = async (newComment) => {
       commentsList.value.scrollTop = 0;
     }
   }, 100);
+
+  // 상위 컴포넌트에 댓글 작성 이벤트 전달
+  emit("comment-posted", {
+    type: "comment",
+    postId: props.postId,
+    comment: newComment,
+  });
 };
 
-// 대댓글 생성 처리
+// 대댓글 생성 처리 - 상위 컴포넌트에 이벤트 전달 추가
 const handleReplyCreated = async (parentCommentId, newReply) => {
   notificationStore.showSuccess("답글이 작성되었습니다.");
   await loadComments(0, false);
+
+  // 상위 컴포넌트에 대댓글 작성 이벤트 전달
+  emit("comment-posted", {
+    type: "reply",
+    postId: props.postId,
+    parentCommentId,
+    reply: newReply,
+  });
 };
 
-// 댓글 수정 처리
+// 댓글 수정 처리 - 상위 컴포넌트에 이벤트 전달 추가
 const handleCommentUpdated = async (commentId, updatedContent) => {
   notificationStore.showSuccess("댓글이 수정되었습니다.");
   await loadComments(0, false);
+
+  // 상위 컴포넌트에 댓글 변경 이벤트 전달
+  emit("comment-changed", {
+    type: "update",
+    postId: props.postId,
+    commentId,
+    content: updatedContent,
+  });
 };
 
-// 댓글 삭제 처리
+// 댓글 삭제 처리 - 상위 컴포넌트에 이벤트 전달 추가
 const handleCommentDeleted = async (commentId) => {
   notificationStore.showSuccess("댓글이 삭제되었습니다.");
   await loadComments(0, false);
+
+  // 상위 컴포넌트에 댓글 변경 이벤트 전달
+  emit("comment-changed", {
+    type: "delete",
+    postId: props.postId,
+    commentId,
+  });
 };
 
 // 로그인 페이지로 이동
