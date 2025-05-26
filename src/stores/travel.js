@@ -1417,10 +1417,12 @@ export const useTravelStore = defineStore("travel", {
           const convertPlace = (place) => ({
             id: place.placeId,
             placeName: place.placeName || "",
+            phone: place.phone || "", // API에 있다면 추가
             x: place.x || 0,
             y: place.y || 0,
-            address: place.address || "", // API에 있다면 추가
-            category: place.category || "", // API에 있다면 추가
+            addressName: place.address || "", // API에 있다면 추가
+            roadAddressName: place.roadAddress || "", // API에 있다면 추가
+            categoryName: place.category || "", // API에 있다면 추가
             memo: "", // 기본값
             visitTime: null, // 기본값
             addedAt: new Date().toISOString(),
@@ -1434,6 +1436,8 @@ export const useTravelStore = defineStore("travel", {
             // 첫 번째 장소를 호텔로 설정
             const hotelPlace = convertPlace(sortedPlaces[0]);
             convertedHotels.push(hotelPlace);
+
+            console.log(hotelPlace);
 
             // 나머지 장소들을 일반 장소로 설정
             const remainingPlaces = sortedPlaces.slice(1).map(convertPlace);
