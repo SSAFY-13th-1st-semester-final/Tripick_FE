@@ -81,17 +81,24 @@ class TokenMonitorService {
       this.handleUserNotifications(remainingTime);
 
       // 14분 전 리프레시 트리거
-      if (remainingTime <= this.refreshThreshold && remainingTime > 0 && !this.hasTriggeredRefresh) {
+      if (
+        remainingTime <= this.refreshThreshold &&
+        remainingTime > 0 &&
+        !this.hasTriggeredRefresh
+      ) {
         await this.triggerTokenRefresh();
         this.hasTriggeredRefresh = true;
       }
 
       // 1분 전 긴급 리프레시
-      if (remainingTime <= this.criticalThreshold && remainingTime > 0 && !this.hasTriggeredRefresh) {
+      if (
+        remainingTime <= this.criticalThreshold &&
+        remainingTime > 0 &&
+        !this.hasTriggeredRefresh
+      ) {
         await this.triggerTokenRefresh();
         this.hasTriggeredRefresh = true;
       }
-
     } catch (error) {
       // 에러 발생 시 조용히 처리
     }
@@ -108,7 +115,9 @@ class TokenMonitorService {
       const notificationStore = useNotificationStore();
 
       // 재로그인 요청 알림
-      notificationStore.showError("❌ 로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+      notificationStore.showError(
+        "❌ 로그인 세션이 만료되었습니다. 다시 로그인해주세요."
+      );
 
       authStore.logout();
     }
@@ -123,7 +132,10 @@ class TokenMonitorService {
     // 1분 전 긴급 알림만
     if (remainingTime <= this.criticalThreshold && !this.hasShownCritical) {
       notificationStore.showWarning(
-        `⚠️ 로그인이 ${Math.ceil(remainingTime / 60)}분 후 만료됩니다. 작업을 저장해주세요.`);
+        `⚠️ 로그인이 ${Math.ceil(
+          remainingTime / 60
+        )}분 후 만료됩니다. 작업을 저장해주세요.`
+      );
       this.hasShownCritical = true;
     }
 
@@ -139,18 +151,17 @@ class TokenMonitorService {
   async triggerTokenRefresh() {
     try {
       const newToken = await ApiService.refreshToken();
-      
+
       // 갱신 성공 알림만
       const notificationStore = useNotificationStore();
       notificationStore.showSuccess("✅ 로그인이 자동으로 연장되었습니다.");
-      
+
       // 플래그 리셋 (1분 후)
       setTimeout(() => {
         this.hasTriggeredRefresh = false;
       }, 60000);
-      
+
       return newToken;
-      
     } catch (error) {
       this.hasTriggeredRefresh = false;
       throw error;
@@ -189,7 +200,7 @@ class TokenMonitorService {
   bindWindowEvents() {
     this.handleWindowFocus = this.handleWindowFocus.bind(this);
     this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
-    
+
     window.addEventListener("focus", this.handleWindowFocus);
     window.addEventListener("beforeunload", this.handleBeforeUnload);
   }
@@ -232,7 +243,7 @@ class TokenMonitorService {
     }
 
     this.checkInterval = interval;
-    
+
     if (this.isInitialized) {
       this.stopMonitoring();
       this.startMonitoring();
@@ -268,7 +279,7 @@ class TokenMonitorService {
       hasShownWarning: this.hasShownWarning,
       hasShownCritical: this.hasShownCritical,
       hasTriggeredRefresh: this.hasTriggeredRefresh,
-      remainingTime: this.getTokenRemainingTime()
+      remainingTime: this.getTokenRemainingTime(),
     };
   }
 }

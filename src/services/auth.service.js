@@ -15,15 +15,11 @@ class AuthService {
       );
       const refreshToken = response.headers["refresh-token"];
 
+      console.log(response);
+
       if (!accessToken) throw new Error("Access token이 응답 헤더에 없습니다.");
 
       TokenService.useRememberMe(rememberMe);
-
-      // if (rememberMe.value) {
-      //   localStorage.setItem("rememberMe", "true");
-      // } else {
-      //   localStorage.removeItem("rememberMe");
-      // }
 
       localStorage.setItem("rememberMe", rememberMe.value);
 

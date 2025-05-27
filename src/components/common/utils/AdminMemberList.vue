@@ -45,9 +45,8 @@
             </button>
           </div>
 
-          <!-- 선택 모드 토글 (전체회원 제외) -->
+          <!-- 선택 모드 토글 (모든 필터에서 표시) -->
           <button
-            v-if="currentFilter !== 'all'"
             @click="toggleSelectionMode"
             :class="['selection-toggle', { active: isSelectionMode }]"
           >
@@ -77,15 +76,12 @@
             >{{ selectedMembers.length }}명 선택됨</span
           >
           <button
-            @click="executeBatchAction"
-            :class="[
-              'batch-action-btn',
-              currentFilter === 'deleted' ? 'restore' : 'delete',
-            ]"
+            v-if="currentFilter === 'deleted'"
+            @click="executeBatchRestore"
+            class="batch-action-btn restore"
             :disabled="isProcessing"
           >
             <svg
-              v-if="currentFilter === 'deleted'"
               xmlns="http://www.w3.org/2000/svg"
               width="16"
               height="16"
@@ -101,8 +97,15 @@
               ></path>
               <path d="M8 12l2 2 4-4"></path>
             </svg>
+            복구
+          </button>
+          <button
+            v-else
+            @click="executeBatchExpire"
+            class="batch-action-btn expire"
+            :disabled="isProcessing"
+          >
             <svg
-              v-else
               xmlns="http://www.w3.org/2000/svg"
               width="16"
               height="16"
@@ -113,12 +116,10 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M3 6h18l-1.5 15H4.5L3 6z"></path>
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12,6 12,12 16,14"></polyline>
             </svg>
-            {{ currentFilter === "deleted" ? "복구" : "탈퇴처리" }}
+            만료
           </button>
         </div>
       </div>
@@ -146,7 +147,7 @@
             <div class="header-cell">닉네임</div>
             <div class="header-cell">이메일</div>
             <div class="header-cell">상태</div>
-            <div v-if="currentFilter === 'all'" class="header-cell">액션</div>
+            <div class="header-cell">액션</div>
           </div>
 
           <!-- 테이블 바디 -->
@@ -181,16 +182,22 @@
                   {{ member.isDeleted ? "탈퇴" : "활성" }}
                 </span>
               </div>
-              <div v-if="currentFilter === 'all'" class="table-cell">
+              <div class="table-cell">
                 <button
-                  @click="handleMemberAction(member)"
-                  :class="[
-                    'action-btn',
-                    member.isDeleted ? 'restore' : 'delete',
-                  ]"
+                  v-if="member.isDeleted"
+                  @click="handleMemberRestore(member)"
+                  class="action-btn restore"
                   :disabled="isProcessing"
                 >
-                  {{ member.isDeleted ? "복구" : "탈퇴" }}
+                  복구
+                </button>
+                <button
+                  v-else
+                  @click="handleMemberExpire(member)"
+                  class="action-btn expire"
+                  :disabled="isProcessing"
+                >
+                  만료
                 </button>
               </div>
             </div>
@@ -339,70 +346,98 @@ const changePage = (page) => {
   }
 };
 
-const handleMemberAction = async (member) => {
+// 개별 회원 복구 처리
+const handleMemberRestore = async (member) => {
   if (isProcessing.value) return;
-
-  const action = member.isDeleted ? "복구" : "탈퇴처리";
 
   try {
     isProcessing.value = true;
 
-    if (member.isDeleted) {
-      // 복구 처리
-      await AdminService.restoreMember(member.id);
-      notificationStore.showSuccess(`${member.nickname}님이 복구되었습니다.`);
-    } else {
-      // 탈퇴 처리 (API가 없으므로 로그만 출력)
-      console.log(`탈퇴 처리: ${member.nickname} (${member.id})`);
-      notificationStore.showWarning(
-        "탈퇴 처리 기능은 아직 구현되지 않았습니다."
-      );
-      return;
-    }
+    await AdminService.restoreMember(member.id);
+    notificationStore.showSuccess(`${member.nickname}님이 복구되었습니다.`);
 
     // 목록 새로고침
     await loadMembers();
   } catch (error) {
-    console.error(`${action} 실패:`, error);
-    notificationStore.showError(`${action}에 실패했습니다.`);
+    console.error("복구 실패:", error);
+    notificationStore.showError("복구에 실패했습니다.");
   } finally {
     isProcessing.value = false;
   }
 };
 
-const executeBatchAction = async () => {
-  if (isProcessing.value || selectedMembers.value.length === 0) return;
-
-  const action = currentFilter.value === "deleted" ? "복구" : "탈퇴처리";
+// 개별 회원 토큰 만료 처리
+const handleMemberExpire = async (member) => {
+  if (isProcessing.value) return;
 
   try {
     isProcessing.value = true;
 
-    if (currentFilter.value === "deleted") {
-      // 일괄 복구
-      const promises = selectedMembers.value.map((memberId) =>
-        AdminService.restoreMember(memberId)
-      );
-      await Promise.all(promises);
-      notificationStore.showSuccess(
-        `${selectedMembers.value.length}명이 복구되었습니다.`
-      );
-    } else {
-      // 일괄 탈퇴 처리 (API가 없으므로 로그만 출력)
-      console.log(`일괄 탈퇴 처리: ${selectedMembers.value}`);
-      notificationStore.showWarning(
-        "일괄 탈퇴 처리 기능은 아직 구현되지 않았습니다."
-      );
-      return;
-    }
+    // AdminService에 expireMemberRefreshToken 메서드가 필요합니다
+    await AdminService.expireMemberRefreshToken(member.id);
+    notificationStore.showSuccess(
+      `${member.nickname}님의 토큰이 만료되었습니다.`
+    );
+
+    // 목록 새로고침
+    await loadMembers();
+  } catch (error) {
+    console.error("토큰 만료 실패:", error);
+    notificationStore.showError("토큰 만료에 실패했습니다.");
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+// 일괄 복구 처리
+const executeBatchRestore = async () => {
+  if (isProcessing.value || selectedMembers.value.length === 0) return;
+
+  try {
+    isProcessing.value = true;
+
+    const promises = selectedMembers.value.map((memberId) =>
+      AdminService.restoreMember(memberId)
+    );
+    await Promise.all(promises);
+    notificationStore.showSuccess(
+      `${selectedMembers.value.length}명이 복구되었습니다.`
+    );
 
     // 선택 상태 초기화 및 목록 새로고침
     selectedMembers.value = [];
     isSelectionMode.value = false;
     await loadMembers();
   } catch (error) {
-    console.error(`일괄 ${action} 실패:`, error);
-    notificationStore.showError(`일괄 ${action}에 실패했습니다.`);
+    console.error("일괄 복구 실패:", error);
+    notificationStore.showError("일괄 복구에 실패했습니다.");
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+// 일괄 토큰 만료 처리
+const executeBatchExpire = async () => {
+  if (isProcessing.value || selectedMembers.value.length === 0) return;
+
+  try {
+    isProcessing.value = true;
+
+    const promises = selectedMembers.value.map((memberId) =>
+      AdminService.expireMemberRefreshToken(memberId)
+    );
+    await Promise.all(promises);
+    notificationStore.showSuccess(
+      `${selectedMembers.value.length}명의 토큰이 만료되었습니다.`
+    );
+
+    // 선택 상태 초기화 및 목록 새로고침
+    selectedMembers.value = [];
+    isSelectionMode.value = false;
+    await loadMembers();
+  } catch (error) {
+    console.error("일괄 토큰 만료 실패:", error);
+    notificationStore.showError("일괄 토큰 만료에 실패했습니다.");
   } finally {
     isProcessing.value = false;
   }
@@ -583,12 +618,12 @@ onMounted(() => {
       }
     }
 
-    &.delete {
-      background: rgba($error-color, 0.8);
+    &.expire {
+      background: rgba($warning-color, 0.8);
       color: white;
 
       &:hover {
-        background: rgba($error-color, 0.9);
+        background: rgba($warning-color, 0.9);
       }
     }
 
@@ -644,7 +679,7 @@ onMounted(() => {
 
 .table-header {
   display: grid;
-  grid-template-columns: 50px 2fr 2fr 50px 50px;
+  grid-template-columns: 50px 2fr 2fr 60px 70px;
   gap: $spacing-sm;
   padding: $spacing-sm;
   background: rgba($primary-color, 0.05);
@@ -698,7 +733,7 @@ onMounted(() => {
 
 .table-row {
   display: grid;
-  grid-template-columns: 50px 2fr 2fr 50px 50px;
+  grid-template-columns: 50px 2fr 2fr 60px 70px;
   gap: $spacing-sm;
   padding: $spacing-sm;
   border-bottom: 1px solid rgba($medium-gray, 0.2);
@@ -783,12 +818,12 @@ onMounted(() => {
     }
   }
 
-  &.delete {
-    background: rgba($error-color, 0.8);
+  &.expire {
+    background: rgba($warning-color, 0.8);
     color: white;
 
     &:hover {
-      background: rgba($error-color, 0.9);
+      background: rgba($warning-color, 0.9);
     }
   }
 
@@ -862,11 +897,11 @@ onMounted(() => {
 
   .table-header,
   .table-row {
-    grid-template-columns: 50px 2fr 2fr 50px 50px;
+    grid-template-columns: 50px 2fr 2fr 60px 70px;
     font-size: 0.7rem;
 
     &:has(.checkbox-cell) {
-      grid-template-columns: 50px 2fr 2fr 50px 50px;
+      grid-template-columns: 50px 2fr 2fr 60px 70px;
     }
   }
 }

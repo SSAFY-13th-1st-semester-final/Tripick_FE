@@ -19,6 +19,23 @@ class AdminService {
   }
 
   /**
+   * 회원 refresh token 만료시키기기 요청
+   * @param {number} memberId - 복구할 회원의 ID
+   * @return {Promise} - 복구 응답
+   */
+  async expireMemberRefreshToken(memberId) {
+    try {
+      const response = await ApiService.authDelete(
+        `/admin/member/${memberId}/refresh`
+      );
+      return response;
+    } catch (error) {
+      console.error("회원 복구 실패:", error);
+      throw error;
+    }
+  }
+
+  /**
    * 회원 목록 조회
    * @param {Object} params - 쿼리 파라미터
    * @param {boolean} [params.isDeleted] - 탈퇴 여부 필터

@@ -106,7 +106,7 @@
             class="glass-btn"
             :disabled="!isAuthenticated"
           >
-            토큰 체크
+            로그인 연장
           </button>
           <button @click="showApiStatus" class="glass-btn">API 상태</button>
           <!-- ADMIN 전용 전체조회 버튼 -->
@@ -283,12 +283,12 @@ const closeAllPanels = () => {
 
 const forceTokenCheck = async () => {
   try {
-    await TokenMonitorService.forceCheck();
+    await ApiService.refreshToken();
     updateDevPanelStatus();
-    notificationStore.showSuccess("토큰 상태를 확인했습니다.");
+    notificationStore.showSuccess("로그인이 연장되었습니다.");
   } catch (error) {
     console.error("❌ 토큰 확인 중 오류:", error);
-    notificationStore.showError("토큰 확인 중 오류가 발생했습니다.");
+    notificationStore.showError("로그인 연장에 실패했습니다.");
   }
 };
 
