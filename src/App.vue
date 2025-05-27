@@ -16,7 +16,6 @@
     <AppNotification />
     <DevPanel />
 
-    <!-- AI 챗봇 토글 (전역) -->
     <AiChatbotToggle />
   </div>
 </template>

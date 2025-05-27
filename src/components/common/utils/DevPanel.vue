@@ -15,7 +15,7 @@
       :class="{ collapsed: isDevPanelCollapsed }"
     >
       <div class="admin-panel-header" @click="toggleDevPanel">
-        <h4>🛠️ 관리자도구</h4>
+        <h4>🛠️ {{ isAdmin ? "관리자도구" : "토큰 관리 도구" }}</h4>
         <button class="collapse-btn">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -42,6 +42,12 @@
             <span>로그인 상태:</span>
             <span :class="{ active: isAuthenticated }">
               {{ isAuthenticated ? "로그인됨" : "로그아웃됨" }}
+            </span>
+          </div>
+          <div v-if="isAuthenticated" class="status-item">
+            <span>사용자 역할:</span>
+            <span :class="{ active: isAdmin }">
+              {{ currentUser?.role || "Unknown" }}
             </span>
           </div>
           <div v-if="isAuthenticated" class="status-item">
@@ -82,8 +88,8 @@
           </div>
         </div>
 
-        <!-- 관리자 기능 -->
-        <div class="status-section">
+        <!-- 관리자 전용 회원 관리 섹션 -->
+        <div v-if="isAdmin" class="status-section">
           <h5>👥 회원 관리</h5>
           <div class="status-item">
             <span>회원 목록:</span>
@@ -103,7 +109,9 @@
             토큰 체크
           </button>
           <button @click="showApiStatus" class="glass-btn">API 상태</button>
+          <!-- ADMIN 전용 전체조회 버튼 -->
           <button
+            v-if="isAdmin"
             @click="toggleMemberList"
             class="glass-btn"
             :disabled="!isAuthenticated"
@@ -119,13 +127,22 @@
     <button
       @click="toggleDevPanelVisibility"
       class="admin-toggle glass-btn"
-      :title="showDevPanel ? '관리자도구 숨기기' : '관리자도구 보이기'"
+      :title="
+        showDevPanel
+          ? isAdmin
+            ? '관리자도구 숨기기'
+            : '개발자도구 숨기기'
+          : isAdmin
+          ? '관리자도구 보이기'
+          : '개발자도구 보이기'
+      "
     >
-      🛠️
+      {{ isAdmin ? "🛠️" : "🔧" }}
     </button>
 
-    <!-- 회원 관리 컴포넌트 -->
+    <!-- ADMIN 전용 회원 관리 컴포넌트 -->
     <AdminMemberList
+      v-if="isAdmin"
       :show-member-list="showMemberList"
       @close="closeMemberList"
     />
@@ -148,7 +165,7 @@ const isDev = import.meta.env.DEV;
 // 스토어 접근
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const { isAuthenticated } = storeToRefs(authStore);
+const { isAuthenticated, isAdmin, currentUser } = storeToRefs(authStore);
 
 // 관리자 패널 상태
 const showDevPanel = ref(false);
@@ -226,12 +243,20 @@ const toggleDevPanelVisibility = () => {
       clearInterval(statusUpdateTimer);
       statusUpdateTimer = null;
     }
-    // 관리자 패널이 닫히면 회원 목록도 닫기
-    showMemberList.value = false;
+    // 패널이 닫히면 회원 목록도 닫기
+    if (isAdmin.value) {
+      showMemberList.value = false;
+    }
   }
 };
 
 const toggleMemberList = () => {
+  // ADMIN 권한 체크
+  if (!isAdmin.value) {
+    notificationStore.showWarning("관리자 권한이 필요합니다.");
+    return;
+  }
+
   if (!isAuthenticated.value) {
     notificationStore.showWarning("로그인이 필요합니다.");
     return;
@@ -246,7 +271,9 @@ const closeMemberList = () => {
 
 const closeAllPanels = () => {
   showDevPanel.value = false;
-  showMemberList.value = false;
+  if (isAdmin.value) {
+    showMemberList.value = false;
+  }
 
   if (statusUpdateTimer) {
     clearInterval(statusUpdateTimer);
@@ -297,8 +324,14 @@ const setupKeyboardShortcuts = () => {
       toggleDevPanelVisibility();
     }
 
-    // Ctrl + Shift + M: 회원 목록 토글
-    if (e.ctrlKey && e.shiftKey && e.key === "M" && isAuthenticated.value) {
+    // Ctrl + Shift + M: 회원 목록 토글 (ADMIN 전용)
+    if (
+      e.ctrlKey &&
+      e.shiftKey &&
+      e.key === "M" &&
+      isAuthenticated.value &&
+      isAdmin.value
+    ) {
       e.preventDefault();
       toggleMemberList();
     }
@@ -338,7 +371,7 @@ const setupGlobalObjects = () => {
       forceTokenCheck,
       showApiStatus,
       toggleDevPanel: toggleDevPanelVisibility,
-      toggleMemberList,
+      toggleMemberList: isAdmin.value ? toggleMemberList : null, // ADMIN만 접근 가능
       clearDevPanel,
       closeAllPanels,
     },
@@ -355,10 +388,13 @@ onMounted(() => {
   // 전역 객체 설정
   setupGlobalObjects();
 
-  console.log("🛠️ 관리자도구가 활성화되었습니다.");
+  const toolName = isAdmin.value ? "관리자도구" : "개발자도구";
+  console.log(`🛠️ ${toolName}가 활성화되었습니다.`);
   console.log("키보드 단축키:");
-  console.log("  Ctrl + Shift + D: 관리자도구 토글");
-  console.log("  Ctrl + Shift + M: 회원 목록 토글");
+  console.log("  Ctrl + Shift + D: 패널 토글");
+  if (isAdmin.value) {
+    console.log("  Ctrl + Shift + M: 회원 목록 토글 (관리자 전용)");
+  }
   console.log("  Ctrl + Shift + T: 토큰 강제 체크");
   console.log("  Ctrl + Shift + C: 콘솔 클리어");
   console.log("  ESC: 모든 패널 닫기");
