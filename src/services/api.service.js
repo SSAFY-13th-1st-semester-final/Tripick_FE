@@ -75,6 +75,7 @@ const createAuthenticatedClient = () => {
       Accept: "application/json",
     },
     timeout: 10000,
+    withCredentials: true,
   });
 
   // 요청 인터셉터
@@ -189,6 +190,7 @@ const createPublicClient = () => {
       Accept: "application/json",
     },
     timeout: 10000,
+    withCredentials: true,
   });
 };
 
