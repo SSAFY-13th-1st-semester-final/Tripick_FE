@@ -267,7 +267,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import AppInput from "@/components/common/shared/AppInput.vue";
 import AppButton from "@/components/common/shared/AppButton.vue";
-import PasswordInput from "@/components/common/shared/PasswordInput.vue";
+import PasswordInput from "@/components/common/shared/PassWordInput.vue";
 import {
   isUsernameAvailable,
   isValidEmail,
