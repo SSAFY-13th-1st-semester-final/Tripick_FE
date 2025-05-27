@@ -17,6 +17,12 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    port: 8081,
+    open: true,
+    // proxy 설정 제거
+    cors: true,
+  },
   build: {
     outDir: "dist",
     assetsDir: "assets",
