@@ -1,6 +1,5 @@
 <template>
   <div class="map-action-bar glass-card">
-    <!-- 임시저장 버튼 -->
     <button
       class="action-btn glass-btn"
       @click="$emit('temporary-save')"
@@ -28,7 +27,6 @@
       <span class="btn-text">임시저장</span>
     </button>
 
-    <!-- AI 평가 버튼 -->
     <button
       class="action-btn glass-btn"
       @click="$emit('toggle-ai-evaluation')"
@@ -55,7 +53,6 @@
       <span class="btn-text">AI 평가</span>
     </button>
 
-    <!-- 경로최적화 버튼 -->
     <button
       class="action-btn glass-btn"
       @click="$emit('optimize-paths')"
@@ -77,7 +74,6 @@
       <span class="btn-text">경로최적화</span>
     </button>
 
-    <!-- 전체화면 버튼 -->
     <button
       class="action-btn glass-btn"
       @click="toggleFullscreen"
@@ -118,11 +114,11 @@
       <span class="btn-text">전체화면</span>
     </button>
 
-    <!-- 저장하기 버튼 -->
     <button
       class="action-btn glass-btn primary"
-      @click="$emit('save-trip')"
-      title="저장하기"
+      @click="handleSaveClick"
+      :disabled="isSaveDisabled"
+      :title="saveButtonTitle"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -141,13 +137,13 @@
         <polyline points="17 21 17 13 7 13 7 21" />
         <polyline points="7 3 7 8 15 8" />
       </svg>
-      <span class="btn-text">저장하기</span>
+      <span class="btn-text">{{ saveButtonText }}</span>
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useNotificationStore } from "@/stores/notification";
 
 defineProps({
@@ -156,7 +152,7 @@ defineProps({
   isAiEvaluationVisible: Boolean,
 });
 
-defineEmits([
+const emit = defineEmits([
   "temporary-save",
   "optimize-paths",
   "save-trip",
@@ -166,6 +162,53 @@ defineEmits([
 const isFullscreen = ref(false);
 const notificationStore = useNotificationStore();
 
+// 저장 버튼 쿨다운 관련 상태
+const cooldownRemaining = ref(0);
+const cooldownTimer = ref(null);
+
+// 저장 버튼 계산된 속성
+const isSaveDisabled = computed(() => {
+  return cooldownRemaining.value > 0;
+});
+
+const saveButtonText = computed(() => {
+  return cooldownRemaining.value > 0
+    ? `${cooldownRemaining.value}초`
+    : "저장하기";
+});
+
+const saveButtonTitle = computed(() => {
+  return cooldownRemaining.value > 0
+    ? `${cooldownRemaining.value}초 후 다시 저장할 수 있습니다`
+    : "저장하기";
+});
+
+// 저장 버튼 클릭 핸들러
+const handleSaveClick = () => {
+  if (isSaveDisabled.value) return;
+
+  // 부모에게 저장 이벤트 전달
+  emit("save-trip");
+
+  // 5초 쿨다운 시작
+  startCooldown();
+};
+
+// 쿨다운 시작
+const startCooldown = () => {
+  cooldownRemaining.value = 5;
+
+  const countdown = () => {
+    if (cooldownRemaining.value > 0) {
+      cooldownRemaining.value--;
+      cooldownTimer.value = setTimeout(countdown, 1000);
+    }
+  };
+
+  countdown();
+};
+
+// 전체화면 관련 기능
 const toggleFullscreen = async () => {
   try {
     if (!document.fullscreenElement) {
@@ -191,6 +234,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  // 타이머 정리
+  if (cooldownTimer.value) {
+    clearTimeout(cooldownTimer.value);
+  }
 });
 </script>
 
@@ -253,6 +300,11 @@ onBeforeUnmount(() => {
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+
+    &:hover {
+      color: inherit;
+      transform: none;
+    }
   }
 
   &.primary {
@@ -261,6 +313,14 @@ onBeforeUnmount(() => {
 
     &:hover {
       background: rgba($accent-color, 1);
+    }
+
+    &:disabled {
+      background: rgba($accent-color, 0.4);
+
+      &:hover {
+        background: rgba($accent-color, 0.4);
+      }
     }
   }
 

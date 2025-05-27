@@ -181,7 +181,7 @@ import {
   nextTick,
   watch,
 } from "vue";
-import { onBeforeRouteLeave } from "vue-router";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { useTravelStore } from "@/stores/travel";
 import useTravelService from "@/services/travel.service.js";
 import AiService from "@/services/ai.service.js";
@@ -195,6 +195,7 @@ import AiTripEvaluationCard from "@/components/travel/AiTripEvaluationCard.vue";
 import travelService from "@/services/travel.service";
 
 // 스토어
+const router = useRouter();
 const travelStore = useTravelStore();
 const notificationStore = useNotificationStore();
 const { tripInfo, isTemporarySaved } = storeToRefs(travelStore);
@@ -210,6 +211,7 @@ const isSearchPanelCollapsed = ref(false);
 const isSchedulePanelCollapsed = ref(false);
 const isAiEvaluationVisible = ref(false);
 const aiCardPosition = ref({ x: 100, y: 100 });
+const isTripSaved = ref(false); // 여행 저장 상태 추적
 
 // AI 평가 카드 참조
 const aiEvaluationCardRef = ref(null);
@@ -227,6 +229,14 @@ const hasTripInfo = computed(() => {
 onBeforeRouteLeave(async (to, from, next) => {
   try {
     const hasTripData = travelStore.hasTripData;
+
+    // 여행이 정식 저장된 경우에는 confirm 창을 띄우지 않음
+    if (isTripSaved.value) {
+      travelStore.clearNewTripFromSession();
+      travelStore.resetTrip();
+      next();
+      return;
+    }
 
     if (hasTripData) {
       const shouldSave = confirm(
@@ -263,6 +273,13 @@ onBeforeUnmount(() => {
 
 // 브라우저 창 닫기/새로고침 처리
 const handleBeforeUnload = (event) => {
+  // 여행이 이미 저장된 경우에는 확인 창을 띄우지 않음
+  if (isTripSaved.value) {
+    travelStore.clearNewTripFromSession();
+    travelStore.resetTrip();
+    return;
+  }
+
   if (travelStore.hasTripData) {
     travelStore.saveTripToLocalStorage();
     travelStore.resetTrip();
@@ -271,7 +288,7 @@ const handleBeforeUnload = (event) => {
   travelStore.clearNewTripFromSession();
   travelStore.resetTrip();
 
-  if (travelStore.hasTripData) {
+  if (travelStore.hasTripData && !isTripSaved.value) {
     event.preventDefault();
     event.returnValue = "작업 중인 여행 계획이 있습니다. 정말 나가시겠습니까?";
     return event.returnValue;
@@ -397,9 +414,22 @@ const handleSaveUserTrip = async () => {
   try {
     notificationStore.showInfo("여행을 저장하는 중...");
     await travelService.saveTrip();
+
+    // 저장 성공 처리
+    isTripSaved.value = true;
     notificationStore.showSuccess("여행이 성공적으로 저장되었습니다.");
+
+    // 스토어 상태 정리 (저장 완료 후 임시 데이터 정리)
+    travelStore.clearNewTripFromSession();
+
+    // 저장 성공 후 프로필 페이지로 리다이렉트
+    setTimeout(() => {
+      router.push({ name: "profile" });
+    }, 1000); // 1초 후 이동 (사용자가 성공 메시지를 볼 수 있도록)
   } catch (error) {
+    console.error("여행 저장 오류:", error);
     notificationStore.showError("여행 저장에 실패했습니다.");
+    isTripSaved.value = false; // 저장 실패 시 플래그 리셋
   }
 };
 
