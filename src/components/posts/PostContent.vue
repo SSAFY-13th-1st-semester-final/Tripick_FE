@@ -163,7 +163,6 @@ const emit = defineEmits([
   "profile-error",
 ]);
 
-// 현재 사용자가 작성자인지 또는 관리자인지 확인
 const isAuthorOrAdmin = computed(() => {
   if (!props.post) return false;
   if (!props.isAuthenticated) return false;
@@ -171,8 +170,16 @@ const isAuthorOrAdmin = computed(() => {
   // 관리자인 경우 항상 수정/삭제 가능
   if (props.isAdmin) return true;
 
+  // 타입 강제 변환 후 비교
+  const postMemberId = String(props.post.memberId);
+  const currentUserId = String(props.currentUser.id);
+
+  console.log(">> postMemberId:", postMemberId);
+  console.log(">> currentUserId:", currentUserId);
+  console.log(">> 비교 결과:", postMemberId === currentUserId);
+
   // 작성자인 경우 수정/삭제 가능
-  return props.currentUser && props.post.memberId === props.currentUser.id;
+  return postMemberId === currentUserId;
 });
 
 // 날짜 포맷팅
