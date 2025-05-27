@@ -66,7 +66,7 @@
       </div>
     </section>
 
-    <section ref="featuresSection">
+    <section ref="featuresSection" class="features">
       <FeatureSection :features="homeFeatures" />
     </section>
 
@@ -105,6 +105,27 @@
             >
               새 여행 계획하기
             </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 비디오 섹션 -->
+    <section ref="videoSection" class="video-section">
+      <div class="container">
+        <div class="video-content glass-card">
+          <h2 class="video-title">서비스 소개 영상</h2>
+          <div class="video-wrapper">
+            <div class="video-container">
+              <iframe
+                class="intro-video"
+                src="https://www.youtube.com/embed/acexNo3L2AU?controls=1&rel=0&modestbranding=1"
+                title="서비스 소개 영상"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
         </div>
       </div>
@@ -163,6 +184,7 @@ const heroSection = ref(null);
 const featuresSection = ref(null);
 const ctaSection = ref(null);
 const recommendationsSection = ref(null);
+const videoSection = ref(null);
 
 // 현재 섹션 인덱스
 const currentSectionIndex = ref(0);
@@ -175,6 +197,7 @@ const sections = computed(() => {
   } else {
     baseSections.push(ctaSection);
   }
+  baseSections.push(videoSection); // 비디오 섹션은 항상 마지막에 추가
   return baseSections;
 });
 
@@ -364,6 +387,25 @@ $header-height: 64px; // 일반적인 헤더 높이
     display: flex;
     align-items: center;
     justify-content: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    border-radius: 20px;
+    padding: $spacing-2xl;
+
+    // glass-card 클래스의 hover 효과 제거
+    &:hover {
+      transform: none;
+    }
+
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-lg;
+      border-radius: 16px;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      padding: $spacing-md;
+      border-radius: 12px;
+    }
   }
 
   &-content {
@@ -617,16 +659,78 @@ $header-height: 64px; // 일반적인 헤더 높이
   text-shadow: 0 0 30px rgba($accent-color, 0.1);
 }
 
+// Feature 섹션 스타일
+.features {
+  // 전체 뷰포트 높이에서 헤더 높이를 뺀 높이로 설정
+  min-height: calc(100vh - #{$header-height});
+  height: calc(100vh - #{$header-height});
+
+  // Flexbox를 사용하여 콘텐츠를 수직 중앙에 배치
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: $spacing-xl 0;
+
+  // 모바일에서는 약간 다른 처리
+  @media (max-width: $breakpoint-md) {
+    min-height: calc(100vh - #{$header-height});
+    height: auto; // 모바일에서는 콘텐츠에 따라 높이 조정
+    padding: $spacing-lg 0;
+  }
+
+  // FeatureSection 컴포넌트가 전체 높이를 사용할 수 있도록 설정
+  :deep(.feature-section) {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .cta {
-  padding: $spacing-3xl 0;
+  // 전체 뷰포트 높이에서 헤더 높이를 뺀 높이로 설정
+  min-height: calc(100vh - #{$header-height});
+  height: calc(100vh - #{$header-height});
+
+  // Flexbox를 사용하여 콘텐츠를 수직 중앙에 배치
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: $spacing-xl 0;
+
+  // 모바일에서는 약간 다른 처리
+  @media (max-width: $breakpoint-md) {
+    min-height: calc(100vh - #{$header-height});
+    height: auto; // 모바일에서는 콘텐츠에 따라 높이 조정
+    padding: $spacing-lg 0;
+  }
+
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   &-content {
     text-align: center;
     padding: $spacing-2xl;
     max-width: 800px;
     margin: 0 auto;
+    width: 100%;
     border-radius: 16px;
     @include glassmorphism(0.7, 10px);
+
+    // 콘텐츠가 화면을 넘어가지 않도록 최대 높이 설정
+    max-height: calc(100vh - #{$header-height} - #{$spacing-xl * 2});
+
+    @media (max-width: $breakpoint-md) {
+      max-height: none; // 모바일에서는 제한 해제
+    }
 
     &:hover {
       transform: none;
@@ -634,10 +738,16 @@ $header-height: 64px; // 일반적인 헤더 높이
   }
 
   &-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin-bottom: $spacing-md;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 0 30px rgba($accent-color, 0.1);
 
     @media (max-width: $breakpoint-md) {
+      font-size: 2rem;
+    }
+
+    @media (max-width: $breakpoint-sm) {
       font-size: 1.75rem;
     }
   }
@@ -646,6 +756,10 @@ $header-height: 64px; // 일반적인 헤더 높이
     font-size: 1.125rem;
     margin-bottom: $spacing-xl;
     color: rgba($primary-color, 0.8);
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 1rem;
+    }
   }
 
   &-btn {
@@ -664,19 +778,56 @@ $header-height: 64px; // 일반적인 헤더 높이
       transform: translateY(-3px);
       box-shadow: 0 10px 20px rgba($accent-color, 0.3);
     }
+
+    @media (max-width: $breakpoint-sm) {
+      width: 100%;
+      max-width: 300px;
+    }
   }
 }
 
 .recommendations {
-  padding: $spacing-3xl 0;
+  // 전체 뷰포트 높이에서 헤더 높이를 뺀 높이로 설정
+  min-height: calc(100vh - #{$header-height});
+  height: calc(100vh - #{$header-height});
+
+  // Flexbox를 사용하여 콘텐츠를 수직 중앙에 배치
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: $spacing-xl 0;
+
+  // 모바일에서는 약간 다른 처리
+  @media (max-width: $breakpoint-md) {
+    min-height: calc(100vh - #{$header-height});
+    height: auto; // 모바일에서는 콘텐츠에 따라 높이 조정
+    padding: $spacing-lg 0;
+  }
+
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   &-content {
     text-align: center;
     padding: $spacing-2xl;
     max-width: 800px;
     margin: 0 auto;
+    width: 100%;
     border-radius: 16px;
     @include glassmorphism(0.7, 10px);
+
+    // 콘텐츠가 화면을 넘어가지 않도록 최대 높이 설정
+    max-height: calc(100vh - #{$header-height} - #{$spacing-xl * 2});
+
+    @media (max-width: $breakpoint-md) {
+      max-height: none; // 모바일에서는 제한 해제
+    }
 
     &:hover {
       transform: none;
@@ -684,11 +835,17 @@ $header-height: 64px; // 일반적인 헤더 높이
   }
 
   &-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin-bottom: $spacing-md;
     color: $primary-color;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 0 30px rgba($accent-color, 0.1);
 
     @media (max-width: $breakpoint-md) {
+      font-size: 2rem;
+    }
+
+    @media (max-width: $breakpoint-sm) {
       font-size: 1.75rem;
     }
   }
@@ -697,6 +854,10 @@ $header-height: 64px; // 일반적인 헤더 높이
     font-size: 1.125rem;
     margin-bottom: $spacing-xl;
     color: rgba($primary-color, 0.8);
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 1rem;
+    }
   }
 
   &-actions {
@@ -738,6 +899,133 @@ $header-height: 64px; // 일반적인 헤더 높이
 
     @media (max-width: $breakpoint-sm) {
       width: 100%;
+      max-width: 300px;
+    }
+  }
+}
+
+// 비디오 섹션 스타일
+.video-section {
+  // 전체 뷰포트 높이에서 헤더 높이를 뺀 높이로 설정
+  min-height: calc(100vh - #{$header-height});
+  height: calc(100vh - #{$header-height});
+
+  // Flexbox를 사용하여 콘텐츠를 수직 중앙에 배치
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: $spacing-xl 0;
+
+  // 모바일에서는 약간 다른 처리
+  @media (max-width: $breakpoint-md) {
+    min-height: calc(100vh - #{$header-height});
+    height: auto; // 모바일에서는 콘텐츠에 따라 높이 조정
+    padding: $spacing-lg 0;
+  }
+
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .video-content {
+    text-align: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+
+    // 콘텐츠가 화면을 넘어가지 않도록 최대 높이 설정
+    max-height: calc(100vh - #{$header-height} - #{$spacing-xl * 2});
+
+    @media (max-width: $breakpoint-md) {
+      max-height: none; // 모바일에서는 제한 해제
+    }
+  }
+
+  .video-title {
+    font-size: 2.5rem;
+    margin-bottom: $spacing-2xl;
+    color: $primary-color;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 0 30px rgba($accent-color, 0.1);
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 2rem;
+      margin-bottom: $spacing-xl;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      font-size: 1.75rem;
+      margin-bottom: $spacing-lg;
+    }
+  }
+
+  .video-wrapper {
+    // glass-card 스타일이 자동으로 적용됨
+    padding: $spacing-xl;
+    border-radius: 20px;
+
+    // hover 효과 제거 (비디오 섹션에는 적합하지 않음)
+    &:hover {
+      transform: none;
+    }
+
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-lg;
+      border-radius: 16px;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      padding: $spacing-md;
+      border-radius: 12px;
+    }
+  }
+
+  .video-container {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: $shadow-xl;
+
+    // 16:9 비율 반응형 컨테이너
+    aspect-ratio: 16 / 9;
+
+    // 구형 브라우저 호환성을 위한 fallback
+    &::before {
+      content: "";
+      display: block;
+      padding-bottom: 56.25%; // 16:9 비율 (9/16 * 100%)
+    }
+
+    // aspect-ratio를 지원하는 브라우저에서는 padding-bottom 제거
+    @supports (aspect-ratio: 16 / 9) {
+      &::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      border-radius: 12px;
+    }
+
+    .intro-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      border: none;
+      object-fit: cover;
+
+      @media (max-width: $breakpoint-sm) {
+        border-radius: 12px;
+      }
     }
   }
 }
