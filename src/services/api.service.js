@@ -3,7 +3,7 @@ import axios from "axios";
 import router from "@/router";
 import TokenService from "@/services/token.service";
 
-const API_URL = "/api/v1";
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`;
 
 // 토큰 리프레시 관련 변수들
 let isRefreshing = false;

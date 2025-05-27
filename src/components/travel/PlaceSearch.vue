@@ -153,7 +153,7 @@
                 :href="place.placeUrl"
                 target="_blank"
                 class="place-link"
-                @click.stop
+                @click.stop="showPlaceDetail(place)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -223,6 +223,7 @@ import travelService from "@/services/travel.service";
 import { useNotificationStore } from "@/stores/notification";
 import { useTravelStore } from "@/stores/travel";
 import { storeToRefs } from "pinia";
+import infoWindowRenderer from "@/utils/InfoWindowRenderer";
 
 // 상태 변수
 const categories = ref([]);
@@ -259,6 +260,10 @@ const {
   getDayDate,
   formatDate,
 } = storeToRefs(travelStore);
+
+const showDetailModal = ref(false);
+const selectedDetailPlace = ref(null);
+const detailModalContent = ref("");
 
 // 계산된 속성
 const noMoreResults = computed(() => {
@@ -332,6 +337,38 @@ const loadCategories = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+// 장소 상세 정보 표시
+const showPlaceDetail = (place) => {
+  selectedDetailPlace.value = place;
+
+  // InfoWindowRenderer를 사용하여 상세 정보 HTML 생성
+  const placeWithDay = {
+    ...place,
+    day: currentDay.value + 1,
+    type: searchMode.value === "hotel" ? "hotel_start" : "place",
+  };
+
+  detailModalContent.value = infoWindowRenderer.createInfoWindowContent(
+    placeWithDay,
+    1, // markerNumber
+    null // legData
+  );
+
+  showDetailModal.value = true;
+
+  // 모달 표시 후 스타일 적용
+  setTimeout(() => {
+    infoWindowRenderer.addInfoWindowStyles();
+  }, 50);
+};
+
+// 상세 정보 모달 닫기
+const closeDetailModal = () => {
+  showDetailModal.value = false;
+  selectedDetailPlace.value = null;
+  detailModalContent.value = "";
 };
 
 // 카테고리 선택

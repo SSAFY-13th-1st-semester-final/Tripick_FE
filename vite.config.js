@@ -20,14 +20,7 @@ export default defineConfig({
   server: {
     port: 8081,
     open: true,
-    proxy: {
-      "/api": {
-        target: "http://3.39.187.140:8080",
-        // target: 'http://localhost:8080',
-        changeOrigin: true,
-        rewrite: (path) => path,
-      },
-    },
+    // proxy 설정 제거
     cors: true,
   },
   build: {

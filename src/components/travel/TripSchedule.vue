@@ -420,6 +420,9 @@
               <div class="place-address">
                 {{ place.roadAddressName || place.addressName }}
               </div>
+              <div v-if="place.phone" class="place-phone">
+                {{ place.phone }}
+              </div>
 
               <div v-if="place.memo" class="place-memo">
                 <p>{{ place.memo }}</p>
@@ -1248,6 +1251,11 @@ const dragEnd = () => {
         color: $dark-gray;
         font-size: 10px;
         margin-bottom: $spacing-xs;
+      }
+
+      .place-phone {
+        color: $dark-gray;
+        font-size: 8px;
       }
 
       .place-memo {
