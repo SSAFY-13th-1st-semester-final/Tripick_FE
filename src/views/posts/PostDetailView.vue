@@ -113,8 +113,6 @@ const loadPost = async () => {
       await checkLikeStatus(postId);
     }
   } catch (err) {
-    console.error("게시글 로드 오류:", err);
-
     // 게시글 조회는 인증 불필요하므로 일반적인 에러만 처리
     if (err.response && err.response.status === 404) {
       error.value = "존재하지 않는 게시글입니다.";
@@ -138,15 +136,11 @@ const checkLikeStatus = async (postId) => {
     if (response && response.data && response.data.data) {
       isLiked.value = response.data.data.isLiked;
     }
-
-    console.log(response.data.data.isLiked);
   } catch (error) {
-    console.error("좋아요 상태 확인 실패:", error);
     isLiked.value = false;
 
     if (error.response && error.response.status === 401) {
       // 인증 오류는 조용히 처리 (로그인하지 않은 상태에서 정상)
-      console.log("로그인되지 않은 사용자입니다.");
     }
   }
 };
@@ -157,8 +151,6 @@ const toggleLike = async () => {
     notificationStore.showWarning("로그인이 필요한 기능입니다.");
     return;
   }
-
-  console.log("초기 좋아요 상태 : ", isLiked.value);
 
   const postId = parseInt(route.params.id);
   if (isNaN(postId)) return;
@@ -179,7 +171,6 @@ const toggleLike = async () => {
       (response.data.status === 200 || response.data.status === 201)
     ) {
       isLiked.value = !isLiked.value;
-      console.log("수정 후 좋아요 상태 : ", isLiked.value);
 
       // 좋아요 수 업데이트
       if (
@@ -187,8 +178,6 @@ const toggleLike = async () => {
         response.data.data &&
         response.data.data.likeCount !== undefined
       ) {
-        console.log(post.value.likeCount);
-        console.log(response.data.data.likeCount);
         post.value.likeCount = response.data.data.likeCount;
       } else {
         if (post.value.likeCount !== undefined) {
@@ -202,8 +191,6 @@ const toggleLike = async () => {
       notificationStore.showSuccess(message, { duration: 2000 });
     }
   } catch (error) {
-    console.error("좋아요 토글 오류:", error);
-
     if (error.response && error.response.status === 401) {
       notificationStore.showError("로그인이 필요하거나 세션이 만료되었습니다.");
       authStore.logout();
@@ -276,13 +263,11 @@ const handleSummaryRequest = async (postId) => {
 
 // 댓글 작성/변경 이벤트 처리 - 게시글 새로고침
 const handleCommentPosted = async (eventData) => {
-  console.log("댓글 작성 이벤트:", eventData);
   // 게시글 데이터 새로고침 (댓글 수 업데이트를 위해)
   await refreshPostData();
 };
 
 const handleCommentChanged = async (eventData) => {
-  console.log("댓글 변경 이벤트:", eventData);
   // 게시글 데이터 새로고침 (댓글 수 업데이트를 위해)
   await refreshPostData();
 };
@@ -304,15 +289,11 @@ const refreshPostData = async () => {
         // 댓글 수가 변경되었을 수 있으므로 업데이트
         commentCount: response.data.commentCount || post.value.commentCount,
       };
-
-      console.log(
-        "게시글 데이터 새로고침 완료 - 댓글 수:",
-        post.value.commentCount
-      );
     }
   } catch (err) {
-    console.error("게시글 새로고침 오류:", err);
-    // 에러가 발생해도 사용자에게 알리지 않음 (백그라운드 업데이트)
+    notificationStore.showError(
+      "게시글 데이터를 새로고침하는 중 오류가 발생했습니다."
+    );
   }
 };
 

@@ -272,7 +272,6 @@ const handleTripClicked = async (tripId) => {
       notificationStore.showError("여행 정보를 불러오는데 실패했습니다.");
     }
   } catch (error) {
-    console.error("여행 지도 이동 실패 : ", error);
     notificationStore.showError("여행 지도로 이동하는 중 오류가 발생했습니다.");
   }
 };

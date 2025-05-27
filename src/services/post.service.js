@@ -224,7 +224,6 @@ export class PostService {
       const response = await ApiService.authGet(`/posts/${postId}/likes`);
       return response;
     } catch (error) {
-      console.error("좋아요 여부 확인 실패:", error);
       throw error;
     }
   }
@@ -239,9 +238,7 @@ export class PostService {
       const response = await ApiService.authPost(`/posts/${postId}/likes`);
 
       return response;
-    } catch (error) {
-      console.error("좋아요 표시하기 요청 에러 : ", error);
-    }
+    } catch (error) {}
   }
 
   /**
@@ -254,7 +251,7 @@ export class PostService {
 
       return response;
     } catch (error) {
-      console.error("좋아요 취소하기 요청 에러 : ", error);
+      throw error; // 호출부에서 catch할 수 있도록 다시 throw
     }
   }
 
@@ -281,7 +278,6 @@ export class PostService {
 
       return response;
     } catch (error) {
-      console.error("댓글 조회 에러:", error);
       throw error;
     }
   }
@@ -300,7 +296,6 @@ export class PostService {
       );
       return response;
     } catch (error) {
-      console.error("댓글 수정 에러 : ", error);
       throw error;
     }
   }
@@ -318,7 +313,6 @@ export class PostService {
       );
       return response;
     } catch (error) {
-      console.error("댓글 삭제 에러 : ", error);
       throw error;
     }
   }
@@ -337,7 +331,6 @@ export class PostService {
       );
       return response;
     } catch (error) {
-      console.error("댓글 작성 에러 : ", error);
       throw error;
     }
   }

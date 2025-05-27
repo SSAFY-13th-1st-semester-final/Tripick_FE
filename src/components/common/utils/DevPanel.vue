@@ -218,9 +218,7 @@ const updateDevPanelStatus = () => {
     try {
       tokenStatus.value = TokenMonitorService.getStatus();
       apiStatus.value = ApiService.getStatus();
-    } catch (error) {
-      console.error("상태 업데이트 오류:", error);
-    }
+    } catch (error) {}
   }
 };
 
@@ -283,7 +281,6 @@ const forceTokenCheck = async () => {
     updateDevPanelStatus();
     notificationStore.showSuccess("로그인이 연장되었습니다.");
   } catch (error) {
-    console.error("❌ 토큰 확인 중 오류:", error);
     notificationStore.showError("로그인 연장에 실패했습니다.");
   }
 };
@@ -294,7 +291,6 @@ const showApiStatus = () => {
     console.table(status);
     notificationStore.showInfo("API 상태가 콘솔에 출력되었습니다.");
   } catch (error) {
-    console.error("❌ API 상태 조회 실패:", error);
     notificationStore.showError("API 상태 조회에 실패했습니다.");
   }
 };
@@ -372,22 +368,9 @@ const setupGlobalObjects = () => {
 
 // 라이프사이클 훅
 onMounted(() => {
-  // 키보드 단축키 설정
   keyboardCleanup = setupKeyboardShortcuts();
 
-  // 전역 객체 설정
   setupGlobalObjects();
-
-  const toolName = isAdmin.value ? "관리자도구" : "토큰 관리도구";
-  console.log(`🛠️ ${toolName}가 활성화되었습니다.`);
-  console.log("키보드 단축키:");
-  console.log("  Ctrl + Shift + D: 패널 토글");
-  if (isAdmin.value) {
-    console.log("  Ctrl + Shift + M: 회원 목록 토글 (관리자 전용)");
-  }
-  console.log("  Ctrl + Shift + T: 토큰 강제 체크");
-  console.log("  Ctrl + Shift + C: 콘솔 클리어");
-  console.log("  ESC: 모든 패널 닫기");
 });
 
 onBeforeUnmount(() => {

@@ -263,7 +263,6 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
     } catch (error) {
-      console.error("인증페이지 오류: ", error);
       next({ name: "home" });
       return;
     }

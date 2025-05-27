@@ -174,10 +174,6 @@ const isAuthorOrAdmin = computed(() => {
   const postMemberId = String(props.post.memberId);
   const currentUserId = String(props.currentUser.id);
 
-  console.log(">> postMemberId:", postMemberId);
-  console.log(">> currentUserId:", currentUserId);
-  console.log(">> 비교 결과:", postMemberId === currentUserId);
-
   // 작성자인 경우 수정/삭제 가능
   return postMemberId === currentUserId;
 });

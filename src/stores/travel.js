@@ -1438,8 +1438,6 @@ export const useTravelStore = defineStore("travel", {
             const hotelPlace = convertPlace(sortedPlaces[0]);
             convertedHotels.push(hotelPlace);
 
-            console.log(hotelPlace.categoryName);
-
             // 나머지 장소들을 일반 장소로 설정
             const remainingPlaces = sortedPlaces.slice(1).map(convertPlace);
             convertedItinerary.push(remainingPlaces);

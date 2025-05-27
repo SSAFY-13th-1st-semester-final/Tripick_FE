@@ -214,10 +214,7 @@ const sendVerificationCode = async () => {
       }
     }, 100);
   } catch (error) {
-    console.error("이메일 전송 실패:", error);
-    notificationStore.showError(
-      error.message || "인증코드 전송에 실패했습니다"
-    );
+    notificationStore.showError("인증코드 전송에 실패했습니다");
   } finally {
     loading.sendCode = false;
   }
@@ -293,9 +290,7 @@ const verifyCode = async () => {
       });
     }, 1500);
   } catch (error) {
-    console.error("인증 실패:", error);
-    verificationForm.errors.code =
-      error.message || "인증코드가 올바르지 않습니다";
+    verificationForm.errors.code = "인증코드가 올바르지 않습니다";
     notificationStore.showError("인증에 실패했습니다. 다시 시도해 주세요");
 
     // 첫 번째 입력 필드에 포커스하고 모든 코드 초기화
@@ -331,7 +326,6 @@ const resendVerificationCode = async () => {
       }
     }, 100);
   } catch (error) {
-    console.error("인증코드 재전송 실패:", error);
     notificationStore.showError(
       error.message || "인증코드 재전송에 실패했습니다"
     );

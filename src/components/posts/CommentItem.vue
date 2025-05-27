@@ -268,8 +268,6 @@ const saveEdit = async () => {
     isEditing.value = false;
     editContent.value = "";
   } catch (error) {
-    console.error("댓글 수정 오류:", error);
-
     if (error.response && error.response.status === 401) {
       notificationStore.showError(
         "세션이 만료되었습니다. 다시 로그인해주세요."
@@ -298,8 +296,6 @@ const deleteComment = async () => {
     await PostService.deleteComment(props.postId, props.comment.id);
     emit("comment-deleted", props.comment.id);
   } catch (error) {
-    console.error("댓글 삭제 오류:", error);
-
     if (error.response && error.response.status === 401) {
       notificationStore.showError(
         "세션이 만료되었습니다. 다시 로그인해주세요."

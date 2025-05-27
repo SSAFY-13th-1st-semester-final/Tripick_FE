@@ -427,7 +427,6 @@ const handleSaveUserTrip = async () => {
       router.push({ name: "profile" });
     }, 1000); // 1초 후 이동 (사용자가 성공 메시지를 볼 수 있도록)
   } catch (error) {
-    console.error("여행 저장 오류:", error);
     notificationStore.showError("여행 저장에 실패했습니다.");
     isTripSaved.value = false; // 저장 실패 시 플래그 리셋
   }

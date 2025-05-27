@@ -15,8 +15,6 @@ class AuthService {
       );
       const refreshToken = response.headers["refresh-token"];
 
-      console.log(response);
-
       if (!accessToken) throw new Error("Access token이 응답 헤더에 없습니다.");
 
       TokenService.useRememberMe(rememberMe);
@@ -53,9 +51,6 @@ class AuthService {
         const storage = rememberMe.value ? localStorage : sessionStorage;
         storage.setItem("user", JSON.stringify(fullUserInfo));
       } catch (userError) {
-        console.warn("사용자 정보 조회 실패, 기본 정보만 저장:", userError);
-
-        // 사용자 정보 조회 실패시 기본 정보만 저장
         const storage = rememberMe.value ? localStorage : sessionStorage;
         storage.setItem("user", JSON.stringify(basicUserInfo));
       }

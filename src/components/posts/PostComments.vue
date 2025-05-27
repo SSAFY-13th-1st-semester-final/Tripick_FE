@@ -209,23 +209,9 @@ const loadComments = async (page = 0, append = false) => {
       totalComments.value = pagination.value.totalElements;
       currentPage.value = page;
 
-      // 디버깅용 로그
-      console.log("댓글 로드 완료:", {
-        루트댓글수: comments.value.length,
-        전체댓글수: totalComments.value,
-        현재페이지: pagination.value.number,
-        전체페이지: pagination.value.totalPages,
-        더있음: hasMoreComments.value,
-      });
-
       // 각 루트 댓글의 flatten된 대댓글 수 확인
       comments.value.forEach((comment, index) => {
         const flatReplies = flattenReplies(comment.children);
-        if (flatReplies.length > 0) {
-          console.log(
-            `루트댓글 ${index + 1}: ${flatReplies.length}개의 대댓글`
-          );
-        }
       });
 
       // 데이터 로드 후 무한스크롤 재설정 (append 모드에서)
@@ -236,7 +222,6 @@ const loadComments = async (page = 0, append = false) => {
       }
     }
   } catch (err) {
-    console.error("댓글 로드 오류:", err);
     error.value = "댓글을 불러오는 중 오류가 발생했습니다.";
 
     if (err.response && err.response.status === 404) {
@@ -251,16 +236,9 @@ const loadComments = async (page = 0, append = false) => {
 // 더 많은 댓글 로드
 const loadMoreComments = async () => {
   if (!hasMoreComments.value || isLoadingMore.value) {
-    console.log("Load more blocked:", {
-      hasMore: hasMoreComments.value,
-      isLoading: isLoadingMore.value,
-      currentPage: currentPage.value,
-      totalPages: pagination.value?.totalPages,
-    });
     return;
   }
 
-  console.log("Loading more comments - page:", currentPage.value + 1);
   await loadComments(currentPage.value + 1, true);
 };
 
@@ -274,7 +252,6 @@ const handleScroll = () => {
   const remaining = scrollHeight - scrollTop - clientHeight;
 
   if (remaining < threshold) {
-    console.log("Triggering load more from scroll");
     loadMoreComments();
   }
 };
@@ -282,10 +259,6 @@ const handleScroll = () => {
 // 무한스크롤 설정
 const setupInfiniteScroll = () => {
   if (!infiniteScrollTrigger.value || !commentsList.value) {
-    console.log("Cannot setup infinite scroll:", {
-      hasTrigger: !!infiniteScrollTrigger.value,
-      hasContainer: !!commentsList.value,
-    });
     return;
   }
 
@@ -294,23 +267,15 @@ const setupInfiniteScroll = () => {
     observer.value.disconnect();
   }
 
-  console.log("Setting up infinite scroll observer");
-
   observer.value = new IntersectionObserver(
     (entries) => {
       const target = entries[0];
-      console.log("Intersection observer triggered:", {
-        isIntersecting: target.isIntersecting,
-        hasMore: hasMoreComments.value,
-        isLoading: isLoadingMore.value,
-      });
 
       if (
         target.isIntersecting &&
         hasMoreComments.value &&
         !isLoadingMore.value
       ) {
-        console.log("Triggering load more from intersection observer");
         loadMoreComments();
       }
     },

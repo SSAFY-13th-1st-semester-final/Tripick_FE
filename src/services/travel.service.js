@@ -187,20 +187,6 @@ class TravelService {
 
       const result = this.travelStore.loadTripFromApiResponse(response);
 
-      if (result.success) {
-        // 이제 데이터가 store에 로드되고 sessionStorage에도 자동 저장됨
-        console.log("조회 성공");
-
-        if (result.saveWarning) {
-          // 저장에 실패한 경우 경고 표시
-          // notificationStore.showWarning("₩");
-          console.log("조회 결과 저장 실패");
-        }
-      } else {
-        // notificationStore.showError(result.message);
-        console.log("조회 에러");
-      }
-
       return result;
     } catch (error) {}
   }

@@ -42,7 +42,6 @@ export class InfoWindowRenderer {
    */
   openWebsiteInNewTab(url, placeName) {
     if (!url || typeof url !== "string") {
-      console.warn("유효하지 않은 URL:", url);
       return;
     }
 
@@ -50,7 +49,6 @@ export class InfoWindowRenderer {
     let processedUrl = url.trim();
 
     if (!processedUrl) {
-      console.warn("빈 URL입니다.");
       return;
     }
 
@@ -77,19 +75,13 @@ export class InfoWindowRenderer {
         newWindow.closed ||
         typeof newWindow.closed === "undefined"
       ) {
-        console.warn("팝업이 차단되었습니다:", placeName);
         return;
       }
-
-      console.log(`${placeName} 웹사이트를 새 탭에서 열었습니다.`);
     } catch (error) {
-      console.error("URL 열기 오류:", error);
-
-      // 최종 fallback: 브라우저의 기본 동작으로 시도
       try {
         window.location.href = processedUrl;
       } catch (fallbackError) {
-        console.error("Fallback navigation 실패:", fallbackError);
+        throw fallbackError;
       }
     }
   }

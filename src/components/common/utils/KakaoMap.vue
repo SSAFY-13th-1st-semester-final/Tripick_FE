@@ -270,7 +270,7 @@ const updateMapDisplay = async () => {
       }
     }
   } catch (error) {
-    console.error("지도 표시 업데이트 실패:", error);
+    notificationStore.showError("지도 표시 업데이트 실패");
   }
 };
 

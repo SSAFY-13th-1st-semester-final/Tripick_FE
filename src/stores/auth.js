@@ -152,7 +152,7 @@ export const useAuthStore = defineStore("auth", {
             try {
               existingUser = JSON.parse(existingUserStr);
             } catch (e) {
-              console.error("JSON 파싱 오류:", e);
+              throw e;
             }
           }
 

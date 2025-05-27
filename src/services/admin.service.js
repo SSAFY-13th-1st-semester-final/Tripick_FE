@@ -13,7 +13,6 @@ class AdminService {
       });
       return response;
     } catch (error) {
-      console.error("회원 복구 실패:", error);
       throw error;
     }
   }
@@ -30,7 +29,6 @@ class AdminService {
       );
       return response;
     } catch (error) {
-      console.error("회원 복구 실패:", error);
       throw error;
     }
   }
@@ -63,7 +61,6 @@ class AdminService {
 
       return response;
     } catch (error) {
-      console.error("회원 목록 조회 실패:", error);
       throw error;
     }
   }

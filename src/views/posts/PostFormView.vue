@@ -284,7 +284,6 @@ const loadBoards = async () => {
       notificationStore.showError("게시판 목록을 불러올 수 없습니다.");
     }
   } catch (error) {
-    console.error("게시판 목록 조회 오류:", error);
     notificationStore.showError(
       "게시판 목록을 불러오는 중 오류가 발생했습니다."
     );

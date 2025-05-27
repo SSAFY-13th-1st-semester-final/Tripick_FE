@@ -331,7 +331,6 @@ const loadMembers = async () => {
       throw new Error(response.message || "회원 목록 조회에 실패했습니다.");
     }
   } catch (error) {
-    console.error("회원 목록 조회 실패:", error);
     notificationStore.showError("회원 목록 조회에 실패했습니다.");
     members.value = [];
   } finally {
@@ -359,7 +358,6 @@ const handleMemberRestore = async (member) => {
     // 목록 새로고침
     await loadMembers();
   } catch (error) {
-    console.error("복구 실패:", error);
     notificationStore.showError("복구에 실패했습니다.");
   } finally {
     isProcessing.value = false;
@@ -382,7 +380,6 @@ const handleMemberExpire = async (member) => {
     // 목록 새로고침
     await loadMembers();
   } catch (error) {
-    console.error("토큰 만료 실패:", error);
     notificationStore.showError("토큰 만료에 실패했습니다.");
   } finally {
     isProcessing.value = false;
@@ -409,7 +406,6 @@ const executeBatchRestore = async () => {
     isSelectionMode.value = false;
     await loadMembers();
   } catch (error) {
-    console.error("일괄 복구 실패:", error);
     notificationStore.showError("일괄 복구에 실패했습니다.");
   } finally {
     isProcessing.value = false;
@@ -436,7 +432,6 @@ const executeBatchExpire = async () => {
     isSelectionMode.value = false;
     await loadMembers();
   } catch (error) {
-    console.error("일괄 토큰 만료 실패:", error);
     notificationStore.showError("일괄 토큰 만료에 실패했습니다.");
   } finally {
     isProcessing.value = false;

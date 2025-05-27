@@ -17,7 +17,7 @@ export class AiService {
 
       return response;
     } catch (error) {
-      console.error("ai 요약 호출 에러 : ", error);
+      throw error; // 호출부에서 catch할 수 있도록 다시 throw
     }
   }
 
@@ -53,7 +53,6 @@ export class AiService {
 
       return response;
     } catch (error) {
-      console.error("여행 일정 평가 에러:", error);
       throw error; // 호출부에서 catch할 수 있도록 다시 throw
     }
   }
@@ -68,7 +67,6 @@ export class AiService {
       const response = await ApiService.authPost("/chatbot/chat", { query });
       return response;
     } catch (error) {
-      console.error("AI 챗봇 상담 에러:", error);
       throw error; // 호출부에서 catch할 수 있도록 다시 throw
     }
   }

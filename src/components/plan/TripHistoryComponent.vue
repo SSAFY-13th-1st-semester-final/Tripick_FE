@@ -189,7 +189,7 @@ const loadTripHistoryDetail = async (tripId) => {
       router.push({ name: "travel-planner" });
     }
   } catch (error) {
-    console.error("여행 지도 이동 실패 : ", error);
+    notificationStore.showError("여행 지도 이동에 실패했습니다");
   }
 };
 

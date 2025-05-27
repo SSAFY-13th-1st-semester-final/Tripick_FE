@@ -442,14 +442,12 @@ const openWebsiteInNewTab = (url, placeName) => {
       `${placeName} 웹사이트를 새 탭에서 열었습니다.`
     );
   } catch (error) {
-    console.error("URL open error:", error);
     notificationStore.showError("웹사이트를 열 수 없습니다.");
 
     // 최종 fallback: 브라우저의 기본 동작으로 시도
     try {
       window.location.href = processedUrl;
     } catch (fallbackError) {
-      console.error("Fallback navigation failed:", fallbackError);
       notificationStore.showError("웹사이트 주소가 올바르지 않습니다.");
     }
   }
