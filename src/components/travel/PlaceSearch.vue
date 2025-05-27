@@ -150,12 +150,14 @@
                 </svg>
               </button>
 
-              <!-- 웹사이트 보기 버튼 -->
+              <!-- 웹사이트 보기 버튼 (새 탭에서 열기) -->
               <button
                 v-if="place.placeUrl"
                 class="place-website-btn"
-                @click.stop="openWebsiteModal(place.placeUrl, place.placeName)"
-                title="웹사이트 미리보기"
+                @click.stop="
+                  openWebsiteInNewTab(place.placeUrl, place.placeName)
+                "
+                title="웹사이트 새 탭에서 열기"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -251,13 +253,13 @@
             v-if="selectedDetailPlace?.placeUrl"
             class="website-preview-btn"
             @click="
-              openWebsiteModal(
+              openWebsiteInNewTab(
                 selectedDetailPlace.placeUrl,
                 selectedDetailPlace.placeName
               )
             "
           >
-            웹사이트 미리보기
+            웹사이트 새 탭에서 열기
           </button>
           <button class="close-modal-btn" @click="closeDetailModal">
             닫기
@@ -275,7 +277,6 @@ import { useNotificationStore } from "@/stores/notification";
 import { useTravelStore } from "@/stores/travel";
 import { storeToRefs } from "pinia";
 import infoWindowRenderer from "@/utils/InfoWindowRenderer";
-import websiteModal from "@/utils/WebsiteModal";
 
 // 상태 변수
 const categories = ref([]);
@@ -392,19 +393,73 @@ const loadCategories = async () => {
   }
 };
 
-// 웹사이트 모달 열기
-const openWebsiteModal = (url, placeName) => {
-  if (!url) {
+// 웹사이트 새 탭에서 열기 (HTTPS 변환 포함)
+const openWebsiteInNewTab = (url, placeName) => {
+  if (!url || typeof url !== "string") {
     notificationStore.showWarning("웹사이트 주소가 없습니다.");
     return;
   }
 
-  try {
-    websiteModal.openModal(url, placeName);
-  } catch (error) {
-    notificationStore.showError("웹사이트를 열 수 없습니다.");
-    console.error("Website modal error:", error);
+  // URL 정리 및 HTTPS 변환
+  let processedUrl = url.trim();
+
+  if (!processedUrl) {
+    notificationStore.showWarning("유효하지 않은 웹사이트 주소입니다.");
+    return;
   }
+
+  try {
+    // HTTP를 HTTPS로 변환
+    if (processedUrl.startsWith("http://")) {
+      processedUrl = processedUrl.replace("http://", "https://");
+    }
+
+    // 프로토콜이 없으면 HTTPS 추가
+    if (
+      !processedUrl.startsWith("https://") &&
+      !processedUrl.startsWith("http://")
+    ) {
+      processedUrl = "https://" + processedUrl;
+    }
+
+    // 새 탭에서 열기
+    const newWindow = window.open(processedUrl, "_blank");
+
+    // 팝업 차단 확인
+    if (
+      !newWindow ||
+      newWindow.closed ||
+      typeof newWindow.closed === "undefined"
+    ) {
+      notificationStore.showWarning(
+        "팝업이 차단되었습니다. 브라우저 설정을 확인해주세요."
+      );
+      return;
+    }
+
+    // 성공 알림
+    notificationStore.showSuccess(
+      `${placeName} 웹사이트를 새 탭에서 열었습니다.`
+    );
+  } catch (error) {
+    console.error("URL open error:", error);
+    notificationStore.showError("웹사이트를 열 수 없습니다.");
+
+    // 최종 fallback: 브라우저의 기본 동작으로 시도
+    try {
+      window.location.href = processedUrl;
+    } catch (fallbackError) {
+      console.error("Fallback navigation failed:", fallbackError);
+      notificationStore.showError("웹사이트 주소가 올바르지 않습니다.");
+    }
+  }
+};
+
+// 상세 모달 닫기
+const closeDetailModal = () => {
+  showDetailModal.value = false;
+  selectedDetailPlace.value = null;
+  detailModalContent.value = "";
 };
 
 // 카테고리 선택
@@ -441,7 +496,7 @@ const searchPlaces = async (isNewSearch = false) => {
         pageableCount: 0,
       };
     }
-    //AD5
+
     isLoading.value = true;
     hasSearched.value = true;
 
@@ -544,13 +599,6 @@ const isPlaceAdded = (placeId) => {
 onMounted(() => {
   // 카테고리 로딩
   loadCategories();
-
-  // WebsiteModal 초기화
-  try {
-    websiteModal.initialize();
-  } catch (error) {
-    console.error("WebsiteModal initialization error:", error);
-  }
 
   // InfoWindowRenderer 스타일 추가
   infoWindowRenderer.addInfoWindowStyles();
@@ -894,6 +942,7 @@ watch([observerTarget], () => {
 
     &:hover {
       background-color: rgba($accent-color, 0.1);
+      transform: translateY(-1px);
     }
 
     svg {
@@ -1068,6 +1117,7 @@ watch([observerTarget], () => {
 
       &:hover {
         background: rgba($accent-color, 0.95);
+        transform: translateY(-1px);
       }
     }
 

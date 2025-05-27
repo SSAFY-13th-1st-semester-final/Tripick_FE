@@ -1,7 +1,7 @@
 // src/utils/InfoWindowRenderer.js
 
 /**
- * 카카오맵 인포윈도우 렌더링 클래스
+ * 카카오맵 인포윈도우 렌더링 클래스 (새 탭 열기 버전)
  */
 export class InfoWindowRenderer {
   constructor() {
@@ -22,6 +22,76 @@ export class InfoWindowRenderer {
       "#AD1457",
       "#558B2F",
     ];
+
+    // 새 탭 열기 전역 함수 설정
+    this.setupGlobalFunctions();
+  }
+
+  /**
+   * 전역 함수 설정 (새 탭 열기)
+   */
+  setupGlobalFunctions() {
+    // 기존 WebsiteModal 함수를 새 탭 열기로 대체
+    window.kakaoMapService_openWebsite = (url, placeName) => {
+      this.openWebsiteInNewTab(url, placeName);
+    };
+  }
+
+  /**
+   * 웹사이트 새 탭에서 열기 (HTTPS 변환 포함)
+   */
+  openWebsiteInNewTab(url, placeName) {
+    if (!url || typeof url !== "string") {
+      console.warn("유효하지 않은 URL:", url);
+      return;
+    }
+
+    // URL 정리 및 HTTPS 변환
+    let processedUrl = url.trim();
+
+    if (!processedUrl) {
+      console.warn("빈 URL입니다.");
+      return;
+    }
+
+    try {
+      // HTTP를 HTTPS로 변환
+      if (processedUrl.startsWith("http://")) {
+        processedUrl = processedUrl.replace("http://", "https://");
+      }
+
+      // 프로토콜이 없으면 HTTPS 추가
+      if (
+        !processedUrl.startsWith("https://") &&
+        !processedUrl.startsWith("http://")
+      ) {
+        processedUrl = "https://" + processedUrl;
+      }
+
+      // 새 탭에서 열기
+      const newWindow = window.open(processedUrl, "_blank");
+
+      // 팝업 차단 확인
+      if (
+        !newWindow ||
+        newWindow.closed ||
+        typeof newWindow.closed === "undefined"
+      ) {
+        console.warn("팝업이 차단되었습니다:", placeName);
+        return;
+      }
+
+      console.log(`${placeName} 웹사이트를 새 탭에서 열었습니다.`);
+    } catch (error) {
+      console.error("URL 열기 오류:", error);
+
+      // 최종 fallback: 브라우저의 기본 동작으로 시도
+      try {
+        window.location.href = processedUrl;
+      } catch (fallbackError) {
+        console.error("Fallback navigation 실패:", fallbackError);
+      }
+    }
   }
 
   /**
@@ -150,11 +220,19 @@ export class InfoWindowRenderer {
   }
 
   /**
-   * 장소명 제목 생성 (클릭 가능)
+   * 장소명 제목 생성 (새 탭에서 열기)
    */
   createPlaceTitle(placeName, hasWebsite, placeUrl, dayColor) {
+    // XSS 방지를 위한 URL과 장소명 이스케이프
+    const escapedUrl = placeUrl
+      ? placeUrl.replace(/'/g, "&#39;").replace(/"/g, "&quot;")
+      : "";
+    const escapedPlaceName = placeName
+      .replace(/'/g, "&#39;")
+      .replace(/"/g, "&quot;");
+
     const clickHandler = hasWebsite
-      ? `onclick="window.kakaoMapService_openWebsite('${placeUrl}', '${placeName}')"`
+      ? `onclick="window.kakaoMapService_openWebsite('${escapedUrl}', '${escapedPlaceName}'); event.stopPropagation();"`
       : "";
 
     const hoverStyle = hasWebsite
@@ -178,7 +256,7 @@ export class InfoWindowRenderer {
         <span style="flex: 1;">${placeName}</span>
         ${
           hasWebsite
-            ? `<span style="color: ${dayColor}; font-size: 14px;">🌐</span>`
+            ? `<span style="color: ${dayColor}; font-size: 14px;" title="새 탭에서 웹사이트 열기">🌐</span>`
             : ""
         }
       </div>
@@ -355,6 +433,10 @@ export class InfoWindowRenderer {
           z-index: 1;
         }
         
+        .infowindow-title:hover {
+          transform: translateX(2px) !important;
+        }
+        
         .route-hover-tooltip {
           animation: tooltipFadeIn 0.2s ease-out;
         }
@@ -371,6 +453,16 @@ export class InfoWindowRenderer {
         }
       `;
       document.head.appendChild(style);
+    }
+  }
+
+  /**
+   * 정리 (메모리 정리용)
+   */
+  destroy() {
+    // 전역 함수 정리
+    if (window.kakaoMapService_openWebsite) {
+      delete window.kakaoMapService_openWebsite;
     }
   }
 }

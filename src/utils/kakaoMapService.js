@@ -1,10 +1,9 @@
 // src/utils/kakaoMapService.js
 
 import infoWindowRenderer from "./InfoWindowRenderer.js";
-import websiteModal from "./WebsiteModal.js";
 
 /**
- * 카카오맵 API 관련 유틸리티 함수들
+ * 카카오맵 API 관련 유틸리티 함수들 (WebsiteModal 제거 버전)
  */
 class KakaoMapService {
   constructor() {
@@ -39,8 +38,7 @@ class KakaoMapService {
     // 마커 이미지 캐시
     this.markerImageCache = {};
 
-    // 웹사이트 모달 초기화
-    websiteModal.initialize();
+    // WebsiteModal 초기화 제거 - InfoWindowRenderer에서 처리됨
   }
 
   /**
@@ -705,7 +703,7 @@ class KakaoMapService {
    */
   destroy() {
     this.clearAll();
-    websiteModal.destroy();
+    // WebsiteModal 제거 - InfoWindowRenderer에서 처리됨
     this.map = null;
     this.markerImageCache = {};
   }
