@@ -55,23 +55,17 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path
-            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
-          ></path>
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
           <path d="M7.5 12.5L10.5 15.5L16 10"></path>
         </svg>
       </div>
       <h3 class="success-title">비밀번호 변경 완료</h3>
       <p class="success-message">새로운 비밀번호로 로그인할 수 있습니다.</p>
-      <button class="glass-btn primary full-width" @click="goToLogin">
-        로그인하기
-      </button>
+      <button class="glass-btn primary full-width" @click="goToLogin">로그인하기</button>
     </div>
 
     <div class="footer-link">
-      <router-link to="/auth/login" class="link-text">
-        로그인으로 돌아가기
-      </router-link>
+      <router-link to="/auth/login" class="link-text"> 로그인으로 돌아가기 </router-link>
     </div>
   </div>
 </template>
@@ -81,7 +75,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useNotificationStore } from "@/stores/notification";
 import AuthService from "@/services/auth.service";
-import PasswordInput from "@/components/common/shared/PasswordInput.vue";
+import PasswordInput from "@/components/common/shared/PassWordInput.vue";
 
 export default {
   components: {
@@ -109,9 +103,7 @@ export default {
         email.value = route.params.email;
       } else {
         // 이메일 파라미터가 없으면 비밀번호 찾기 페이지로 리다이렉트
-        notificationStore.showError(
-          "비밀번호 재설정을 위해 이메일 인증이 필요합니다."
-        );
+        notificationStore.showError("비밀번호 재설정을 위해 이메일 인증이 필요합니다.");
         router.push({ name: "forgot-password" });
       }
     });
@@ -150,8 +142,7 @@ export default {
         isResetComplete.value = true;
         notificationStore.showSuccess("비밀번호가 성공적으로 변경되었습니다.");
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
+        const errorMessage = error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
         passwordError.value = errorMessage;
         notificationStore.showError(errorMessage);
       } finally {

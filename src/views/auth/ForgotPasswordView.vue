@@ -14,9 +14,7 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path
-            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
-          ></path>
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
           <path d="M7.5 12.5L10.5 15.5L16 10"></path>
         </svg>
       </div>
@@ -71,31 +69,16 @@
           required
         />
 
-        <div
-          v-if="notification.show"
-          :class="['notification', `notification--${notification.type}`]"
-        >
+        <div v-if="notification.show" :class="['notification', `notification--${notification.type}`]">
           {{ notification.message }}
         </div>
 
         <div class="form-actions">
-          <AppButton
-            type="submit"
-            variant="primary"
-            size="lg"
-            :loading="isLoading"
-            :disabled="isLoading || !formValid"
-          >
+          <AppButton type="submit" variant="primary" size="lg" :loading="isLoading" :disabled="isLoading || !formValid">
             비밀번호 변경
           </AppButton>
 
-          <AppButton
-            type="button"
-            variant="outline"
-            size="lg"
-            @click="navigateBack"
-            :disabled="isLoading"
-          >
+          <AppButton type="button" variant="outline" size="lg" @click="navigateBack" :disabled="isLoading">
             취소
           </AppButton>
         </div>
@@ -111,7 +94,7 @@ import { useAuthStore } from "@/stores/auth";
 import AuthService from "@/services/auth.service";
 import AppInput from "@/components/common/shared/AppInput.vue";
 import AppButton from "@/components/common/shared/AppButton.vue";
-import PasswordInput from "@/components/common/shared/PasswordInput.vue";
+import PasswordInput from "@/components/common/shared/PassWordInput.vue";
 import { isRequired } from "@/utils/validators";
 
 // 라우터
@@ -220,10 +203,7 @@ const onConfirmPasswordValid = (valid) => {
 // 전체 폼 유효성 계산
 const formValid = computed(() => {
   return (
-    !!formData.currentPassword &&
-    !errors.currentPassword &&
-    isNewPasswordValid.value &&
-    isConfirmPasswordValid.value
+    !!formData.currentPassword && !errors.currentPassword && isNewPasswordValid.value && isConfirmPasswordValid.value
   );
 });
 
@@ -240,14 +220,9 @@ const validateForm = () => {
 
   // 오류 객체 업데이트
   if (errors.currentPassword) delete errors.currentPassword;
-  if (newErrors.currentPassword)
-    errors.currentPassword = newErrors.currentPassword;
+  if (newErrors.currentPassword) errors.currentPassword = newErrors.currentPassword;
 
-  return (
-    Object.keys(newErrors).length === 0 &&
-    isNewPasswordValid.value &&
-    isConfirmPasswordValid.value
-  );
+  return Object.keys(newErrors).length === 0 && isNewPasswordValid.value && isConfirmPasswordValid.value;
 };
 
 // 폼 제출
@@ -275,16 +250,10 @@ const handleSubmit = async () => {
       if (error.response.status === 401) {
         showNotification("현재 비밀번호가 올바르지 않습니다.", "error");
       } else {
-        showNotification(
-          error.response.data.message || "비밀번호 변경에 실패했습니다.",
-          "error"
-        );
+        showNotification(error.response.data.message || "비밀번호 변경에 실패했습니다.", "error");
       }
     } else {
-      showNotification(
-        "서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        "error"
-      );
+      showNotification("서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.", "error");
     }
   } finally {
     isLoading.value = false;
