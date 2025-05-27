@@ -97,16 +97,24 @@
       </div>
     </div>
 
-    <div v-if="post.thumbNail" class="post-content__thumbnail">
-      <img :src="post.thumbNail" :alt="post.title" @error="handleImageError" />
+    <!-- 게시글 썸네일 -->
+    <div v-if="post.thumbnail" class="post-content__thumbnail">
+      <div class="post-content__thumbnail-container">
+        <img
+          :src="post.thumbnail"
+          :alt="post.title"
+          class="post-content__thumbnail-image"
+          @error="handleImageError"
+        />
+        <div class="post-content__thumbnail-overlay"></div>
+      </div>
     </div>
 
     <div class="post-content__body">
-      <div v-if="post.description" class="post-content__description">
-        {{ post.description }}
+      <!-- 게시글 본문 내용 -->
+      <div class="post-content__main-content">
+        <div class="post-content__text" v-html="post.content"></div>
       </div>
-
-      <div class="post-content__text" v-html="post.content"></div>
     </div>
   </div>
 </template>
@@ -205,9 +213,20 @@ const handleProfileError = (event) => {
   display: flex;
   flex-direction: column;
   gap: $spacing-lg;
+  min-height: 900px; // 컨테이너 최소 높이를 더 길게 설정
+
+  @media (max-width: $breakpoint-md) {
+    min-height: 700px;
+    padding: $spacing-lg;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    min-height: 600px;
+    padding: $spacing-xs;
+  }
 
   &__header {
-    margin-bottom: $spacing-sm;
+    margin-bottom: $spacing-lg;
   }
 
   &__actions {
@@ -222,12 +241,17 @@ const handleProfileError = (event) => {
   }
 
   &__title {
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: $primary-color;
     margin: 0 0 $spacing-lg;
     line-height: 1.4;
+    font-weight: $font-weight-bold;
 
     @media (max-width: $breakpoint-md) {
+      font-size: 1.7rem;
+    }
+
+    @media (max-width: $breakpoint-sm) {
       font-size: 1.5rem;
     }
   }
@@ -238,6 +262,7 @@ const handleProfileError = (event) => {
     align-items: center;
     flex-wrap: wrap;
     gap: $spacing-md;
+    padding-bottom: $spacing-lg;
   }
 
   &__author {
@@ -246,16 +271,23 @@ const handleProfileError = (event) => {
   }
 
   &__author-image {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     overflow: hidden;
-    margin-right: $spacing-sm;
+    margin-right: $spacing-md;
+    @include glassmorphism(0.3, 5px);
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      width: 40px;
+      height: 40px;
+      margin-right: $spacing-sm;
     }
   }
 
@@ -267,51 +299,109 @@ const handleProfileError = (event) => {
   &__author-name {
     font-weight: $font-weight-medium;
     color: $primary-color;
+    font-size: 1.1rem;
+
+    @media (max-width: $breakpoint-sm) {
+      font-size: 1rem;
+    }
   }
 
   &__date {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: rgba($primary-color, 0.6);
+    margin-top: 2px;
+
+    @media (max-width: $breakpoint-sm) {
+      font-size: 0.8rem;
+    }
   }
 
+  // 썸네일 영역 스타일링
   &__thumbnail {
-    margin-bottom: $spacing-md;
-    overflow: hidden;
-    border-radius: 8px;
+    margin: $spacing-md 0 $spacing-xl 0; // 상단 마진 줄이고 하단은 유지
 
-    img {
-      width: 100%;
-      height: auto;
-      display: block;
+    @media (max-width: $breakpoint-md) {
+      margin: $spacing-sm 0 $spacing-lg 0;
     }
+  }
+
+  &__thumbnail-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    border-radius: 16px;
+    overflow: hidden;
+    @include glassmorphism(0.1, 8px);
+
+    @media (max-width: $breakpoint-md) {
+      height: 300px;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      height: 250px;
+      border-radius: 12px;
+    }
+  }
+
+  &__thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform $transition-normal;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  &__thumbnail-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, rgba($primary-color, 0.3));
+    pointer-events: none;
   }
 
   &__body {
     display: flex;
     flex-direction: column;
     gap: $spacing-lg;
+    flex-grow: 1;
+
+    @media (max-width: $breakpoint-md) {
+      gap: $spacing-md;
+    }
   }
 
-  &__description {
-    font-size: 1.1rem;
-    color: rgba($primary-color, 0.8);
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-lg;
-    border-bottom: 1px solid rgba($primary-color, 0.1);
+  // 본문 콘텐츠 섹션 스타일링
+  &__main-content {
+    flex-grow: 1;
+    min-height: 300px; // 본문 영역 최소 높이 확보
   }
 
   &__text {
-    line-height: 1.6;
+    line-height: 1.8;
     color: $primary-color;
+    font-size: 1.1rem;
+
+    @media (max-width: $breakpoint-sm) {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
 
     ::v-deep(img) {
       max-width: 100%;
       height: auto;
+      border-radius: 8px;
+      margin: $spacing-lg 0;
     }
 
     ::v-deep(a) {
       color: $accent-color;
       text-decoration: none;
+      font-weight: $font-weight-medium;
 
       &:hover {
         text-decoration: underline;
@@ -324,42 +414,76 @@ const handleProfileError = (event) => {
     ::v-deep(h4),
     ::v-deep(h5),
     ::v-deep(h6) {
-      margin-top: $spacing-xl;
-      margin-bottom: $spacing-md;
+      margin-top: $spacing-2xl;
+      margin-bottom: $spacing-lg;
       color: $primary-color;
+      font-weight: $font-weight-bold;
+
+      @media (max-width: $breakpoint-md) {
+        margin-top: $spacing-xl;
+        margin-bottom: $spacing-md;
+      }
     }
 
     ::v-deep(p) {
       margin-bottom: $spacing-lg;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
 
     ::v-deep(ul),
     ::v-deep(ol) {
       margin-bottom: $spacing-lg;
       padding-left: $spacing-xl;
+
+      li {
+        margin-bottom: $spacing-sm;
+      }
     }
 
     ::v-deep(blockquote) {
-      margin: $spacing-lg 0;
-      padding: $spacing-md $spacing-lg;
+      margin: $spacing-xl 0;
+      padding: $spacing-lg;
       border-left: 4px solid $accent-color;
-      background-color: rgba($accent-color, 0.05);
+      @include glassmorphism(0.3, 8px);
+      border-radius: 0 8px 8px 0;
       font-style: italic;
+      position: relative;
+
+      &::before {
+        content: '"';
+        font-size: 3rem;
+        color: rgba($accent-color, 0.3);
+        position: absolute;
+        top: -10px;
+        left: $spacing-md;
+        font-family: serif;
+      }
     }
 
     ::v-deep(pre) {
       background: rgba($primary-color, 0.05);
-      padding: $spacing-md;
-      border-radius: 4px;
+      padding: $spacing-lg;
+      border-radius: 8px;
       overflow-x: auto;
-      margin-bottom: $spacing-lg;
+      margin: $spacing-xl 0;
+      border: 1px solid rgba($primary-color, 0.1);
+
+      code {
+        background: none;
+        padding: 0;
+      }
     }
 
     ::v-deep(code) {
-      font-family: monospace;
-      background: rgba($primary-color, 0.05);
-      padding: 2px 4px;
+      font-family: "Monaco", "Consolas", monospace;
+      background: rgba($primary-color, 0.08);
+      padding: 3px 6px;
       border-radius: 4px;
+      font-size: 0.9em;
+      color: rgba($primary-color, 0.9);
     }
   }
 }
@@ -367,9 +491,14 @@ const handleProfileError = (event) => {
 .back-btn {
   display: flex;
   align-items: center;
+  gap: $spacing-xs;
+  transition: transform $transition-fast;
+
+  &:hover {
+    transform: translateX(-2px);
+  }
 
   .post-content__icon {
-    margin-right: $spacing-xs;
     width: 16px;
     height: 16px;
   }
@@ -380,14 +509,13 @@ const handleProfileError = (event) => {
 
   &:hover {
     background-color: rgba($error-color, 0.1);
+    border-color: $error-color;
   }
 }
 
 // 모바일 최적화
 @media (max-width: $breakpoint-md) {
   .post-content {
-    padding: $spacing-lg;
-
     &__actions {
       flex-direction: column;
       gap: $spacing-sm;
@@ -402,6 +530,19 @@ const handleProfileError = (event) => {
       flex-direction: column;
       align-items: stretch;
       gap: $spacing-sm;
+    }
+  }
+}
+
+// 추가 반응형 처리
+@media (max-width: $breakpoint-sm) {
+  .post-content {
+    &__actions {
+      gap: $spacing-xs;
+    }
+
+    &__author-actions {
+      flex-direction: column;
     }
   }
 }
