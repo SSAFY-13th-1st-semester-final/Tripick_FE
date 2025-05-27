@@ -1,14 +1,11 @@
 <template>
-  <!-- 개발 환경에서만 렌더링 -->
-  <div v-if="isDev">
-    <!-- 배경 오버레이 (패널이 열려있을 때) -->
+  <div>
     <div
       v-if="showDevPanel || showMemberList"
       class="panel-backdrop"
       @click="closeAllPanels"
     ></div>
 
-    <!-- 관리자 패널 -->
     <div
       v-if="showDevPanel"
       class="admin-panel glass-card"
@@ -131,10 +128,10 @@
         showDevPanel
           ? isAdmin
             ? '관리자도구 숨기기'
-            : '개발자도구 숨기기'
+            : '토큰 관리도구 숨기기'
           : isAdmin
           ? '관리자도구 보이기'
-          : '개발자도구 보이기'
+          : '토큰 관리도구 보이기'
       "
     >
       {{ isAdmin ? "🛠️" : "🔧" }}
@@ -158,9 +155,6 @@ import { useNotificationStore } from "@/stores/notification";
 import TokenMonitorService from "@/services/token-monitor.service";
 import ApiService from "@/services/api.service";
 import AdminMemberList from "@/components/common/utils/AdminMemberList.vue";
-
-// 환경 확인
-const isDev = import.meta.env.DEV;
 
 // 스토어 접근
 const authStore = useAuthStore();
@@ -220,11 +214,13 @@ const getTimeStatusClass = computed(() => (seconds) => {
 
 // 메서드들
 const updateDevPanelStatus = () => {
-  if (isDev && showDevPanel.value && !isDevPanelCollapsed.value) {
+  if (showDevPanel.value && !isDevPanelCollapsed.value) {
     try {
       tokenStatus.value = TokenMonitorService.getStatus();
       apiStatus.value = ApiService.getStatus();
-    } catch (error) {}
+    } catch (error) {
+      console.error("상태 업데이트 오류:", error);
+    }
   }
 };
 
@@ -309,8 +305,6 @@ const clearDevPanel = () => {
 };
 
 const setupKeyboardShortcuts = () => {
-  if (!isDev) return;
-
   const handleKeydown = (e) => {
     // ESC: 모든 패널 닫기
     if (e.key === "Escape" && hasOpenPanels.value) {
@@ -358,8 +352,6 @@ const setupKeyboardShortcuts = () => {
 };
 
 const setupGlobalObjects = () => {
-  if (!isDev) return;
-
   // 전역 접근 객체 설정
   window.__VUE_ADMIN__ = {
     authStore,
@@ -380,15 +372,13 @@ const setupGlobalObjects = () => {
 
 // 라이프사이클 훅
 onMounted(() => {
-  if (!isDev) return;
-
   // 키보드 단축키 설정
   keyboardCleanup = setupKeyboardShortcuts();
 
   // 전역 객체 설정
   setupGlobalObjects();
 
-  const toolName = isAdmin.value ? "관리자도구" : "개발자도구";
+  const toolName = isAdmin.value ? "관리자도구" : "토큰 관리도구";
   console.log(`🛠️ ${toolName}가 활성화되었습니다.`);
   console.log("키보드 단축키:");
   console.log("  Ctrl + Shift + D: 패널 토글");
