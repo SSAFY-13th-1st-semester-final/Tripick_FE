@@ -131,6 +131,7 @@
                 v-else-if="hasTripPlan"
                 class="add-place-btn"
                 @click.stop="selectPlace(place)"
+                title="일정에 추가"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -149,11 +150,12 @@
                 </svg>
               </button>
 
-              <a
-                :href="place.placeUrl"
-                target="_blank"
-                class="place-link"
-                @click.stop="showPlaceDetail(place)"
+              <!-- 웹사이트 보기 버튼 -->
+              <button
+                v-if="place.placeUrl"
+                class="place-website-btn"
+                @click.stop="openWebsiteModal(place.placeUrl, place.placeName)"
+                title="웹사이트 미리보기"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -172,8 +174,8 @@
                   <polyline points="15 3 21 3 21 9"></polyline>
                   <line x1="10" y1="14" x2="21" y2="3"></line>
                 </svg>
-                상세보기
-              </a>
+                웹사이트
+              </button>
             </div>
           </div>
 
@@ -214,6 +216,55 @@
       </svg>
       <p>여행 날짜를 먼저 설정해야 장소를 추가할 수 있습니다.</p>
     </div>
+
+    <!-- 장소 상세 정보 모달 -->
+    <div
+      v-if="showDetailModal"
+      class="place-detail-modal-backdrop"
+      @click="closeDetailModal"
+    >
+      <div class="place-detail-modal glass-modal" @click.stop>
+        <div class="modal-header">
+          <h3>장소 상세 정보</h3>
+          <button class="close-btn" @click="closeDetailModal">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-content" v-html="detailModalContent"></div>
+
+        <div class="modal-footer">
+          <button
+            v-if="selectedDetailPlace?.placeUrl"
+            class="website-preview-btn"
+            @click="
+              openWebsiteModal(
+                selectedDetailPlace.placeUrl,
+                selectedDetailPlace.placeName
+              )
+            "
+          >
+            웹사이트 미리보기
+          </button>
+          <button class="close-modal-btn" @click="closeDetailModal">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -224,6 +275,7 @@ import { useNotificationStore } from "@/stores/notification";
 import { useTravelStore } from "@/stores/travel";
 import { storeToRefs } from "pinia";
 import infoWindowRenderer from "@/utils/InfoWindowRenderer";
+import websiteModal from "@/utils/WebsiteModal";
 
 // 상태 변수
 const categories = ref([]);
@@ -261,6 +313,7 @@ const {
   formatDate,
 } = storeToRefs(travelStore);
 
+// 상세 정보 모달 관련 상태
 const showDetailModal = ref(false);
 const selectedDetailPlace = ref(null);
 const detailModalContent = ref("");
@@ -339,36 +392,19 @@ const loadCategories = async () => {
   }
 };
 
-// 장소 상세 정보 표시
-const showPlaceDetail = (place) => {
-  selectedDetailPlace.value = place;
+// 웹사이트 모달 열기
+const openWebsiteModal = (url, placeName) => {
+  if (!url) {
+    notificationStore.showWarning("웹사이트 주소가 없습니다.");
+    return;
+  }
 
-  // InfoWindowRenderer를 사용하여 상세 정보 HTML 생성
-  const placeWithDay = {
-    ...place,
-    day: currentDay.value + 1,
-    type: searchMode.value === "hotel" ? "hotel_start" : "place",
-  };
-
-  detailModalContent.value = infoWindowRenderer.createInfoWindowContent(
-    placeWithDay,
-    1, // markerNumber
-    null // legData
-  );
-
-  showDetailModal.value = true;
-
-  // 모달 표시 후 스타일 적용
-  setTimeout(() => {
-    infoWindowRenderer.addInfoWindowStyles();
-  }, 50);
-};
-
-// 상세 정보 모달 닫기
-const closeDetailModal = () => {
-  showDetailModal.value = false;
-  selectedDetailPlace.value = null;
-  detailModalContent.value = "";
+  try {
+    websiteModal.openModal(url, placeName);
+  } catch (error) {
+    notificationStore.showError("웹사이트를 열 수 없습니다.");
+    console.error("Website modal error:", error);
+  }
 };
 
 // 카테고리 선택
@@ -506,7 +542,18 @@ const isPlaceAdded = (placeId) => {
 
 // 컴포넌트 마운트 시 카테고리 로딩 및 IntersectionObserver 설정
 onMounted(() => {
+  // 카테고리 로딩
   loadCategories();
+
+  // WebsiteModal 초기화
+  try {
+    websiteModal.initialize();
+  } catch (error) {
+    console.error("WebsiteModal initialization error:", error);
+  }
+
+  // InfoWindowRenderer 스타일 추가
+  infoWindowRenderer.addInfoWindowStyles();
 
   // 검색어 입력 필드에 자동 포커스
   document.querySelector(".search-input")?.focus();
@@ -830,20 +877,35 @@ watch([observerTarget], () => {
     }
   }
 
-  .place-link {
+  .place-link,
+  .place-website-btn {
     display: flex;
     align-items: center;
     gap: $spacing-xs;
     color: $accent-color;
     font-size: 10px;
     text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all $transition-fast;
 
     &:hover {
-      text-decoration: underline;
+      background-color: rgba($accent-color, 0.1);
     }
 
     svg {
       flex-shrink: 0;
+    }
+  }
+
+  .place-website-btn {
+    color: $success-color;
+
+    &:hover {
+      background-color: rgba($success-color, 0.1);
     }
   }
 }
@@ -910,6 +972,122 @@ watch([observerTarget], () => {
   margin-top: $spacing-md;
 }
 
+// 상세 정보 모달 스타일
+.place-detail-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: $z-index-modal-backdrop;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+}
+
+.place-detail-modal {
+  @include glassmorphism(0.7, 15px);
+  border-radius: 16px;
+  padding: $spacing-xl;
+  max-width: 500px;
+  max-height: 80vh;
+  width: 100%;
+  overflow-y: auto;
+  margin: 0 auto;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid rgba($primary-color, 0.1);
+
+    h3 {
+      font-size: 18px;
+      font-weight: $font-weight-bold;
+      color: $primary-color;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      padding: $spacing-xs;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: rgba($primary-color, 0.1);
+      }
+
+      svg {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .modal-content {
+    margin-bottom: $spacing-lg;
+
+    // InfoWindowRenderer 스타일과 동일하게 적용
+    :deep(.map-infowindow) {
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      min-width: auto !important;
+      max-width: none !important;
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: flex-end;
+    padding-top: $spacing-md;
+    border-top: 1px solid rgba($primary-color, 0.1);
+
+    .website-preview-btn {
+      background: rgba($accent-color, 0.85);
+      color: white;
+      border: none;
+      padding: $spacing-sm $spacing-md;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: rgba($accent-color, 0.95);
+      }
+    }
+
+    .close-modal-btn {
+      @include glassmorphism(0.5, 8px);
+      color: $primary-color;
+      border: none;
+      padding: $spacing-sm $spacing-md;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.7);
+      }
+    }
+  }
+}
+
 @keyframes spinner {
   to {
     transform: rotate(360deg);
@@ -944,6 +1122,14 @@ watch([observerTarget], () => {
     right: auto;
     left: 0;
     width: 100%;
+  }
+
+  .place-detail-modal-backdrop {
+    padding: $spacing-md;
+  }
+
+  .place-detail-modal {
+    max-height: 90vh;
   }
 }
 </style>
