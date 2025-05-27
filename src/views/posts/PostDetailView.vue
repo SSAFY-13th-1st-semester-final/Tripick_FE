@@ -330,10 +330,13 @@ const editPost = () => {
     return;
   }
 
+  const postMemberId = String(post.value.memberId);
+  const currentUserId = String(authStore.currentUser.id);
+
   // 권한 확인 (작성자 또는 관리자)
   const isAuthorOrAdmin =
     authStore.isAdmin ||
-    (authStore.currentUser && post.value.memberId === authStore.currentUser.id);
+    (authStore.currentUser && postMemberId === currentUserId);
 
   if (!isAuthorOrAdmin) {
     notificationStore.showError("게시글을 수정할 권한이 없습니다.");
