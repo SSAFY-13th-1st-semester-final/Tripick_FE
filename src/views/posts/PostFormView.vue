@@ -55,11 +55,22 @@
                 v-model="formData.boardType"
                 class="post-form__select glass-input"
                 :class="{ 'is-invalid': !!errors.boardType }"
+                :disabled="boardsLoading"
               >
-                <option value="GENERAL_FORUM">자유게시판</option>
-                <option value="NOTICE">공지사항</option>
-                <option value="QNA_FORUM">Q&A</option>
-                <option value="TRIP_FORUM">여행 후기</option>
+                <option value="" disabled>
+                  {{
+                    boardsLoading
+                      ? "게시판 목록 로딩 중..."
+                      : "게시판을 선택하세요"
+                  }}
+                </option>
+                <option
+                  v-for="board in filteredBoards"
+                  :key="board.id"
+                  :value="board.name"
+                >
+                  {{ getBoardDisplayName(board.name) }}
+                </option>
               </select>
               <div class="post-form__select-arrow">
                 <svg
@@ -176,7 +187,9 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useNotificationStore } from "@/stores/notification";
+import { useAuthStore } from "@/stores/auth";
 import PostService from "@/services/post.service";
+import BoardService from "@/services/board.service";
 import PostEditor from "@/components/posts/PostEditor.vue";
 import ThumbnailUploader from "@/components/posts/ThumbnailUploader.vue";
 import AppInput from "@/components/common/shared/AppInput.vue";
@@ -187,12 +200,17 @@ import { isRequired } from "@/utils/validators";
 const route = useRoute();
 const router = useRouter();
 const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
 
 // 상태 정의
 const isEditing = computed(() => !!route.params.id);
 const isSubmitting = ref(false);
 const isThumbnailUploading = ref(false);
+const boardsLoading = ref(false);
 const errors = reactive({});
+
+// 게시판 목록 관련 상태
+const boards = ref([]);
 
 // 에디터 키 (컴포넌트 재렌더링용)
 const editorKey = computed(() =>
@@ -205,7 +223,28 @@ const formData = reactive({
   description: "",
   thumbnail: "",
   content: "",
-  boardType: "GENERAL_FORUM",
+  boardType: "",
+});
+
+// 게시판 타입 한글 매핑
+const boardTypeMap = {
+  GENERAL_FORUM: "자유게시판",
+  NOTICE: "공지사항",
+  QNA_FORUM: "Q&A",
+  TRIP_FORUM: "여행 후기",
+};
+
+// 게시판 표시명 가져오기
+const getBoardDisplayName = (boardName) => {
+  return boardTypeMap[boardName] || boardName;
+};
+
+// 관리자가 아닌 경우 공지사항 제외한 게시판 목록
+const filteredBoards = computed(() => {
+  if (authStore.isAdmin) {
+    return boards.value;
+  }
+  return boards.value.filter((board) => board.name !== "NOTICE");
 });
 
 // 폼 유효성 체크
@@ -215,9 +254,57 @@ const isFormValid = computed(() => {
     formData.content.trim() &&
     formData.boardType &&
     Object.keys(errors).length === 0 &&
-    !isThumbnailUploading.value
+    !isThumbnailUploading.value &&
+    !boardsLoading.value
   );
 });
+
+// 게시판 목록 조회
+const loadBoards = async () => {
+  boardsLoading.value = true;
+
+  try {
+    const response = await BoardService.getBoards();
+
+    if (response && response.data) {
+      boards.value = response.data;
+
+      // 기본값 설정 (자유게시판)
+      if (!isEditing.value && boards.value.length > 0) {
+        const generalBoard = boards.value.find(
+          (board) => board.name === "GENERAL_FORUM"
+        );
+        if (generalBoard) {
+          formData.boardType = generalBoard.name;
+        } else if (filteredBoards.value.length > 0) {
+          formData.boardType = filteredBoards.value[0].name;
+        }
+      }
+    } else {
+      notificationStore.showError("게시판 목록을 불러올 수 없습니다.");
+    }
+  } catch (error) {
+    console.error("게시판 목록 조회 오류:", error);
+    notificationStore.showError(
+      "게시판 목록을 불러오는 중 오류가 발생했습니다."
+    );
+
+    // 오류 발생 시 기본 게시판 목록 사용
+    boards.value = [
+      { id: 1, name: "GENERAL_FORUM", description: "자유게시판" },
+      { id: 2, name: "QNA_FORUM", description: "Q&A" },
+      { id: 3, name: "TRIP_FORUM", description: "여행 후기" },
+    ];
+
+    if (authStore.isAdmin) {
+      boards.value.push({ id: 4, name: "NOTICE", description: "공지사항" });
+    }
+
+    formData.boardType = "GENERAL_FORUM";
+  } finally {
+    boardsLoading.value = false;
+  }
+};
 
 // 썸네일 업로드 이벤트 핸들러들
 const handleThumbnailUpdate = (imageUrl) => {
@@ -314,12 +401,17 @@ const validateForm = () => {
   // 게시판 유형 검사
   if (!isRequired(formData.boardType)) {
     newErrors.boardType = "게시판 유형을 선택해주세요.";
-  } else if (
-    !["GENERAL_FORUM", "NOTICE", "QNA_FORUM", "TRIP_FORUM"].includes(
-      formData.boardType
-    )
-  ) {
-    newErrors.boardType = "유효하지 않은 게시판 유형입니다.";
+  } else {
+    // 동적으로 로드된 게시판 목록에서 유효성 검사
+    const validBoardTypes = boards.value.map((board) => board.name);
+    if (!validBoardTypes.includes(formData.boardType)) {
+      newErrors.boardType = "유효하지 않은 게시판 유형입니다.";
+    }
+
+    // 관리자가 아닌 경우 공지사항 선택 불가
+    if (!authStore.isAdmin && formData.boardType === "NOTICE") {
+      newErrors.boardType = "공지사항은 관리자만 작성할 수 있습니다.";
+    }
   }
 
   // 제목 검사
@@ -343,6 +435,11 @@ const validateForm = () => {
   // 썸네일 업로드 중 확인
   if (isThumbnailUploading.value) {
     newErrors.thumbnail = "이미지 업로드가 완료될 때까지 기다려주세요.";
+  }
+
+  // 게시판 로딩 중 확인
+  if (boardsLoading.value) {
+    newErrors.boardType = "게시판 목록을 불러오는 중입니다. 잠시 기다려주세요.";
   }
 
   // 오류 객체 업데이트
@@ -424,8 +521,16 @@ const navigateBack = () => {
   router.go(-1);
 };
 
-// 컴포넌트 마운트 시 게시글 로드 (편집 모드인 경우)
-onMounted(loadPost);
+// 컴포넌트 마운트 시 초기화
+onMounted(async () => {
+  // 게시판 목록을 먼저 로드
+  await loadBoards();
+
+  // 편집 모드인 경우 게시글 로드
+  if (isEditing.value) {
+    await loadPost();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -512,6 +617,11 @@ onMounted(loadPost);
 
     &:focus {
       outline: none;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     &.is-invalid {
