@@ -1418,9 +1418,10 @@ export const useTravelStore = defineStore("travel", {
             id: place.placeId,
             placeName: place.placeName || "",
             phone: place.phone || "", // API에 있다면 추가
+            placeUrl: place.placeUrl || "",
             x: place.x || 0,
             y: place.y || 0,
-            addressName: place.address || "", // API에 있다면 추가
+            addressName: place.addressName || "", // API에 있다면 추가
             roadAddressName: place.roadAddress || "", // API에 있다면 추가
             categoryName: place.category || "", // API에 있다면 추가
             memo: "", // 기본값
